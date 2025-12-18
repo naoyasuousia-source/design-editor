@@ -172,8 +172,8 @@ async function restoreLastSession() {
   const lastFileName = localStorage.getItem('lastOpenedFile');
   if (lastFileName) {
     try {
-      // サーバーから最新のファイルをfetch（Viteが最新版を提供）
-      const response = await fetch(`/${lastFileName}`);
+      // キャッシュを避けるためにタイムスタンプを付与
+      const response = await fetch(`/${lastFileName}?t=${Date.now()}`);
       if (response.ok) {
         const content = await response.text();
         designArea.innerHTML = content;
