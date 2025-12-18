@@ -79,7 +79,12 @@ function updateUI() {
  */
 async function fetchLatestDesign(fileName: string) {
   try {
-    const response = await fetch(`/${fileName}?t=${Date.now()}`);
+    // まず design/ フォルダ内を試行し、なければルートを確認
+    let response = await fetch(`/design/${fileName}?t=${Date.now()}`);
+    if (!response.ok) {
+      response = await fetch(`/${fileName}?t=${Date.now()}`);
+    }
+
     if (response.ok) {
       const content = await response.text();
       designArea.innerHTML = content;
