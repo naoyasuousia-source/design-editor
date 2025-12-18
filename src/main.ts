@@ -195,6 +195,16 @@ observer.observe(designArea, {
   characterData: true,
 });
 
+// ズーム機能
+const selectZoom = document.getElementById('select-zoom') as HTMLSelectElement;
+selectZoom.addEventListener('change', () => {
+  const scale = selectZoom.value;
+  designArea.style.transform = `scale(${scale})`;
+});
+
+// 初期化（倍率を100%にリセット）
+designArea.style.transform = 'scale(1)';
+
 updateUI();
 
 // グローバルインターフェース
