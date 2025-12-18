@@ -10,6 +10,7 @@ const designArea = document.getElementById('design-area') as HTMLDivElement;
 const btnOpen = document.getElementById('btn-open') as HTMLButtonElement;
 const btnSaveAs = document.getElementById('btn-save-as') as HTMLButtonElement;
 const btnSave = document.getElementById('btn-save') as HTMLButtonElement;
+const btnReload = document.getElementById('btn-reload') as HTMLButtonElement;
 const currentFileNameDisplay = document.getElementById('current-filename') as HTMLSpanElement;
 const statusIndicator = document.getElementById('save-status-indicator') as HTMLSpanElement;
 
@@ -35,6 +36,18 @@ function showToast(message: string, duration = 3000) {
     animation: slideIn 0.3s ease-out forwards;
   `;
   document.body.appendChild(toast);
+
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+  `;
+  if (!document.querySelector('style#toast-style')) {
+    style.id = 'toast-style';
+    document.head.appendChild(style);
+  }
 
   setTimeout(() => {
     toast.style.opacity = '0';
@@ -76,6 +89,28 @@ async function fetchLatestDesign(fileName: string) {
     }
   } catch (err) {
     console.error('Fetch failed:', err);
+  }
+}
+
+/**
+ * ファイルを保存内容から読み直す
+ */
+async function handleReload() {
+  const lastFileName = localStorage.getItem('lastOpenedFile');
+  if (fileHandle) {
+    try {
+      const file = await fileHandle.getFile();
+      designArea.innerHTML = await file.text();
+      isModified = false;
+      updateUI();
+      showToast('ファイルを保存内容から読み直しました');
+    } catch (err) {
+      console.error('Reload from file failed:', err);
+    }
+  } else if (lastFileName) {
+    await fetchLatestDesign(lastFileName);
+  } else {
+    showToast('読み直すファイルがありません');
   }
 }
 
@@ -135,6 +170,7 @@ async function saveToFile() {
 btnOpen.addEventListener('click', handleOpen);
 btnSaveAs.addEventListener('click', handleSaveAs);
 btnSave.addEventListener('click', handleSave);
+btnReload.addEventListener('click', handleReload);
 
 designArea.contentEditable = "true";
 
@@ -143,6 +179,7 @@ window.addEventListener('keydown', (e) => {
   if (e.ctrlKey || e.metaKey) {
     if (e.key.toLowerCase() === 's') { e.preventDefault(); handleSave(); }
     if (e.key.toLowerCase() === 'o') { e.preventDefault(); handleOpen(); }
+    if (e.key.toLowerCase() === 'r') { e.preventDefault(); handleReload(); }
   }
 });
 
@@ -168,6 +205,9 @@ if ((import.meta as any).hot) {
 }
 
 // Initial session restore
-const lastFile = localStorage.getItem('lastOpenedFile');
-if (lastFile) fetchLatestDesign(lastFile);
-else updateUI();
+const lastFileMemory = localStorage.getItem('lastOpenedFile');
+if (lastFileMemory) {
+  fetchLatestDesign(lastFileMemory);
+} else {
+  updateUI();
+}
