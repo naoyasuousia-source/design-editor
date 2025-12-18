@@ -40,10 +40,41 @@
   <main class="main-wrapper">
     <div id="design-canvas">
       <!-- Antigravityはこの中のinnerHTMLを操作します -->
-      <div id="design-area" contenteditable="false">
-        <div style="text-align:center; padding: 100px 0; color: #ccc;">
-          <h1>Start Designing</h1>
-          <p>保存されているデザインを開くか、Antigravityに新しいデザインの作成を依頼してください。</p>
+      <div id="design-area" contenteditable="true">
+        <div style="font-family: 'Outfit', sans-serif; color: #1a1a1a; line-height: 1.6;">
+          <header style="padding: 40px 0; text-align: center;">
+            <h1 style="font-size: 3rem; font-weight: 700; margin-bottom: 10px; color: #0f172a;">New Horizon Project</h1>
+            <p style="color: #64748b; font-size: 1.1rem;">AIと協調する次世代のデザインワークフロー</p>
+          </header>
+
+          <section
+            style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; padding: 40px 0; align-items: center;">
+            <div>
+              <h2 style="font-size: 2rem; margin-bottom: 20px; color: #1e293b;">自由な発想を、<br>即座にコードへ。</h2>
+              <p style="color: #475569; margin-bottom: 24px;">
+                AntigravityがinnerHTMLを直接操作することで、あなたはデザインの意図を伝えるだけで済みます。微調整はこのエディタで直接行い、ローカルに保存しましょう。</p>
+              <div style="display: flex; gap: 12px;">
+                <span
+                  style="background: #eef2ff; color: #4f46e5; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">Text
+                  Content</span>
+                <span
+                  style="background: #ecfdf5; color: #10b981; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">Image
+                  Assets</span>
+              </div>
+            </div>
+            <div
+              style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); height: 300px; border-radius: 24px; box-shadow: 0 20px 25px -5px rgba(79, 70, 229, 0.4); display: flex; align-items: center; justify-content: center;">
+              <svg width="64" height="64" fill="white" viewBox="0 0 24 24">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+              </svg>
+            </div>
+          </section>
+
+          <footer
+            style="margin-top: 60px; padding: 30px; background: #f8fafc; border-radius: 16px; text-align: center;">
+            <p style="color: #94a3b8; font-size: 0.8rem;">© 2025 Antigravity Design Editor. Created for your
+              productivity.</p>
+          </footer>
         </div>
       </div>
     </div>

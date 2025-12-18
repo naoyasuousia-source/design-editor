@@ -1,6 +1,6 @@
 /**
- * Design Editor - Core Logic
- * Handles File System Access API and UI Synchronization
+ * Design Editor - Core Logic (Enhanced)
+ * Handles File System Access API, UI Synchronization, and Shortcuts
  */
 
 // Global state
@@ -15,13 +15,51 @@ const currentFileNameDisplay = document.getElementById('current-filename') as HT
 const statusIndicator = document.getElementById('save-status-indicator') as HTMLSpanElement;
 
 /**
+ * 通知（トースト）の表示
+ */
+function showToast(message: string) {
+  const toast = document.createElement('div');
+  toast.textContent = message;
+  toast.style.cssText = `
+    position: fixed;
+    bottom: 48px;
+    right: 24px;
+    background: #4f46e5;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3);
+    z-index: 1000;
+    font-size: 0.875rem;
+    font-weight: 500;
+    animation: slideIn 0.3s ease-out forwards;
+  `;
+  document.body.appendChild(toast);
+
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+  `;
+  document.head.appendChild(style);
+
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transition = 'opacity 0.5s ease-out';
+    setTimeout(() => toast.remove(), 500);
+  }, 3000);
+}
+
+/**
  * UIの更新
  */
 function updateUI() {
   if (fileHandle) {
     currentFileNameDisplay.textContent = fileHandle.name;
     btnSave.disabled = false;
-    btnSave.title = '現在のファイルに保存';
+    btnSave.title = '現在のファイルに保存 (Ctrl+S)';
   } else {
     currentFileNameDisplay.textContent = '新規ドキュメント';
     btnSave.disabled = true;
@@ -53,16 +91,14 @@ async function handleOpen() {
     fileHandle = handle;
     const file = await fileHandle.getFile();
     const content = await file.text();
-    
-    // デザイン領域に展開
+
     designArea.innerHTML = content;
-    
     isModified = false;
     updateUI();
+    showToast('ファイルを開きました');
   } catch (err) {
     if ((err as Error).name !== 'AbortError') {
       console.error('File opening failed:', err);
-      alert('ファイルを開くことができませんでした。');
     }
   }
 }
@@ -85,10 +121,10 @@ async function handleSaveAs() {
     fileHandle = handle;
     await saveToFile();
     updateUI();
+    showToast('名前を付けて保存しました');
   } catch (err) {
     if ((err as Error).name !== 'AbortError') {
       console.error('Save as failed:', err);
-      alert('保存に失敗しました。');
     }
   }
 }
@@ -101,6 +137,7 @@ async function handleSave() {
   try {
     await saveToFile();
     updateUI();
+    showToast('上書き保存しました');
   } catch (err) {
     console.error('Save failed:', err);
     alert('上書き保存に失敗しました。ブラウザのアクセス許可を確認してください。');
@@ -112,12 +149,10 @@ async function handleSave() {
  */
 async function saveToFile() {
   if (!fileHandle) return;
-  
   const writable = await fileHandle.createWritable();
   const content = designArea.innerHTML;
   await writable.write(content);
   await writable.close();
-  
   isModified = false;
 }
 
@@ -126,7 +161,27 @@ btnOpen.addEventListener('click', handleOpen);
 btnSaveAs.addEventListener('click', handleSaveAs);
 btnSave.addEventListener('click', handleSave);
 
-// デザイン領域の変更検知 (AntigravityによるinnerHTML操作やユーザーの編集)
+// デザイン領域の直接編集を有効化（テキストの微調整用）
+designArea.contentEditable = "true";
+
+// キーボードショートカット
+window.addEventListener('keydown', (e) => {
+  if (e.ctrlKey || e.metaKey) {
+    switch (e.key.toLowerCase()) {
+      case 's':
+        e.preventDefault();
+        if (fileHandle) handleSave();
+        else handleSaveAs();
+        break;
+      case 'o':
+        e.preventDefault();
+        handleOpen();
+        break;
+    }
+  }
+});
+
+// デザイン領域の変更検知
 const observer = new MutationObserver(() => {
   if (!isModified) {
     isModified = true;
@@ -140,10 +195,9 @@ observer.observe(designArea, {
   characterData: true,
 });
 
-// 初期化
 updateUI();
 
-// 開発用: Antigravityがグローバルからアクセスできるようにする
+// グローバルインターフェース
 (window as any).designEditor = {
   getHTML: () => designArea.innerHTML,
   setHTML: (html: string) => {
