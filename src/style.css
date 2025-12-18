@@ -143,6 +143,22 @@ body {
   transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Dropdown fix */
+select#select-zoom {
+  color: var(--text-primary);
+  background-color: #1e293b;
+  /* 濃い背景色 */
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+}
+
+select#select-zoom option {
+  background-color: #1e293b;
+  /* ドロップダウンリストの背景 */
+  color: white;
+  /* ドロップダウンリストの文字色 */
+}
+
 /* Status Bar */
 .status-bar {
   height: 32px;
