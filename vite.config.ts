@@ -3,28 +3,22 @@ import { defineConfig } from 'vite';
 export default defineConfig({
     server: {
         watch: {
-            // ネットワークドライブや一部の環境での検知漏れを防ぐためにポーリングを使用
             usePolling: true,
             interval: 100,
         },
-        // クライアントに送るHMR設定
-        hmr: {
-            overlay: true,
-        }
     },
     plugins: [
         {
-            name: 'watch-all-html',
-            // すべてのHTMLファイルの変更を監視し、変更があればフルリロードを指示する
+            name: 'smart-html-sync',
             configureServer(server) {
-                server.watcher.add('**/*.html'); // フォルダ内の全HTMLを監視対象に強制追加
+                // HTMLの変更を監視するが、フルリロードは指示しない
+                server.watcher.add('**/*.html');
                 server.watcher.on('change', (file) => {
                     if (file.endsWith('.html')) {
-                        console.log(`HTML changed: ${file} - Triggering full reload...`);
-                        server.ws.send({
-                            type: 'full-reload',
-                            path: '*'
-                        });
+                        const fileName = file.split(/[\\/]/).pop();
+                        console.log(`Smart Sync: ${fileName} changed. Sending update signal...`);
+                        // カスタムイベントをブラウザに送信（フルリロードはさせない）
+                        server.ws.send('design-update', { fileName });
                     }
                 });
             },

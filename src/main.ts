@@ -1,16 +1,14 @@
 /**
- * Design Editor - Core Logic (Enhanced)
- * Handles File System Access API, UI Synchronization, and Shortcuts
+ * Design Editor - Core Logic (Smart Sync Edition)
  */
 
 // Global state
 let fileHandle: FileSystemFileHandle | null = null;
 let isModified = false;
-let isSyncMode = false; // サーバー（AI）と同期中かどうか
 
 const designArea = document.getElementById('design-area') as HTMLDivElement;
 const btnOpen = document.getElementById('btn-open') as HTMLButtonElement;
-const btnSaveAs = document.getElementById('btn-save-as') as HTMLButtonButtonElement;
+const btnSaveAs = document.getElementById('btn-save-as') as HTMLButtonElement;
 const btnSave = document.getElementById('btn-save') as HTMLButtonElement;
 const currentFileNameDisplay = document.getElementById('current-filename') as HTMLSpanElement;
 const statusIndicator = document.getElementById('save-status-indicator') as HTMLSpanElement;
@@ -18,7 +16,7 @@ const statusIndicator = document.getElementById('save-status-indicator') as HTML
 /**
  * 通知（トースト）の表示
  */
-function showToast(message: string) {
+function showToast(message: string, duration = 3000) {
   const toast = document.createElement('div');
   toast.textContent = message;
   toast.style.cssText = `
@@ -33,114 +31,87 @@ function showToast(message: string) {
     z-index: 1000;
     font-size: 0.875rem;
     font-weight: 500;
+    pointer-events: none;
     animation: slideIn 0.3s ease-out forwards;
   `;
   document.body.appendChild(toast);
-
-  const style = document.createElement('style');
-  style.textContent = `
-    @keyframes slideIn {
-      from { transform: translateX(100%); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
-    }
-  `;
-  document.head.appendChild(style);
 
   setTimeout(() => {
     toast.style.opacity = '0';
     toast.style.transition = 'opacity 0.5s ease-out';
     setTimeout(() => toast.remove(), 500);
-  }, 3000);
+  }, duration);
 }
 
 /**
  * UIの更新
  */
 function updateUI() {
-  const lastFileName = localStorage.getItem('lastOpenedFile');
-
   if (fileHandle) {
     currentFileNameDisplay.textContent = fileHandle.name;
     btnSave.disabled = false;
     btnSave.title = '現在のファイルに保存 (Ctrl+S)';
-  } else if (lastFileName) {
-    currentFileNameDisplay.textContent = `${lastFileName} (Live Sync 📡)`;
-    btnSave.disabled = true;
-    btnSave.title = '上書き保存には「名前を付けて保存」でファイルハンドルを取得してください';
   } else {
-    currentFileNameDisplay.textContent = '新規ドキュメント';
+    const lastFile = localStorage.getItem('lastOpenedFile');
+    currentFileNameDisplay.textContent = lastFile ? `${lastFile} (Sync Mode 📡)` : '新規ドキュメント';
     btnSave.disabled = true;
+    btnSave.title = '保存するには再度「開く」か「保存」してください';
   }
 
-  if (isModified) {
-    statusIndicator.className = 'indicator modified';
-  } else {
-    statusIndicator.className = 'indicator';
+  statusIndicator.className = isModified ? 'indicator modified' : 'indicator';
+}
+
+/**
+ * 最新のデザインをサーバーから取得
+ */
+async function fetchLatestDesign(fileName: string) {
+  try {
+    const response = await fetch(`/${fileName}?t=${Date.now()}`);
+    if (response.ok) {
+      const content = await response.text();
+      designArea.innerHTML = content;
+      isModified = false;
+      updateUI();
+      showToast(`${fileName} を同期しました`, 2000);
+    }
+  } catch (err) {
+    console.error('Fetch failed:', err);
   }
 }
 
 /**
- * ファイルを開く
+ * ファイル操作
  */
 async function handleOpen() {
   try {
     const [handle] = await window.showOpenFilePicker({
-      types: [
-        {
-          description: 'HTML Files',
-          accept: { 'text/html': ['.html'] },
-        },
-      ],
+      types: [{ description: 'HTML Files', accept: { 'text/html': ['.html'] } }],
       multiple: false,
     });
-
     fileHandle = handle;
-    localStorage.setItem('lastOpenedFile', handle.name); // 保存
-
+    localStorage.setItem('lastOpenedFile', handle.name);
     const file = await fileHandle.getFile();
-    const content = await file.text();
-
-    designArea.innerHTML = content;
+    designArea.innerHTML = await file.text();
     isModified = false;
     updateUI();
     showToast('ファイルを開きました');
-  } catch (err) {
-    if ((err as Error).name !== 'AbortError') {
-      console.error('File opening failed:', err);
-    }
-  }
+  } catch (err) { /* ignore */ }
 }
 
-/**
- * 名前を付けて保存
- */
 async function handleSaveAs() {
   try {
     const handle = await window.showSaveFilePicker({
       suggestedName: localStorage.getItem('lastOpenedFile') || 'design.html',
-      types: [
-        {
-          description: 'HTML Files',
-          accept: { 'text/html': ['.html'] },
-        },
-      ],
+      types: [{ description: 'HTML Files', accept: { 'text/html': ['.html'] } }],
     });
-
     fileHandle = handle;
     localStorage.setItem('lastOpenedFile', handle.name);
     await saveToFile();
     updateUI();
-    showToast('名前を付けて保存しました');
-  } catch (err) {
-    if ((err as Error).name !== 'AbortError') {
-      console.error('Save as failed:', err);
-    }
-  }
+    showToast('保存しました');
+  } catch (err) { /* ignore */ }
 }
 
-/**
- * 上書き保存
- */
 async function handleSave() {
   if (!fileHandle) return;
   try {
@@ -148,43 +119,16 @@ async function handleSave() {
     updateUI();
     showToast('上書き保存しました');
   } catch (err) {
-    console.error('Save failed:', err);
-    alert('上書き保存に失敗しました。ブラウザのアクセス許可を確認してください。');
+    alert('保存に失敗しました。アクセス許可を確認してください。');
   }
 }
 
-/**
- * 共通の保存処理
- */
 async function saveToFile() {
   if (!fileHandle) return;
   const writable = await fileHandle.createWritable();
-  const content = designArea.innerHTML;
-  await writable.write(content);
+  await writable.write(designArea.innerHTML);
   await writable.close();
   isModified = false;
-}
-
-/**
- * 起動時に前回のファイルを自動復元（Live Sync）
- */
-async function restoreLastSession() {
-  const lastFileName = localStorage.getItem('lastOpenedFile');
-  if (lastFileName) {
-    try {
-      // キャッシュを避けるためにタイムスタンプを付与
-      const response = await fetch(`/${lastFileName}?t=${Date.now()}`);
-      if (response.ok) {
-        const content = await response.text();
-        designArea.innerHTML = content;
-        isModified = false;
-        updateUI();
-        console.log(`Live Sync: ${lastFileName} refreshed.`);
-      }
-    } catch (e) {
-      console.warn('Auto restore failed:', e);
-    }
-  }
 }
 
 // Event Listeners
@@ -192,58 +136,38 @@ btnOpen.addEventListener('click', handleOpen);
 btnSaveAs.addEventListener('click', handleSaveAs);
 btnSave.addEventListener('click', handleSave);
 
-// デザイン領域の直接編集を有効化（テキストの微調整用）
 designArea.contentEditable = "true";
 
-// キーボードショートカット
+// Shortcuts
 window.addEventListener('keydown', (e) => {
   if (e.ctrlKey || e.metaKey) {
-    switch (e.key.toLowerCase()) {
-      case 's':
-        e.preventDefault();
-        if (fileHandle) handleSave();
-        else handleSaveAs();
-        break;
-      case 'o':
-        e.preventDefault();
-        handleOpen();
-        break;
-    }
+    if (e.key.toLowerCase() === 's') { e.preventDefault(); handleSave(); }
+    if (e.key.toLowerCase() === 'o') { e.preventDefault(); handleOpen(); }
   }
 });
 
-// デザイン領域の変更検知
-const observer = new MutationObserver(() => {
-  if (!isModified) {
-    isModified = true;
-    updateUI();
-  }
-});
+// Watch changes
+new MutationObserver(() => {
+  if (!isModified) { isModified = true; updateUI(); }
+}).observe(designArea, { childList: true, subtree: true, characterData: true });
 
-observer.observe(designArea, {
-  childList: true,
-  subtree: true,
-  characterData: true,
-});
-
-// 初期化
-restoreLastSession().then(() => updateUI());
-
-// ズーム機能
+// Zoom
 const selectZoom = document.getElementById('select-zoom') as HTMLSelectElement;
 selectZoom.addEventListener('change', () => {
-  const scale = selectZoom.value;
-  designArea.style.transform = `scale(${scale})`;
+  designArea.style.transform = `scale(${selectZoom.value})`;
 });
 
-// 初期化（倍率を100%にリセット）
-designArea.style.transform = 'scale(1)';
+// Vite Smart Sync リスナー
+if ((import.meta as any).hot) {
+  (import.meta as any).hot.on('design-update', (data: { fileName: string }) => {
+    const lastOpenedFile = localStorage.getItem('lastOpenedFile');
+    if (data.fileName === lastOpenedFile) {
+      fetchLatestDesign(data.fileName);
+    }
+  });
+}
 
-// グローバルインターフェース
-(window as any).designEditor = {
-  getHTML: () => designArea.innerHTML,
-  setHTML: (html: string) => {
-    designArea.innerHTML = html;
-  },
-  designArea
-};
+// Initial session restore
+const lastFile = localStorage.getItem('lastOpenedFile');
+if (lastFile) fetchLatestDesign(lastFile);
+else updateUI();
