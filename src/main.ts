@@ -6,10 +6,11 @@
 // Global state
 let fileHandle: FileSystemFileHandle | null = null;
 let isModified = false;
+let isSyncMode = false; // サーバー（AI）と同期中かどうか
 
 const designArea = document.getElementById('design-area') as HTMLDivElement;
 const btnOpen = document.getElementById('btn-open') as HTMLButtonElement;
-const btnSaveAs = document.getElementById('btn-save-as') as HTMLButtonElement;
+const btnSaveAs = document.getElementById('btn-save-as') as HTMLButtonButtonElement;
 const btnSave = document.getElementById('btn-save') as HTMLButtonElement;
 const currentFileNameDisplay = document.getElementById('current-filename') as HTMLSpanElement;
 const statusIndicator = document.getElementById('save-status-indicator') as HTMLSpanElement;
@@ -56,14 +57,19 @@ function showToast(message: string) {
  * UIの更新
  */
 function updateUI() {
+  const lastFileName = localStorage.getItem('lastOpenedFile');
+
   if (fileHandle) {
     currentFileNameDisplay.textContent = fileHandle.name;
     btnSave.disabled = false;
     btnSave.title = '現在のファイルに保存 (Ctrl+S)';
+  } else if (lastFileName) {
+    currentFileNameDisplay.textContent = `${lastFileName} (Live Sync 📡)`;
+    btnSave.disabled = true;
+    btnSave.title = '上書き保存には「名前を付けて保存」でファイルハンドルを取得してください';
   } else {
     currentFileNameDisplay.textContent = '新規ドキュメント';
     btnSave.disabled = true;
-    btnSave.title = 'ファイルが開かれていません';
   }
 
   if (isModified) {
@@ -89,6 +95,8 @@ async function handleOpen() {
     });
 
     fileHandle = handle;
+    localStorage.setItem('lastOpenedFile', handle.name); // 保存
+
     const file = await fileHandle.getFile();
     const content = await file.text();
 
@@ -109,7 +117,7 @@ async function handleOpen() {
 async function handleSaveAs() {
   try {
     const handle = await window.showSaveFilePicker({
-      suggestedName: 'design.html',
+      suggestedName: localStorage.getItem('lastOpenedFile') || 'design.html',
       types: [
         {
           description: 'HTML Files',
@@ -119,6 +127,7 @@ async function handleSaveAs() {
     });
 
     fileHandle = handle;
+    localStorage.setItem('lastOpenedFile', handle.name);
     await saveToFile();
     updateUI();
     showToast('名前を付けて保存しました');
@@ -154,6 +163,28 @@ async function saveToFile() {
   await writable.write(content);
   await writable.close();
   isModified = false;
+}
+
+/**
+ * 起動時に前回のファイルを自動復元（Live Sync）
+ */
+async function restoreLastSession() {
+  const lastFileName = localStorage.getItem('lastOpenedFile');
+  if (lastFileName) {
+    try {
+      // サーバーから最新のファイルをfetch（Viteが最新版を提供）
+      const response = await fetch(`/${lastFileName}`);
+      if (response.ok) {
+        const content = await response.text();
+        designArea.innerHTML = content;
+        isModified = false;
+        updateUI();
+        console.log(`Live Sync: ${lastFileName} refreshed.`);
+      }
+    } catch (e) {
+      console.warn('Auto restore failed:', e);
+    }
+  }
 }
 
 // Event Listeners
@@ -195,6 +226,9 @@ observer.observe(designArea, {
   characterData: true,
 });
 
+// 初期化
+restoreLastSession().then(() => updateUI());
+
 // ズーム機能
 const selectZoom = document.getElementById('select-zoom') as HTMLSelectElement;
 selectZoom.addEventListener('change', () => {
@@ -204,8 +238,6 @@ selectZoom.addEventListener('change', () => {
 
 // 初期化（倍率を100%にリセット）
 designArea.style.transform = 'scale(1)';
-
-updateUI();
 
 // グローバルインターフェース
 (window as any).designEditor = {
