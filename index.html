@@ -1,13 +1,63 @@
 <!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>design-editor</title>
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.ts"></script>
-  </body>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Design Editor - Premium Edition</title>
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+
+<body>
+  <header class="header">
+    <div class="logo-container">
+      <div class="logo-text">DESIGN EDITOR</div>
+    </div>
+    <div class="toolbar">
+      <button id="btn-open" class="btn">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+        </svg>
+        開く
+      </button>
+      <button id="btn-save-as" class="btn">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
+        </svg>
+        名前を付けて保存
+      </button>
+      <button id="btn-save" class="btn btn-primary" disabled title="ファイルが開かれていません">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"></path>
+          <path d="M17 21v-8H7v8M7 3v5h8"></path>
+        </svg>
+        上書き保存
+      </button>
+    </div>
+  </header>
+
+  <main class="main-wrapper">
+    <div id="design-canvas">
+      <!-- Antigravityはこの中のinnerHTMLを操作します -->
+      <div id="design-area" contenteditable="false">
+        <div style="text-align:center; padding: 100px 0; color: #ccc;">
+          <h1>Start Designing</h1>
+          <p>保存されているデザインを開くか、Antigravityに新しいデザインの作成を依頼してください。</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="status-bar">
+    <div class="file-info">
+      <span id="save-status-indicator" class="indicator"></span>
+      <span id="current-filename">新規ドキュメント</span>
+    </div>
+    <div>Antigravity Design Editor v1.0</div>
+  </footer>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+
 </html>
