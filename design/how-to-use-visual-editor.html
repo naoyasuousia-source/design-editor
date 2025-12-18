@@ -1,112 +1,70 @@
-<script type="module" src="/@vite/client"></script>
 <div
-  style="width: 900px; height: 900px; font-family: 'Outfit', 'Inter', sans-serif; color: #1e293b; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; box-sizing: border-box; overflow: hidden; position: relative;">
+  style="width: 900px; height: 900px; background: white; display: flex; align-items: center; justify-content: center; font-family: 'Inter', 'Outfit', sans-serif; margin: 0; padding: 0; box-sizing: border-box;">
 
-  <!-- Decorative background elements -->
+  <!-- 縦1:横4のコンテナ (900px x 225px) -->
   <div
-    style="position: absolute; top: -100px; left: -100px; width: 300px; height: 300px; background: rgba(79, 70, 229, 0.05); border-radius: 50%; blur: 80px; z-index: 0;">
-  </div>
-  <div
-    style="position: absolute; bottom: -50px; right: -50px; width: 250px; height: 250px; background: rgba(16, 185, 129, 0.05); border-radius: 50%; blur: 60px; z-index: 0;">
-  </div>
-
-  <header style="text-align: center; margin-bottom: 50px; position: relative; z-index: 1;">
-    <h1
-      style="font-size: 3.2rem; font-weight: 800; color: #0f172a; margin-bottom: 8px; letter-spacing: -0.03em; background: linear-gradient(to right, #1e293b, #4b5563); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-      ワークフローガイドv2 📡</h1>
-    <p style="color: #64748b; font-size: 1.1rem; font-weight: 500;">AIによる視覚的最適化が design/ フォルダで有効です</p>
-  </header>
-
-  <div
-    style="display: flex; gap: 20px; align-items: center; justify-content: center; width: 100%; position: relative; z-index: 1;">
+    style="width: 880px; height: 220px; border: 2px solid #0084a4; display: flex; box-sizing: border-box; background: white; overflow: hidden; border-radius: 4px;">
 
     <!-- Step 1 -->
-    <div
-      style="width: 195px; height: 195px; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 24px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05); transition: all 0.3s ease;">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-        <div
-          style="width: 44px; height: 44px; background: #fff7ed; color: #f97316; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-          <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-            <path d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
-          </svg>
+    <div style="flex: 1; border-right: 2px solid #0084a4; display: flex; flex-direction: column;">
+      <div
+        style="height: 40%; background: #0084a4; color: white; display: flex; align-items: center; justify-content: center; font-size: 48px; font-weight: 800; border-bottom: 2px solid #0084a4;">
+        1.</div>
+      <div style="height: 60%; padding: 12px; display: flex; align-items: center; gap: 10px;">
+        <div style="min-width: 50px; width: 50px; height: 50px;">
+          <img src="design/image/step1.png" style="width: 100%; height: 100%; object-fit: contain;">
         </div>
-        <span style="font-size: 0.75rem; font-weight: 700; color: #94a3b8;">01</span>
+        <p style="margin: 0; font-size: 13px; line-height: 1.4; font-weight: 600; color: #1e293b;">
+          ビジュアルエディター上で「名前を付けて保存」でGoogleドライブに保存</p>
       </div>
-      <p style="font-size: 0.8rem; line-height: 1.5; font-weight: 500; color: #334155;">
-        ビジュアルエディター上で「名前を付けて保存」でGoogleドライブに保存（ローカルでも可）</p>
     </div>
-
-    <div style="color: #94a3b8;"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="3"
-        viewBox="0 0 24 24">
-        <path d="M9 5l7 7-7 7"></path>
-      </svg></div>
 
     <!-- Step 2 -->
-    <div
-      style="width: 195px; height: 195px; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 24px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-        <div
-          style="width: 44px; height: 44px; background: #ecfdf5; color: #10b981; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-          <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-            <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
-          </svg>
+    <div style="flex: 1; border-right: 2px solid #0084a4; display: flex; flex-direction: column;">
+      <div
+        style="height: 40%; background: #0084a4; color: white; display: flex; align-items: center; justify-content: center; font-size: 48px; font-weight: 800; border-bottom: 2px solid #0084a4;">
+        2.</div>
+      <div style="height: 60%; padding: 12px; display: flex; align-items: center; gap: 10px;">
+        <div style="min-width: 50px; width: 50px; height: 50px;">
+          <img src="design/image/step2.png" style="width: 100%; height: 100%; object-fit: contain;">
         </div>
-        <span style="font-size: 0.75rem; font-weight: 700; color: #94a3b8;">02</span>
+        <p style="margin: 0; font-size: 13px; line-height: 1.4; font-weight: 600; color: #1e293b;">
+          生成AIチャット画面で、「ドライブからアップロード」</p>
       </div>
-      <p style="font-size: 0.8rem; line-height: 1.5; font-weight: 500; color: #334155;">生成AIチャット画面で、「ドライブからアップロード」</p>
     </div>
-
-    <div style="color: #94a3b8;"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="3"
-        viewBox="0 0 24 24">
-        <path d="M9 5l7 7-7 7"></path>
-      </svg></div>
 
     <!-- Step 3 -->
-    <div
-      style="width: 195px; height: 195px; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 24px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+    <div style="flex: 1; border-right: 2px solid #0084a4; display: flex; flex-direction: column;">
+      <div
+        style="height: 40%; background: #0084a4; color: white; display: flex; align-items: center; justify-content: center; font-size: 48px; font-weight: 800; border-bottom: 2px solid #0084a4;">
+        3.</div>
+      <div style="height: 60%; padding: 12px; display: flex; align-items: center; gap: 10px;">
         <div
-          style="width: 44px; height: 44px; background: #ecfdf5; color: #10b981; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-          <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-            <path d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z">
-            </path>
+          style="min-width: 50px; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;">
+          <!-- Placeholder SVG for AI -->
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#0084a4" stroke-width="2">
+            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"></path>
+            <path d="M9 10h.01M15 10h.01M12 14h.01"></path>
           </svg>
         </div>
-        <span style="font-size: 0.75rem; font-weight: 700; color: #94a3b8;">03</span>
+        <p style="margin: 0; font-size: 13px; line-height: 1.4; font-weight: 600; color: #1e293b;">生成AIがページ・段落指定で編集提案
+        </p>
       </div>
-      <p style="font-size: 0.8rem; line-height: 1.5; font-weight: 500; color: #334155;">生成AIがページ・段落指定で編集提案</p>
     </div>
 
-    <div style="color: #94a3b8;"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="3"
-        viewBox="0 0 24 24">
-        <path d="M9 5l7 7-7 7"></path>
-      </svg></div>
-
     <!-- Step 4 -->
-    <div
-      style="width: 195px; height: 195px; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 24px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-        <div
-          style="width: 44px; height: 44px; background: #f5f3ff; color: #7c3aed; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-          <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-            <path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z">
-            </path>
-          </svg>
+    <div style="flex: 1; display: flex; flex-direction: column;">
+      <div
+        style="height: 40%; background: #0084a4; color: white; display: flex; align-items: center; justify-content: center; font-size: 48px; font-weight: 800; border-bottom: 2px solid #0084a4;">
+        4.</div>
+      <div style="height: 60%; padding: 12px; display: flex; align-items: center; gap: 10px;">
+        <div style="min-width: 50px; width: 50px; height: 50px;">
+          <img src="design/image/step4.png" style="width: 100%; height: 100%; object-fit: contain;">
         </div>
-        <span style="font-size: 0.75rem; font-weight: 700; color: #94a3b8;">04</span>
+        <p style="margin: 0; font-size: 12px; line-height: 1.3; font-weight: 600; color: #1e293b;">
+          エディタでジャンプして編集→上書き保存で再共有→2へ</p>
       </div>
-      <p style="font-size: 0.8rem; line-height: 1.5; font-weight: 500; color: #334155;">
-        エディタで該当箇所にショートカットでジャンプして編集→上書き保存で再共有→2へ</p>
     </div>
 
   </div>
-
-  <footer
-    style="margin-top: 60px; padding: 20px; background: rgba(255, 255, 255, 0.4); border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.3); max-width: 600px; text-align: center; position: relative; z-index: 1;">
-    <p style="font-size: 0.85rem; color: #475569; margin: 0; line-height: 1.6;">
-      <strong>Location: design/how-to-use-visual-editor.html</strong><br>
-      フォルダ構成が整理されました。
-    </p>
-  </footer>
-
 </div>
