@@ -1,18 +1,19 @@
 <script type="module" src="/@vite/client"></script>
+<script type="module" src="/@vite/client"></script>
 <div style="width: 900px; height: 900px; background: white; display: flex; align-items: center; justify-content: center; font-family: 'Inter', 'Outfit', sans-serif; margin: 0; padding: 0; box-sizing: border-box;">
   <!-- コンテナ (900px x 225px 相当の比率を維持) -->
   <div style="width: 880px; display: flex; align-items: center; justify-content: space-between; box-sizing: border-box; background: white;">
 
     <!-- Step 1 -->
-    <div style="width: 195px; height: 210px; border: 2px solid #0891b2; display: flex; flex-direction: column; border-radius: 8px; overflow: hidden; background: white;">
+    <div style="width: 224px; height: 210px; border: 2px solid #0891b2; display: flex; flex-direction: column; border-radius: 8px; overflow: hidden; background: white;">
       <div style="height: 40%; background: #0891b2; color: white; display: flex; align-items: center; justify-content: center; font-size: 48px; font-weight: 800; border-bottom: 2px solid #0891b2;">
         1.</div>
-      <div style="height: 60%; padding: 12px; display: flex; align-items: center; gap: 8px;">
-        <div style="min-width: 45px; width: 45px; height: 45px;">
-          <img src="design/image/step1.png" style="width: 100%; height: 100%; object-fit: contain;">
+      <div style="height: 60%; padding: 12px; display: flex; align-items: center; gap: 10px;">
+        <div style="min-width: 60px; width: 60px; height: 90px; display: flex; align-items: center; justify-content: center;">
+          <img src="design/image/step1.png" style="max-width: 100%; max-height: 100%; object-fit: contain;">
         </div>
         <p style="margin: 0; font-size: 13px; line-height: 1.4; font-weight: 600; color: #1e293b;">
-          ビジュアルエディター上で「名前を付けて保存」で、HTMLファイルをGoogleドライブに保存<br>（ローカルでも可）</p>
+          エディター上で「名前を付けて保存」で、HTMLファイルをGoogleドライブに保存<br>（ローカルでも可）</p>
       </div>
     </div>
 
@@ -24,12 +25,12 @@
     </div>
 
     <!-- Step 2 -->
-    <div style="width: 195px; height: 210px; border: 2px solid #0891b2; display: flex; flex-direction: column; border-radius: 8px; overflow: hidden; background: white;">
+    <div style="width: 174px; height: 210px; border: 2px solid #0891b2; display: flex; flex-direction: column; border-radius: 8px; overflow: hidden; background: white;">
       <div style="height: 40%; background: #0891b2; color: white; display: flex; align-items: center; justify-content: center; font-size: 48px; font-weight: 800; border-bottom: 2px solid #0891b2;">
         2.</div>
       <div style="height: 60%; padding: 12px; display: flex; align-items: center; gap: 8px;">
-        <div style="min-width: 45px; width: 45px; height: 45px;">
-          <img src="design/image/step2_ai_upload.png" style="width: 100%; height: 100%; object-fit: contain;">
+        <div style="min-width: 72px; width: 72px; height: 108px; display: flex; align-items: center; justify-content: center;">
+          <img src="design/image/step2.png" style="max-width: 100%; max-height: 100%; object-fit: contain;">
         </div>
         <p style="margin: 0; font-size: 13px; line-height: 1.4; font-weight: 600; color: #1e293b;">
           生成AIチャット画面で、「ドライブからアップロード」</p>
@@ -38,44 +39,41 @@
 
     <!-- Arrow 2 -->
     <div style="display: flex; align-items: center; justify-content: center;">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
         <path d="M5 12h14M12 5l7 7-7 7"></path>
       </svg>
     </div>
 
     <!-- Step 3 -->
-    <div style="width: 195px; height: 210px; border: 2px solid #0891b2; display: flex; flex-direction: column; border-radius: 8px; overflow: hidden; background: white;">
+    <div style="width: 174px; height: 210px; border: 2px solid #0891b2; display: flex; flex-direction: column; border-radius: 8px; overflow: hidden; background: white;">
       <div style="height: 40%; background: #0891b2; color: white; display: flex; align-items: center; justify-content: center; font-size: 48px; font-weight: 800; border-bottom: 2px solid #0891b2;">
         3.</div>
       <div style="height: 60%; padding: 12px; display: flex; align-items: center; gap: 8px;">
-        <div style="min-width: 45px; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2">
-            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"></path>
-            <path d="M9 10h.01M15 10h.01M12 14h.01"></path>
-          </svg>
+        <div style="min-width: 72px; width: 72px; height: 108px; display: flex; align-items: center; justify-content: center;">
+          <img src="design/image/step3.png" style="max-width: 100%; max-height: 100%; object-fit: contain;">
         </div>
-        <p style="margin: 0; font-size: 13px; line-height: 1.4; font-weight: 600; color: #1e293b;">生成AIがページ・段落指定で編集提案
-        </p>
+        <p style="margin: 0; font-size: 13px; line-height: 1.4; font-weight: 600; color: #1e293b;">
+          生成AIが<br>ページ・<br>段落指定で<br>編集提案</p>
       </div>
     </div>
 
     <!-- Arrow 3 -->
     <div style="display: flex; align-items: center; justify-content: center;">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
         <path d="M5 12h14M12 5l7 7-7 7"></path>
       </svg>
     </div>
 
     <!-- Step 4 -->
-    <div style="width: 195px; height: 210px; border: 2px solid #0891b2; display: flex; flex-direction: column; border-radius: 8px; overflow: hidden; background: white;">
+    <div style="width: 174px; height: 210px; border: 2px solid #0891b2; display: flex; flex-direction: column; border-radius: 8px; overflow: hidden; background: white;">
       <div style="height: 40%; background: #0891b2; color: white; display: flex; align-items: center; justify-content: center; font-size: 48px; font-weight: 800; border-bottom: 2px solid #0891b2;">
         4.</div>
       <div style="height: 60%; padding: 12px; display: flex; align-items: center; gap: 8px;">
-        <div style="min-width: 45px; width: 45px; height: 45px;">
-          <img src="design/image/step4.png" style="width: 100%; height: 100%; object-fit: contain;">
+        <div style="min-width: 72px; width: 72px; height: 108px; display: flex; align-items: center; justify-content: center;">
+          <img src="design/image/step4.png" style="max-width: 100%; max-height: 100%; object-fit: contain;">
         </div>
-        <p style="margin: 0; font-size: 12px; line-height: 1.3; font-weight: 600; color: #1e293b;">
-          エディタでジャンプして編集→上書き保存で再共有→2へ</p>
+        <p style="margin: 0; font-size: 13px; line-height: 1.4; font-weight: 600; color: #1e293b;">
+          エディタで<br>該当箇所へ<br>ジャンプ→<br>編集して<br>上書き保存<br>→再共有へ</p>
       </div>
     </div>
 

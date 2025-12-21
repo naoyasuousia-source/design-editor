@@ -1,0 +1,119 @@
+<script type="module" src="/@vite/client"></script>
+
+
+
+
+  <script type="module" src="/@vite/client"></script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Title Design - 真のAI編集アシスト体験へ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@700;900&amp;display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --gold-light: #f6e09c;
+            --gold-main: #d4af37;
+            --gold-dark: #a67c00;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: var(--bg-color);
+            font-family: 'Noto Serif JP', serif;
+            overflow: hidden;
+        }
+
+        .container {
+            position: relative;
+            text-align: center;
+            padding: 60px;
+        }
+
+        /* 画像にある金粉のような装飾を静的に配置 */
+        .gold-particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            background-image:
+                radial-gradient(circle at 10% 20%, rgba(212, 175, 55, 0.1) 1px, transparent 1px),
+                radial-gradient(circle at 90% 80%, rgba(212, 175, 55, 0.1) 2px, transparent 2px),
+                radial-gradient(circle at 50% 10%, rgba(212, 175, 55, 0.05) 3px, transparent 3px),
+                radial-gradient(circle at 80% 30%, rgba(212, 175, 55, 0.1) 1px, transparent 1px);
+            background-size: 100px 100px;
+        }
+
+        .title-wrapper {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 「真のAI」部分：画像一段目の「高級感」に近いインパクト */
+        .main-top {
+            display: block;
+            font-size: 6rem;
+            font-weight: 900;
+            line-height: 1.1;
+            letter-spacing: 0.1em;
+            background: linear-gradient(to bottom, var(--gold-light) 0%, var(--gold-main) 50%, var(--gold-dark) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+        }
+
+        /* 「編集アシスト体験へ」部分：画像二段目の「パッケージデザイン」のような洗練 */
+        .main-bottom {
+            display: block;
+            font-size: 2.8rem;
+            font-weight: 700;
+            line-height: 1.2;
+            letter-spacing: 0.3em;
+            background: linear-gradient(to right, var(--gold-dark) 0%, var(--gold-main) 50%, var(--gold-dark) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+        }
+
+        /* 上部の繊細な金のライン */
+        .ornament-line {
+            width: 80px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--gold-main), transparent);
+            margin: 0 auto 2rem;
+        }
+
+        /* レスポンシブ */
+        @media (max-width: 768px) {
+            .main-top {
+                font-size: 3.5rem;
+            }
+
+            .main-bottom {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+
+
+
+    <div class="gold-particles"></div>
+    <div class="container">
+        <div class="ornament-line"></div>
+        <div class="title-wrapper">
+            <span class="main-top">真のAI編集<br>アシスト体験へ</span>
+        </div>
+    </div>
+
+
