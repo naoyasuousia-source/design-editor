@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "devDependencies": {
+    "@types/wicg-file-system-access": "^2023.10.7",
     "typescript": "~5.9.3",
     "vite": "npm:rolldown-vite@7.2.5"
   },

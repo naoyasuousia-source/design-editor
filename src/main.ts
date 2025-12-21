@@ -79,10 +79,11 @@ function updateUI() {
  */
 async function fetchLatestDesign(fileName: string) {
   try {
+    const BASE_URL = (import.meta as any).env.BASE_URL || '/';
     // まず design/ フォルダ内を試行し、なければルートを確認
-    let response = await fetch(`/design/${fileName}?t=${Date.now()}`);
+    let response = await fetch(`${BASE_URL}design/${fileName}?t=${Date.now()}`);
     if (!response.ok) {
-      response = await fetch(`/${fileName}?t=${Date.now()}`);
+      response = await fetch(`${BASE_URL}${fileName}?t=${Date.now()}`);
     }
 
     if (response.ok) {
@@ -130,7 +131,7 @@ async function handleOpen() {
     });
     fileHandle = handle;
     localStorage.setItem('lastOpenedFile', handle.name);
-    const file = await fileHandle.getFile();
+    const file = await handle.getFile();
     designArea.innerHTML = await file.text();
     isModified = false;
     updateUI();
