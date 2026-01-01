@@ -22,10 +22,6 @@ trigger: always_on
 - **No Placeholders:** `// TODO` や `// 実装予定` 等を残さず、全ての関数を完全に実装せよ。
 - **No Unauthorized Browser Check:** ユーザーの明示的な指示なく、勝手にブラウザ確認作業（`npm run dev` によるローカルサーバー起動やブラウザ操作）を開始しないこと（時間の浪費を避けるため）。
 
-
-### 例外事項
- 
- - **【例外】** `content.css` は規定行数を超えていても、絶対に分割してはならない。
 ---
 
 ## 2. 🏗️ アーキテクチャと設計指針 (4-Layer Architecture)
