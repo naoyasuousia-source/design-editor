@@ -1,0 +1,34 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    body {
+        @apply bg-[#0f0f0f] text-white overflow-hidden;
+        font-family: 'Inter', 'Noto Sans JP', sans-serif;
+    }
+}
+
+@layer components {
+    /* ここに共通コンポーネントのスタイルを追加 */
+
+    /* カスタムスクロールバー */
+    .CustomScrollbar::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    .CustomScrollbar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .CustomScrollbar::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+        transition: background 0.2s;
+    }
+
+    .CustomScrollbar::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+}

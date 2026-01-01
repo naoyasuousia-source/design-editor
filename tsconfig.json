@@ -10,7 +10,8 @@
     ],
     "types": [
       "vite/client",
-      "@types/wicg-file-system-access"
+      "@types/wicg-file-system-access",
+      "node"
     ],
     "skipLibCheck": true,
     /* Bundler mode */
@@ -19,6 +20,13 @@
     "verbatimModuleSyntax": true,
     "moduleDetection": "force",
     "noEmit": true,
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "src/*"
+      ]
+    },
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,
