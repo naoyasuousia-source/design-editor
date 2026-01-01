@@ -10,7 +10,25 @@
 }
 
 @layer components {
-    /* ここに共通コンポーネントのスタイルを追加 */
+
+    /* Moveable (Selection Tool) Styles */
+    .SelectionTool.moveable-control-box {
+        --moveable-color: #3b82f6 !important;
+        /* primary color */
+    }
+
+    .SelectionTool .moveable-line {
+        @apply opacity-60;
+        width: 1px !important;
+    }
+
+    .SelectionTool .moveable-control {
+        @apply bg-white border-2 border-primary rounded-full shadow-md;
+        width: 10px !important;
+        height: 10px !important;
+        margin-top: -5px !important;
+        margin-left: -5px !important;
+    }
 
     /* カスタムスクロールバー */
     .CustomScrollbar::-webkit-scrollbar {

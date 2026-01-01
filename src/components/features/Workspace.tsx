@@ -3,6 +3,8 @@ import { cn } from '@/utils/cn';
 import { useEditorStore } from '@/store/useEditorStore';
 import { PAGE_SIZES } from '@/types/editor';
 import { useAutoSync } from '@/hooks/useAutoSync';
+import Moveable from 'react-moveable';
+import { useMoveable } from '@/hooks/useMoveable';
 
 interface WorkspaceProps {
     isLocked: boolean;
@@ -12,6 +14,14 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
     const canvasRef = useRef<HTMLDivElement>(null);
     const { pageSize, zoom, content } = useEditorStore();
     const config = PAGE_SIZES[pageSize];
+
+    // GUI 編集ロジック
+    const {
+        targets,
+        handleCanvasClick,
+        handleDoubleClick,
+        updateContentFromDOM
+    } = useMoveable(canvasRef);
 
     // AI更新検知の開始
     useAutoSync();
@@ -30,8 +40,10 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
                 }}
                 className={cn(
                     "bg-white shadow-2xl relative transition-all duration-300 origin-center",
-                    isLocked && "pointer-events-none brightness-75 grayscale-[0.2]"
+                    isLocked && "brightness-75 grayscale-[0.2]"
                 )}
+                onMouseDown={handleCanvasClick}
+                onDoubleClick={handleDoubleClick}
             >
                 {/* メインコンテンツ（AI生成HTML） */}
                 <div
@@ -61,7 +73,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
 
                 {/* ロック時のオーバーレイ */}
                 {isLocked && (
-                    <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/5 backdrop-blur-[1px]">
+                    <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/5 backdrop-blur-[1px] pointer-events-none">
                         <div className="flex flex-col items-center gap-3">
                             <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
                             <span className="text-sm font-medium text-primary">デザインを同期中...</span>
@@ -69,6 +81,54 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
                     </div>
                 )}
             </div>
+
+            {/* GUI 編集ツール (Moveable) */}
+            {!isLocked && (
+                <Moveable
+                    target={targets}
+                    draggable={true}
+                    resizable={true}
+                    rotatable={false}
+                    snappable={true}
+                    bounds={{
+                        left: 0,
+                        top: 0,
+                        right: config.width,
+                        bottom: config.height,
+                    }}
+                    snapThreshold={5}
+                    elementSnapDirections={true}
+                    elementGuidelines={Array.from(canvasRef.current?.querySelectorAll('.DesignSurface > *') || []) as HTMLElement[]}
+                    origin={false}
+                    edge={false}
+                    keepRatio={false}
+                    throttleDrag={1}
+                    throttleResize={1}
+                    onDrag={e => {
+                        e.target.style.transform = e.transform;
+                    }}
+                    onDragGroup={e => {
+                        e.events.forEach(ev => {
+                            ev.target.style.transform = ev.transform;
+                        });
+                    }}
+                    onDragEnd={updateContentFromDOM}
+                    onResize={e => {
+                        e.target.style.width = `${e.width}px`;
+                        e.target.style.height = `${e.height}px`;
+                        e.target.style.transform = e.drag.transform;
+                    }}
+                    onResizeGroup={e => {
+                        e.events.forEach(ev => {
+                            ev.target.style.width = `${ev.width}px`;
+                            ev.target.style.height = `${ev.height}px`;
+                            ev.target.style.transform = ev.drag.transform;
+                        });
+                    }}
+                    onResizeEnd={updateContentFromDOM}
+                    className="SelectionTool"
+                />
+            )}
         </div>
     );
 };
