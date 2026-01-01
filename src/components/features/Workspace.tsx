@@ -141,7 +141,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
                     elementGuidelines={Array.from(canvasRef.current?.querySelectorAll('.DesignSurface > *') || []) as HTMLElement[]}
                     origin={false}
                     edge={false}
-                    keepRatio={false}
+                    keepRatio={targets.some(el => el.tagName.toLowerCase() === 'img')}
                     throttleDrag={1}
                     throttleResize={1}
                     onDrag={e => {

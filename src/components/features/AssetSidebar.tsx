@@ -5,7 +5,9 @@ import {
     RefreshCw,
     ChevronLeft,
     ChevronRight,
-    Search
+    Search,
+    Square,
+    Type
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useAssets } from '@/hooks/useAssets';
@@ -17,7 +19,27 @@ const AssetSidebar: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const { htmlFiles, imageFiles, imageUrls, refreshAssets } = useAssets();
     const { openFile } = useFileSystem();
-    const { fileName, isDirty } = useEditorStore();
+    const { fileName, isDirty, setContent } = useEditorStore();
+
+    const addShape = (type: 'rect' | 'text' | 'image') => {
+        const id = `el-${Math.random().toString(36).substr(2, 9)}`;
+        let elementHtml = '';
+
+        switch (type) {
+            case 'rect':
+                elementHtml = `<div id="${id}" style="position: absolute; top: 100px; left: 100px; width: 100px; height: 100px; background-color: #3b82f6;"></div>`;
+                break;
+            case 'text':
+                elementHtml = `<div id="${id}" style="position: absolute; top: 100px; left: 100px; width: 200px; font-family: sans-serif; font-size: 16px; color: #333;">テキストを入力</div>`;
+                break;
+            case 'image':
+                elementHtml = `<img id="${id}" src="https://via.placeholder.com/300x200?text=Image" style="position: absolute; top: 100px; left: 100px; width: 300px; height: auto;" />`;
+                break;
+        }
+
+        const currentContent = useEditorStore.getState().content;
+        setContent(currentContent + elementHtml);
+    };
 
     const handleFileClick = async (targetFileName: string) => {
         if (targetFileName === fileName) return;
@@ -78,6 +100,40 @@ const AssetSidebar: React.FC = () => {
 
                     {/* Content */}
                     <div className="flex-1 overflow-y-auto custom-scrollbar">
+                        {/* Basic Components */}
+                        <div className="mb-6">
+                            <div className="px-4 py-2 text-[10px] font-bold text-gray-600 uppercase tracking-tighter flex items-center gap-2">
+                                <Square size={12} />
+                                <span>Components</span>
+                            </div>
+                            <div className="px-2 grid grid-cols-3 gap-2 p-2">
+                                <button
+                                    onClick={() => addShape('rect')}
+                                    className="flex flex-col items-center justify-center p-2 rounded-lg bg-white/5 border border-white/5 hover:border-blue-500/50 hover:bg-white/10 transition-all text-gray-400 hover:text-white"
+                                    title="Rectangle"
+                                >
+                                    <Square size={20} />
+                                    <span className="text-[9px] mt-1">Rect</span>
+                                </button>
+                                <button
+                                    onClick={() => addShape('text')}
+                                    className="flex flex-col items-center justify-center p-2 rounded-lg bg-white/5 border border-white/5 hover:border-blue-500/50 hover:bg-white/10 transition-all text-gray-400 hover:text-white"
+                                    title="Text Box"
+                                >
+                                    <Type size={20} />
+                                    <span className="text-[9px] mt-1">Text</span>
+                                </button>
+                                <button
+                                    onClick={() => addShape('image')}
+                                    className="flex flex-col items-center justify-center p-2 rounded-lg bg-white/5 border border-white/5 hover:border-blue-500/50 hover:bg-white/10 transition-all text-gray-400 hover:text-white"
+                                    title="Image"
+                                >
+                                    <ImageIcon size={20} />
+                                    <span className="text-[9px] mt-1">Image</span>
+                                </button>
+                            </div>
+                        </div>
+
                         {/* HTML Files */}
                         <div className="mb-6">
                             <div className="px-4 py-2 text-[10px] font-bold text-gray-600 uppercase tracking-tighter flex items-center gap-2">

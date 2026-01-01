@@ -19,6 +19,7 @@ import MetaMessageEditor from './MetaMessageEditor';
 import HintDialog from './HintDialog';
 import type { PageSize } from '@/types/editor';
 import { PAGE_SIZES } from '@/types/editor';
+import { GET_INITIAL_TEMPLATE } from '@/utils/templates';
 
 interface NavButtonProps {
     icon: React.ReactNode;
@@ -71,6 +72,8 @@ const Navbar: React.FC = () => {
         }
         reset();
         setPageSize(size);
+        const template = GET_INITIAL_TEMPLATE(size);
+        useEditorStore.getState().setContent(template, true);
         setIsDropdownOpen(false);
     };
 
