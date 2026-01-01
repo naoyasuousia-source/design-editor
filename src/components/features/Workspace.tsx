@@ -55,6 +55,11 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
                     dangerouslySetInnerHTML={{ __html: content }}
                     contentEditable={!isLocked}
                     suppressContentEditableWarning={true}
+                    onPaste={(e) => {
+                        e.preventDefault();
+                        const text = e.clipboardData.getData('text/plain');
+                        document.execCommand('insertText', false, text);
+                    }}
                 />
 
                 {/* コンテンツがない場合の初期表示（使い方説明） */}

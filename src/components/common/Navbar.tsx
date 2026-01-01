@@ -5,7 +5,6 @@ import {
     Save,
     Download,
     Image as ImageIcon,
-    ZoomIn,
     Undo,
     Redo,
     HelpCircle,
