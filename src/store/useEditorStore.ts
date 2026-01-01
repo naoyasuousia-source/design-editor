@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { EditorState, PageSize } from '@/types/editor';
+import type { EditorState, PageSize } from '@/types/editor';
 import { DEFAULT_PAGE_SIZE } from '@/constants/editor';
 
 interface EditorStore extends EditorState {

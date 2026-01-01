@@ -15,7 +15,8 @@ import {
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useEditorStore } from '@/store/useEditorStore';
-import { PageSize, PAGE_SIZES } from '@/types/editor';
+import type { PageSize } from '@/types/editor';
+import { PAGE_SIZES } from '@/types/editor';
 
 interface NavButtonProps {
     icon: React.ReactNode;

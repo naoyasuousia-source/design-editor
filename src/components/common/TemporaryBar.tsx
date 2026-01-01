@@ -1,6 +1,5 @@
 import React from 'react';
 import { Check, X, SplitSquareVertical } from 'lucide-react';
-import { cn } from '@/utils/cn';
 
 interface TemporaryBarProps {
     onApprove: () => void;

@@ -4,10 +4,9 @@ import { X } from 'lucide-react';
 interface ComparisonViewProps {
     onClose: () => void;
     oldImage?: string; // Base64
-    newHtml?: string;
 }
 
-const ComparisonView: React.FC<ComparisonViewProps> = ({ onClose, oldImage, newHtml }) => {
+const ComparisonView: React.FC<ComparisonViewProps> = ({ onClose, oldImage }) => {
     return (
         <div className="absolute inset-0 z-[200] bg-background flex flex-col animate-in fade-in duration-300">
             {/* ヘッダー */}

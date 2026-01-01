@@ -24,7 +24,7 @@ export interface MetaMessage {
     remarks: string;
 }
 
-export interface EditorState {
+export type EditorState = {
     pageSize: PageSize;
     zoom: number;
     isDirty: boolean;

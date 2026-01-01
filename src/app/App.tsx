@@ -5,7 +5,7 @@ import ComparisonView from '@/components/features/ComparisonView';
 import TemporaryBar from '@/components/common/TemporaryBar';
 
 const App: React.FC = () => {
-    const [isLocked, setIsLocked] = useState(false);
+    const [isLocked] = useState(false);
     const [showComparison, setShowComparison] = useState(false);
     const [hasPendingChanges, setHasPendingChanges] = useState(false);
 
