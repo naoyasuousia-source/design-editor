@@ -7,7 +7,7 @@ import {
     Ungroup,
     ImagePlus,
     Hash,
-    Scissor,
+    Scissors,
     Square
 } from 'lucide-react';
 import { useAssets } from '@/hooks/useAssets';
@@ -168,7 +168,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
                                 }}
                                 title="Positioning (Crop)"
                             >
-                                <Scissor size={14} />
+                                <Scissors size={14} />
                             </button>
                             <button
                                 className={cn(

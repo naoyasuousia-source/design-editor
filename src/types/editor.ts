@@ -48,3 +48,5 @@ export type EditorState = {
     isImageSaveMode: boolean;
     cropAspectRatio: number | 'free' | null;
 }
+
+export const _REFRESH_FIX = Date.now();
