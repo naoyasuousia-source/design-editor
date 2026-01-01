@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
     FilePlus,
     FolderOpen,
@@ -10,9 +10,12 @@ import {
     Redo,
     MessageSquare,
     HelpCircle,
-    Link2
+    Link2,
+    ChevronDown
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
+import { useEditorStore } from '@/store/useEditorStore';
+import { PageSize, PAGE_SIZES } from '@/types/editor';
 
 interface NavButtonProps {
     icon: React.ReactNode;
@@ -39,12 +42,35 @@ const NavButton: React.FC<NavButtonProps> = ({ icon, label, onClick, className, 
 );
 
 const Navbar: React.FC = () => {
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+
+    const { isDirty, setPageSize, reset } = useEditorStore();
+
+    const handleNewProject = (size: PageSize) => {
+        if (isDirty) {
+            if (!confirm('編集中の内容は破棄されます。よろしいですか？')) {
+                return;
+            }
+        }
+        reset();
+        setPageSize(size);
+        setIsDropdownOpen(false);
+    };
+
+    // 外側クリックでドロップダウンを閉じる
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setIsDropdownOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
     return (
-        <nav className="w-full bg-toolbar border-b border-white/5 p-2 z-50 shadow-premium">
-            {/* 
-        ウィンドウ幅に合わせてボタンが折り返されるように flex-wrap を使用。
-        各アイテムは十分な余白を持ち、見切れないように配慮。
-      */}
+        <nav className="w-full bg-toolbar border-b border-white/5 p-2 z-[60] shadow-premium">
             <div className="container mx-auto flex flex-wrap items-center gap-x-4 gap-y-2">
                 {/* ロゴエリア */}
                 <div className="flex items-center gap-2 mr-4 py-1">
@@ -56,9 +82,38 @@ const Navbar: React.FC = () => {
                     </h1>
                 </div>
 
-                {/* ボタン群 - セクションごとに区切り */}
+                {/* ボタン群 */}
                 <div className="flex flex-wrap items-center gap-1 border-l border-white/10 pl-4">
-                    <NavButton icon={<FilePlus />} label="新規作成" />
+                    {/* 新規作成ドロップダウン */}
+                    <div className="relative" ref={dropdownRef}>
+                        <button
+                            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                            className={cn(
+                                "flex items-center gap-2 px-3 py-1.5 rounded-md transition-all duration-200",
+                                "text-sm font-medium text-gray-300 hover:text-white hover:bg-white/10",
+                                isDropdownOpen && "bg-white/10 text-white"
+                            )}
+                        >
+                            <FilePlus className="w-4 h-4" />
+                            <span>新規作成</span>
+                            <ChevronDown className={cn("w-3 h-3 transition-transform", isDropdownOpen && "rotate-180")} />
+                        </button>
+
+                        {isDropdownOpen && (
+                            <div className="absolute top-full left-0 mt-1 w-48 bg-sidebar border border-white/10 rounded-lg shadow-2xl py-2 z-[70] animate-in fade-in slide-in-from-top-2">
+                                {(Object.keys(PAGE_SIZES) as PageSize[]).map((size) => (
+                                    <button
+                                        key={size}
+                                        onClick={() => handleNewProject(size)}
+                                        className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-primary hover:text-white transition-colors"
+                                    >
+                                        {PAGE_SIZES[size].label}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
                     <NavButton icon={<FolderOpen />} label="開く" />
                     <NavButton icon={<Save />} label="保存" />
                     <NavButton icon={<Download />} label="上書き保存" />

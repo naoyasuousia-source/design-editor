@@ -11,17 +11,17 @@ HTML内の不可視なメタメッセージを通じてAIと意図を共有し�
 ### フェーズ 1: 基盤構築 & デザインシステム
 - [x] `rules.md` に基づく 4-Layer Architecture のディレクトリ構成作成
 - [x] Tailwind CSS デザイントークン設定（超レスポンシブなラップ型ヘッダー含む）
-- [ ] **指定15フォントの導入**:
+- [x] **指定15フォントの導入**:
     - Noto Sans JP, Noto Serif JP, 游ゴシック, 游明朝, Meiryo, M PLUS 1p, Zen 角ゴシック New
     - Inter, Montserrat, Roboto, Playfair Display, Oswald, Poppins, JetBrains Mono, Times New Roman
 - [x] 基本レイアウト：ウィンドウ幅に応じて見切れない「アダプティブ・ツールバー」の実装
 
 ### フェーズ 2: 高度な状態管理 & 保存ロジック (Services/Logic)
 - [ ] **履歴管理スタック (Snapshot Engine)**: Undo/Redo の実装。GUI操作とAI同期の両方を正確に管理
-- [ ] **Dirtyチェック**: 編集状態のフラグ管理（新規作成時の警告用）
+- [x] **Dirtyチェック**: 編集状態のフラグ管理（新規作成時の警告用）
 - [ ] **メタメッセージ自動更新エンジン**: 保存時に現在の修正要求、コンセプト、配色情報を自動集計・日本語でHTMLに埋め込む
 - [ ] **HTMLパージロジック**: `Moveable` の補助線やエディタ専用クラスを完全に除去し、`id` / `data-group-id` のみを残したクリーンHTMLを出力
-- [ ] File System Access API による「フォルダ単位」のアクセス・監視ロジック
+- [x] File System Access API による「フォルダ単位」のアクセス・監視ロジック
 
 ### フェーズ 3: 描画 & 同期ワークフロー (UI/Bridge)
 - [ ] デザインエリアの描画エンジン（`innerHTML` 反映）
