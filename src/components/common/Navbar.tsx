@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useEditorStore } from '@/store/useEditorStore';
+import { useFileSystem } from '@/hooks/useFileSystem';
 import type { PageSize } from '@/types/editor';
 import { PAGE_SIZES } from '@/types/editor';
 
@@ -46,7 +47,18 @@ const Navbar: React.FC = () => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
-    const { isDirty, setPageSize, reset } = useEditorStore();
+    const {
+        isDirty,
+        setPageSize,
+        reset,
+        undo,
+        redo,
+        history,
+        zoom,
+        setZoom
+    } = useEditorStore();
+
+    const { openFolder, saveCurrentFile } = useFileSystem();
 
     const handleNewProject = (size: PageSize) => {
         if (isDirty) {
@@ -115,19 +127,47 @@ const Navbar: React.FC = () => {
                         )}
                     </div>
 
-                    <NavButton icon={<FolderOpen />} label="開く" />
-                    <NavButton icon={<Save />} label="保存" />
-                    <NavButton icon={<Download />} label="上書き保存" />
+                    <NavButton
+                        icon={<FolderOpen />}
+                        label="開く"
+                        onClick={openFolder}
+                    />
+                    <NavButton
+                        icon={<Save />}
+                        label="保存"
+                        onClick={() => alert('名前を付けて保存は未実装です。')}
+                    />
+                    <NavButton
+                        icon={<Download />}
+                        label="上書き保存"
+                        onClick={saveCurrentFile}
+                    />
                 </div>
 
                 <div className="flex flex-wrap items-center gap-1 border-l border-white/10 pl-4">
                     <NavButton icon={<ImageIcon />} label="画像として保存" />
-                    <NavButton icon={<ZoomIn />} label="100%" />
+                    <button
+                        onClick={() => setZoom(zoom === 1 ? 1.5 : zoom === 1.5 ? 2 : 1)}
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-white/10"
+                    >
+                        <ZoomIn className="w-4 h-4" />
+                        <span>{Math.round(zoom * 100)}%</span>
+                    </button>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-1 border-l border-white/10 pl-4">
-                    <NavButton icon={<Undo />} label="戻す" />
-                    <NavButton icon={<Redo />} label="進む" />
+                    <NavButton
+                        icon={<Undo />}
+                        label="戻す"
+                        onClick={undo}
+                        disabled={history.past.length === 0}
+                    />
+                    <NavButton
+                        icon={<Redo />}
+                        label="進む"
+                        onClick={redo}
+                        disabled={history.future.length === 0}
+                    />
                 </div>
 
                 <div className="flex flex-wrap items-center gap-1 border-l border-white/10 pl-4">

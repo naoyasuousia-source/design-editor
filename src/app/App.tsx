@@ -3,11 +3,23 @@ import Navbar from '@/components/common/Navbar';
 import Workspace from '@/components/features/Workspace';
 import ComparisonView from '@/components/features/ComparisonView';
 import TemporaryBar from '@/components/common/TemporaryBar';
+import { useHotkeys } from '@/hooks/useHotkeys';
+import { useEditorStore } from '@/store/useEditorStore';
 
 const App: React.FC = () => {
-    const [isLocked] = useState(false);
+    const {
+        isLocked,
+        hasPendingChanges,
+        approveUpdate,
+        discardUpdate,
+        pendingSnapshot,
+        pendingContent
+    } = useEditorStore();
+
     const [showComparison, setShowComparison] = useState(false);
-    const [hasPendingChanges, setHasPendingChanges] = useState(false);
+
+    // ショートカットキーの有効化
+    useHotkeys();
 
     return (
         <div className="flex flex-col h-screen w-screen bg-background overflow-hidden">
@@ -21,15 +33,19 @@ const App: React.FC = () => {
 
                 {/* 比較ビュー（オーバーレイ） */}
                 {showComparison && (
-                    <ComparisonView onClose={() => setShowComparison(false)} />
+                    <ComparisonView
+                        onClose={() => setShowComparison(false)}
+                        oldImage={pendingSnapshot || undefined}
+                        newHtml={pendingContent}
+                    />
                 )}
             </main>
 
             {/* 一時バー（AI更新検知時のみ表示） */}
             {hasPendingChanges && !showComparison && (
                 <TemporaryBar
-                    onApprove={() => setHasPendingChanges(false)}
-                    onDiscard={() => setHasPendingChanges(false)}
+                    onApprove={approveUpdate}
+                    onDiscard={discardUpdate}
                     onCompare={() => setShowComparison(true)}
                 />
             )}

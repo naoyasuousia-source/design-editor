@@ -31,4 +31,13 @@ export type EditorState = {
     content: string; // HTML string
     fileName: string | null;
     folderHandle: FileSystemDirectoryHandle | null;
+    history: {
+        past: string[];
+        future: string[];
+    };
+    // 承認フロー用
+    isLocked: boolean;
+    hasPendingChanges: boolean;
+    pendingContent: string;
+    pendingSnapshot: string | null; // Base64
 }

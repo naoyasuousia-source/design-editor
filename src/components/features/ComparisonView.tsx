@@ -4,9 +4,10 @@ import { X } from 'lucide-react';
 interface ComparisonViewProps {
     onClose: () => void;
     oldImage?: string; // Base64
+    newHtml?: string;
 }
 
-const ComparisonView: React.FC<ComparisonViewProps> = ({ onClose, oldImage }) => {
+const ComparisonView: React.FC<ComparisonViewProps> = ({ onClose, oldImage, newHtml }) => {
     return (
         <div className="absolute inset-0 z-[200] bg-background flex flex-col animate-in fade-in duration-300">
             {/* ヘッダー */}
@@ -42,13 +43,17 @@ const ComparisonView: React.FC<ComparisonViewProps> = ({ onClose, oldImage }) =>
                         変更後 (After)
                     </div>
                     <div className="flex-1 bg-white/5 flex items-center justify-center p-8 overflow-auto CustomScrollbar">
-                        {/* 
-                本来はここに更新後のHTMLをレンダリングする。
-                現在はプレースホルダー。
-             */}
-                        <div className="w-[600px] h-[600px] bg-white shadow-2xl flex items-center justify-center text-gray-400">
-                            最新の変更がここに表示されます
-                        </div>
+                        {newHtml ? (
+                            <div
+                                className="bg-white shadow-2xl relative"
+                                style={{ width: '600px', height: '600px' }} // 簡易的に固定サイズ、本来は pageSize を参照
+                                dangerouslySetInnerHTML={{ __html: newHtml }}
+                            />
+                        ) : (
+                            <div className="w-[600px] h-[600px] bg-white shadow-2xl flex items-center justify-center text-gray-400">
+                                最新の変更がここに表示されます
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
