@@ -5,6 +5,7 @@ import { PAGE_SIZES } from '@/types/editor';
 import { useAutoSync } from '@/hooks/useAutoSync';
 import Moveable from 'react-moveable';
 import { useMoveable } from '@/hooks/useMoveable';
+import FloatingMenu from './FloatingMenu';
 
 interface WorkspaceProps {
     isLocked: boolean;
@@ -59,6 +60,34 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
                         e.preventDefault();
                         const text = e.clipboardData.getData('text/plain');
                         document.execCommand('insertText', false, text);
+                    }}
+                    onDragOver={(e) => {
+                        e.preventDefault();
+                        e.dataTransfer.dropEffect = 'copy';
+                    }}
+                    onDrop={(e) => {
+                        e.preventDefault();
+                        const imagePath = e.dataTransfer.getData('text/plain');
+                        if (!imagePath || !imagePath.startsWith('./images/')) return;
+
+                        // ドロップ位置の要素を特定
+                        const element = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement;
+                        if (!element) return;
+
+                        // DesignSurface 内の要素を探す
+                        const target = element.closest('.DesignSurface > *, .DesignSurface *') as HTMLElement;
+                        if (!target) return;
+
+                        if (target.tagName.toLowerCase() === 'img') {
+                            (target as HTMLImageElement).src = imagePath;
+                        } else {
+                            target.style.backgroundImage = `url('${imagePath}')`;
+                            target.style.backgroundSize = 'contain';
+                            target.style.backgroundRepeat = 'no-repeat';
+                            target.style.backgroundPosition = 'center';
+                        }
+
+                        updateContentFromDOM();
                     }}
                 />
 
@@ -190,6 +219,14 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
                     }}
                     onResizeEnd={updateContentFromDOM}
                     className="SelectionTool"
+                />
+            )}
+
+            {/* フローティングメニュー */}
+            {!isLocked && targets.length > 0 && (
+                <FloatingMenu
+                    targets={targets}
+                    onUpdate={updateContentFromDOM}
                 />
             )}
         </div>

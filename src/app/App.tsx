@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Navbar from '@/components/common/Navbar';
 import Workspace from '@/components/features/Workspace';
 import ComparisonView from '@/components/features/ComparisonView';
+import AssetSidebar from '@/components/features/AssetSidebar';
 import TemporaryBar from '@/components/common/TemporaryBar';
 import { useHotkeys } from '@/hooks/useHotkeys';
 import { useBeforeUnload } from '@/hooks/useBeforeUnload';
@@ -30,18 +31,23 @@ const App: React.FC = () => {
             <Navbar />
 
             {/* メインコンテンツ領域 */}
-            <main className="flex-1 relative overflow-hidden">
-                {/* デザイン領域 */}
-                <Workspace isLocked={isLocked || showComparison} />
+            <main className="flex-1 relative overflow-hidden flex flex-row">
+                {/* サイドバー */}
+                <AssetSidebar />
 
-                {/* 比較ビュー（オーバーレイ） */}
-                {showComparison && (
-                    <ComparisonView
-                        onClose={() => setShowComparison(false)}
-                        oldImage={pendingSnapshot || undefined}
-                        newHtml={pendingContent}
-                    />
-                )}
+                <div className="flex-1 relative overflow-hidden">
+                    {/* デザイン領域 */}
+                    <Workspace isLocked={isLocked || showComparison} />
+
+                    {/* 比較ビュー（オーバーレイ） */}
+                    {showComparison && (
+                        <ComparisonView
+                            onClose={() => setShowComparison(false)}
+                            oldImage={pendingSnapshot || undefined}
+                            newHtml={pendingContent}
+                        />
+                    )}
+                </div>
             </main>
 
             {/* 一時バー（AI更新検知時のみ表示） */}

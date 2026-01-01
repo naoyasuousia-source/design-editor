@@ -71,23 +71,43 @@ export const useFileSystem = () => {
             return;
         }
 
-        let targetFileName = fileName;
-
-        // ファイル名がない（新規作成時など）場合は、名前を付けて保存
-        if (!targetFileName) {
-            const inputName = prompt('保存するファイル名を入力してください（例: index.html）', 'index.html');
-            if (!inputName) return; // キャンセル
-            targetFileName = inputName.endsWith('.html') ? inputName : `${inputName}.html`;
-            setFileName(targetFileName);
+        if (!fileName) {
+            return saveFileAs();
         }
 
         try {
-            // メタデータを含めたフルHTMLを構築
+            const fullHtml = constructFullHTML(content, metaMessage);
+            await fileSystemService.saveFile(folderHandle, fileName, fullHtml);
+            setDirty(false);
+            console.log(`File saved successfully: ${fileName}`);
+        } catch (error) {
+            console.error('Failed to save file:', error);
+            alert('保存に失敗しました。');
+        }
+    }, [setDirty]);
+
+    /**
+     * 名前を付けて保存
+     */
+    const saveFileAs = useCallback(async () => {
+        const { folderHandle, content, metaMessage, fileName } = useEditorStore.getState();
+
+        if (!folderHandle) {
+            alert('まずプロジェクトフォルダを選択してください。');
+            return;
+        }
+
+        const inputName = prompt('保存するファイル名を入力してください（例: index.html）', fileName || 'index.html');
+        if (!inputName) return; // キャンセル
+
+        const targetFileName = inputName.endsWith('.html') ? inputName : `${inputName}.html`;
+
+        try {
             const fullHtml = constructFullHTML(content, metaMessage);
             await fileSystemService.saveFile(folderHandle, targetFileName, fullHtml);
-
+            setFileName(targetFileName);
             setDirty(false);
-            console.log(`File saved successfully: ${targetFileName}`);
+            console.log(`File saved as: ${targetFileName}`);
         } catch (error) {
             console.error('Failed to save file:', error);
             alert('保存に失敗しました。');
@@ -98,5 +118,6 @@ export const useFileSystem = () => {
         openFolder,
         openFile,
         saveCurrentFile,
+        saveFileAs,
     };
 };

@@ -42,5 +42,27 @@ export const fileSystemService = {
      */
     async ensureImagesDirectory(folderHandle: FileSystemDirectoryHandle): Promise<FileSystemDirectoryHandle> {
         return await folderHandle.getDirectoryHandle('images', { create: true });
+    },
+
+    /**
+     * 指定したハンドル内のファイルを一覧取得する
+     */
+    async listFiles(folderHandle: FileSystemDirectoryHandle): Promise<string[]> {
+        const fileNames: string[] = [];
+        for await (const entry of folderHandle.values()) {
+            if (entry.kind === 'file') {
+                fileNames.push(entry.name);
+            }
+        }
+        return fileNames;
+    },
+
+    /**
+     * ファイルのURLを取得する (Blob URL)
+     */
+    async getFileUrl(folderHandle: FileSystemDirectoryHandle, fileName: string): Promise<string> {
+        const fileHandle = await folderHandle.getFileHandle(fileName);
+        const file = await fileHandle.getFile();
+        return URL.createObjectURL(file);
     }
 };

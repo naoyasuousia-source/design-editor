@@ -59,7 +59,7 @@ const Navbar: React.FC = () => {
         setZoom
     } = useEditorStore();
 
-    const { openFolder, saveCurrentFile } = useFileSystem();
+    const { openFolder, saveCurrentFile, saveFileAs } = useFileSystem();
 
     const handleNewProject = (size: PageSize) => {
         if (isDirty) {
@@ -136,7 +136,7 @@ const Navbar: React.FC = () => {
                     <NavButton
                         icon={<Save />}
                         label="保存"
-                        onClick={() => alert('名前を付けて保存は未実装です。')}
+                        onClick={saveFileAs}
                     />
                     <NavButton
                         icon={<Download />}
