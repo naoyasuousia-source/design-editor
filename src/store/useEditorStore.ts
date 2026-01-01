@@ -23,12 +23,19 @@ interface EditorStore extends EditorState {
     discardUpdate: () => Promise<void>;
     setMetaMessage: (meta: Partial<import('@/types/editor').MetaMessage>) => void;
     setLastSaveTime: (time: number) => void;
+    setImageSaveMode: (enabled: boolean) => void;
+    setCropAspectRatio: (ratio: number | 'free' | null) => void;
     reset: () => void;
 }
 
 const MAX_HISTORY = 50;
 
-const initialState: EditorState & { lastSaveTime: number } = {
+const initialState: EditorState & {
+    lastSaveTime: number;
+    // 画像保存ウィザード用
+    isImageSaveMode: boolean;
+    cropAspectRatio: number | 'free' | null;
+} = {
     pageSize: DEFAULT_PAGE_SIZE,
     customWidth: null,
     customHeight: null,
@@ -57,6 +64,8 @@ const initialState: EditorState & { lastSaveTime: number } = {
         remarks: '',
     },
     lastSaveTime: 0,
+    isImageSaveMode: false,
+    cropAspectRatio: null,
 };
 
 export const useEditorStore = create<EditorStore>((set, get) => ({
@@ -197,5 +206,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
         metaMessage: { ...state.metaMessage, ...meta }
     })),
     setLastSaveTime: (lastSaveTime) => set({ lastSaveTime }),
+    setImageSaveMode: (isImageSaveMode) => set({ isImageSaveMode, isLocked: isImageSaveMode }),
+    setCropAspectRatio: (cropAspectRatio) => set({ cropAspectRatio }),
     reset: () => set(initialState),
 }));

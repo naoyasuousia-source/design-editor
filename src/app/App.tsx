@@ -4,6 +4,7 @@ import Workspace from '@/components/features/Workspace';
 import ComparisonView from '@/components/features/ComparisonView';
 import AssetSidebar from '@/components/features/AssetSidebar';
 import TemporaryBar from '@/components/common/TemporaryBar';
+import ImageSaveWizard from '@/components/features/ImageSaveWizard';
 import { useHotkeys } from '@/hooks/useHotkeys';
 import { useBeforeUnload } from '@/hooks/useBeforeUnload';
 import { useEditorStore } from '@/store/useEditorStore';
@@ -15,7 +16,8 @@ const App: React.FC = () => {
         approveUpdate,
         discardUpdate,
         pendingSnapshot,
-        pendingContent
+        pendingContent,
+        isImageSaveMode
     } = useEditorStore();
 
     const [showComparison, setShowComparison] = useState(false);
@@ -49,6 +51,9 @@ const App: React.FC = () => {
                     )}
                 </div>
             </main>
+
+            {/* 画像保存ウィザード */}
+            {isImageSaveMode && <ImageSaveWizard />}
 
             {/* 一時バー（AI更新検知時のみ表示） */}
             {hasPendingChanges && !showComparison && (

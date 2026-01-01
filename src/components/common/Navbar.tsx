@@ -59,7 +59,9 @@ const Navbar: React.FC = () => {
         redo,
         history,
         zoom,
-        setZoom
+        setZoom,
+        setImageSaveMode,
+        isImageSaveMode
     } = useEditorStore();
 
     const { openFolder, saveCurrentFile, saveFileAs } = useFileSystem();
@@ -147,11 +149,17 @@ const Navbar: React.FC = () => {
                         icon={<Download />}
                         label="上書き保存"
                         onClick={saveCurrentFile}
+                        disabled={isImageSaveMode}
                     />
                 </div>
 
                 <div className="flex flex-wrap items-center gap-1 border-l border-white/10 pl-4">
-                    <NavButton icon={<ImageIcon />} label="画像として保存" />
+                    <NavButton
+                        icon={<ImageIcon />}
+                        label="画像として保存"
+                        onClick={() => setImageSaveMode(true)}
+                        disabled={isImageSaveMode}
+                    />
                     <div className="flex items-center gap-1 px-2 py-1 bg-white/5 rounded-md border border-white/10 ml-2">
                         <button
                             onClick={() => setZoom(Math.max(0.5, zoom - 0.25))}

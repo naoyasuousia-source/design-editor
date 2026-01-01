@@ -44,4 +44,7 @@ export type EditorState = {
     pendingSnapshot: string | null; // Base64
     metaMessage: MetaMessage;
     lastSaveTime: number;
+    // 画像保存ウィザード用
+    isImageSaveMode: boolean;
+    cropAspectRatio: number | 'free' | null;
 }
