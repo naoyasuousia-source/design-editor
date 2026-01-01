@@ -108,7 +108,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
                             <input
                                 type="number"
                                 className="w-12 bg-transparent text-[10px] text-gray-300 hover:text-white outline-none py-1 pl-1"
-                                value={Math.round(parseFloat(window.getComputedStyle(target).fontSize))}
+                                value={Math.round(parseFloat(window.getComputedStyle(target).fontSize) || 16)}
                                 onChange={(e) => applyStyle('fontSize', `${e.target.value}px`)}
                             />
                         </div>

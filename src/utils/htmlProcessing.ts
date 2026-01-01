@@ -24,7 +24,21 @@ export const extractDesignContent = (html: string): string => {
     const designMatch = html.match(/<!-- DESIGN_START -->([\s\S]*)<!-- DESIGN_END -->/);
     let content = designMatch && designMatch[1] ? designMatch[1].trim() : html;
 
-    // DesignSurface ラッパーが含まれている場合、その中身のみを抽出
+    // DOM パーサーを使用して DesignSurface の中身を抽出
+    try {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(`<div id="__root__">${content}</div>`, 'text/html');
+        const surface = doc.querySelector('.DesignSurface');
+
+        if (surface) {
+            // DesignSurface の中身のみを返す
+            return surface.innerHTML.trim();
+        }
+    } catch (e) {
+        console.warn('DOM parsing failed, falling back to regex:', e);
+    }
+
+    // フォールバック: 正規表現での抽出
     const surfaceMatch = content.match(/<div[^>]*class="[^"]*DesignSurface[^"]*"[^>]*>([\s\S]*)<\/div>\s*$/);
     if (surfaceMatch && surfaceMatch[1]) {
         return surfaceMatch[1].trim();

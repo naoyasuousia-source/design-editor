@@ -29,8 +29,8 @@
 
 <requirement>
 <content>現在、新規作成時も、開く選択時も、上書き保存できない。（ボタンctrl+Sいずれも不可）</content>
-<current-situation>上書き保存しようとすると、編集前のデフォルト画面に戻ってしまい、編集後の状態で上書きされない。</current-situation>
-<remarks>コンソールエラーが出ている。</remarks>
+<current-situation>上書き保存しようとすると、編集前のデフォルト画面に戻ってしまい、編集後の状態で上書きされない。コンソールエラーは消えた。</current-situation>
+<remarks>newpostの要素がテキストをuiで編集後、テキスト編集が確定されないのが、デフォルト画面に戻ってしまう原因かも。</remarks>
 <permission-to-move>NG</permission-to-move>
 </requirement>
 
@@ -59,6 +59,16 @@
    - `saveToCurrentFile`: 保存前に書き込み権限を確認・再要求するロジック追加（queryPermission / requestPermission）
 2. `src/hooks/useFileSystem.ts`
    - `handleOverwrite`: デバッグログ追加、エラーメッセージを詳細化
+
+### 2026-01-02 08:45 - NaN エラーと HTML 抽出の修正
+
+**目的**: コンソールの NaN エラーと、編集前に戻る問題を解決
+
+**変更内容**:
+1. `src/components/features/FloatingMenu.tsx`
+   - フォントサイズ取得時に NaN が発生しないよう、デフォルト値（16）を設定
+2. `src/utils/htmlProcessing.ts`
+   - `extractDesignContent`: DOMパーサーを使用して信頼性を向上（ネストされた div 構造でも正しく抽出）
 
 
 ## 3. 分析中に気づいた重要ポイント（試してだめだったこと、仮設、制約条件等...）
@@ -91,6 +101,15 @@
 2. **currentFileHandle が null の可能性**
    - 新規作成・開く処理で `setCurrentFileHandle` が正しく呼ばれていない
    - ストアへの保存タイミングの問題
+
+3. **NaN エラーの原因**（2026-01-02 発見）
+   - `FloatingMenu.tsx` で `parseFloat(fontSize)` が NaN を返すケース
+   - 要素選択後、`window.getComputedStyle(target).fontSize` が空の場合
+   - → デフォルト値（16）を設定して対応
+
+4. **正規表現による HTML 抽出の問題**
+   - ネストされた `</div>` タグで正規表現が誤マッチする可能性
+   - → DOMパーサーを使用して信頼性を向上
 
 
 ## 4. 解決済み要件とその解決方法
