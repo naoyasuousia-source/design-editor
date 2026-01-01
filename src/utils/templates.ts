@@ -1,4 +1,4 @@
-import type { PageSize } from '../types/editor';
+import type { PageSize } from '@/types/editor';
 
 export const GET_INITIAL_TEMPLATE = (size: PageSize): string => {
     const id = `el-${Math.random().toString(36).substr(2, 9)}`;

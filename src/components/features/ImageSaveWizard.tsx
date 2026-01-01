@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Camera, X, Check, Crop, Type, Maximize2 } from 'lucide-react';
+import { Camera, X, Check, Crop, Maximize2 } from 'lucide-react';
 import { useEditorStore } from '@/store/useEditorStore';
 import { toPng } from 'html-to-image';
 import { cn } from '@/utils/cn';
@@ -9,7 +9,6 @@ const ImageSaveWizard: React.FC = () => {
         setImageSaveMode,
         cropAspectRatio,
         setCropAspectRatio,
-        pageSize,
         zoom
     } = useEditorStore();
 
@@ -178,8 +177,6 @@ const ImageSaveWizard: React.FC = () => {
                         style={{
                             width: `${cropRect.width * zoom}px`,
                             height: `${cropRect.height * zoom}px`,
-                            // TODO: 本来はキャンバス相対位置に合わせる必要があるが、
-                            // ここでは Workspace と同様の中央配置を前提とする
                         }}
                         onMouseDown={handleCropMouseDown}
                     >

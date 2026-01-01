@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
 import {
-    Palette,
     Circle,
     Trash2,
     Group,
@@ -55,9 +54,11 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
     const isGrouped = targets.every(el => el.hasAttribute('data-group-id')) && targets.length > 1;
     const canGroup = targets.length > 1 && !isGrouped;
 
-    const applyStyle = (property: string, value: string) => {
+    const applyStyle = (property: keyof CSSStyleDeclaration, value: string) => {
         targets.forEach(el => {
-            (el.style as any)[property] = value;
+            // camelCase を kebab-case に変換
+            const cssProperty = (property as string).replace(/[A-Z]/g, m => `-${m.toLowerCase()}`);
+            el.style.setProperty(cssProperty, value);
         });
         onUpdate();
     };
