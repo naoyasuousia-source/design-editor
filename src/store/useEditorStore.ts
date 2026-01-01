@@ -13,6 +13,10 @@ interface EditorStore extends EditorState {
     setContent: (content: string, skipHistory?: boolean) => void;
     setFileName: (name: string | null) => void;
     setFolderHandle: (handle: FileSystemDirectoryHandle | null) => void;
+    // プロジェクトフォルダ管理システム用
+    setProjectDirectoryHandle: (handle: FileSystemDirectoryHandle | null) => void;
+    setCurrentFileHandle: (handle: FileSystemFileHandle | null) => void;
+    setProjectFolderName: (name: string) => void;
     undo: () => void;
     redo: () => void;
     pushHistory: (content: string) => void;
@@ -44,6 +48,10 @@ const initialState: EditorState & {
     content: '',
     fileName: null,
     folderHandle: null,
+    // プロジェクトフォルダ管理システム用
+    projectDirectoryHandle: null,
+    currentFileHandle: null,
+    projectFolderName: '',
     history: {
         past: [],
         future: [],
@@ -101,6 +109,11 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
 
     setFileName: (fileName) => set({ fileName }),
     setFolderHandle: (folderHandle) => set({ folderHandle }),
+
+    // プロジェクトフォルダ管理システム用
+    setProjectDirectoryHandle: (projectDirectoryHandle) => set({ projectDirectoryHandle }),
+    setCurrentFileHandle: (currentFileHandle) => set({ currentFileHandle }),
+    setProjectFolderName: (projectFolderName) => set({ projectFolderName }),
 
     setLocked: (isLocked) => set({ isLocked }),
 

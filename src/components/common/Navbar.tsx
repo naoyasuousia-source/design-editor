@@ -3,7 +3,6 @@ import {
     FilePlus,
     FolderOpen,
     Save,
-    Download,
     Image as ImageIcon,
     Undo,
     Redo,
@@ -19,7 +18,6 @@ import MetaMessageEditor from './MetaMessageEditor';
 import HintDialog from './HintDialog';
 import type { PageSize } from '@/types/editor';
 import { PAGE_SIZES } from '@/types/editor';
-import { GET_INITIAL_TEMPLATE } from '@/utils/templates';
 
 interface NavButtonProps {
     icon: React.ReactNode;
@@ -52,9 +50,6 @@ const Navbar: React.FC = () => {
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     const {
-        isDirty,
-        setPageSize,
-        reset,
         undo,
         redo,
         history,
@@ -64,18 +59,10 @@ const Navbar: React.FC = () => {
         isImageSaveMode
     } = useEditorStore();
 
-    const { openFolder, saveCurrentFile, saveFileAs } = useFileSystem();
+    const { handleNew, handleOpen, handleOverwrite } = useFileSystem();
 
     const handleNewProject = (size: PageSize) => {
-        if (isDirty) {
-            if (!confirm('編集中の内容は破棄されます。よろしいですか？')) {
-                return;
-            }
-        }
-        reset();
-        setPageSize(size);
-        const template = GET_INITIAL_TEMPLATE(size);
-        useEditorStore.getState().setContent(template, true);
+        handleNew(size);
         setIsDropdownOpen(false);
     };
 
@@ -138,17 +125,12 @@ const Navbar: React.FC = () => {
                     <NavButton
                         icon={<FolderOpen />}
                         label="開く"
-                        onClick={openFolder}
+                        onClick={handleOpen}
                     />
                     <NavButton
                         icon={<Save />}
                         label="保存"
-                        onClick={saveFileAs}
-                    />
-                    <NavButton
-                        icon={<Download />}
-                        label="上書き保存"
-                        onClick={saveCurrentFile}
+                        onClick={handleOverwrite}
                         disabled={isImageSaveMode}
                     />
                 </div>

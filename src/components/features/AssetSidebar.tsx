@@ -11,15 +11,13 @@ import {
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useAssets } from '@/hooks/useAssets';
-import { useFileSystem } from '@/hooks/useFileSystem';
 import { useEditorStore } from '@/store/useEditorStore';
 
 const AssetSidebar: React.FC = () => {
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const { htmlFiles, imageFiles, imageUrls, refreshAssets } = useAssets();
-    const { openFile } = useFileSystem();
-    const { fileName, isDirty, setContent } = useEditorStore();
+    const { setContent } = useEditorStore();
 
     const addShape = (type: 'rect' | 'text' | 'image') => {
         const id = `el-${Math.random().toString(36).substr(2, 9)}`;
@@ -39,17 +37,6 @@ const AssetSidebar: React.FC = () => {
 
         const currentContent = useEditorStore.getState().content;
         setContent(currentContent + elementHtml);
-    };
-
-    const handleFileClick = async (targetFileName: string) => {
-        if (targetFileName === fileName) return;
-
-        if (isDirty) {
-            if (!confirm('編集中の内容は破棄されます。よろしいですか？')) {
-                return;
-            }
-        }
-        await openFile(targetFileName);
     };
 
     const filteredHtml = htmlFiles.filter(f => f.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -142,21 +129,12 @@ const AssetSidebar: React.FC = () => {
                             </div>
                             <div className="px-2 space-y-0.5">
                                 {filteredHtml.map((f) => (
-                                    <button
+                                    <div
                                         key={f}
-                                        onClick={() => handleFileClick(f)}
-                                        className={cn(
-                                            "w-full text-left px-3 py-1.5 rounded-md text-xs transition-all group relative overflow-hidden",
-                                            f === fileName
-                                                ? "bg-primary/20 text-primary-foreground border border-primary/20"
-                                                : "text-gray-400 hover:text-gray-200 hover:bg-white/5"
-                                        )}
+                                        className="w-full text-left px-3 py-1.5 rounded-md text-xs text-gray-400"
                                     >
-                                        <span className="relative z-10 truncate block">{f}</span>
-                                        {f === fileName && (
-                                            <div className="absolute left-0 top-0 w-1 h-full bg-primary" />
-                                        )}
-                                    </button>
+                                        <span className="truncate block">{f}</span>
+                                    </div>
                                 ))}
                                 {filteredHtml.length === 0 && (
                                     <div className="px-4 py-3 text-[10px] text-gray-600 italic">No HTML files found</div>

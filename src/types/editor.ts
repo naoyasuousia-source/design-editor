@@ -33,6 +33,10 @@ export type EditorState = {
     content: string; // HTML string
     fileName: string | null;
     folderHandle: FileSystemDirectoryHandle | null;
+    // プロジェクトフォルダ管理システム用
+    projectDirectoryHandle: FileSystemDirectoryHandle | null;
+    currentFileHandle: FileSystemFileHandle | null;
+    projectFolderName: string;
     history: {
         past: string[];
         future: string[];

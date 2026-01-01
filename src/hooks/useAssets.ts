@@ -4,15 +4,16 @@ import { fileSystemService } from '@/services/fileSystem';
 
 /**
  * フォルダ内のHTMLファイルと画像アセットを管理するフック
+ * プロジェクトフォルダ管理システムに対応
  */
 export const useAssets = () => {
-    const folderHandle = useEditorStore((state) => state.folderHandle);
+    const projectDirectoryHandle = useEditorStore((state) => state.projectDirectoryHandle);
     const [htmlFiles, setHtmlFiles] = useState<string[]>([]);
     const [imageFiles, setImageFiles] = useState<string[]>([]);
     const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
 
     const refreshAssets = useCallback(async () => {
-        if (!folderHandle) {
+        if (!projectDirectoryHandle) {
             setHtmlFiles([]);
             setImageFiles([]);
             setImageUrls({});
@@ -21,11 +22,11 @@ export const useAssets = () => {
 
         try {
             // HTMLファイルの取得
-            const allFiles = await fileSystemService.listFiles(folderHandle);
+            const allFiles = await fileSystemService.listFiles(projectDirectoryHandle);
             setHtmlFiles(allFiles.filter(f => f.toLowerCase().endsWith('.html')).sort());
 
-            // 画像ファイルの取得
-            const imagesHandle = await fileSystemService.ensureImagesDirectory(folderHandle);
+            // 画像ファイルの取得（images/ フォルダがなければ自動作成）
+            const imagesHandle = await fileSystemService.ensureImagesDirectory(projectDirectoryHandle);
             const images = (await fileSystemService.listFiles(imagesHandle))
                 .filter(f => /\.(png|jpe?g|gif|svg|webp)$/i.test(f))
                 .sort();
@@ -50,7 +51,7 @@ export const useAssets = () => {
         } catch (error) {
             console.error('Failed to refresh assets:', error);
         }
-    }, [folderHandle]);
+    }, [projectDirectoryHandle]);
 
     // フォルダハンドルが変わったとき、または手動更新時に実行
     useEffect(() => {

@@ -2,124 +2,147 @@ import { useEditorStore } from '@/store/useEditorStore';
 import { fileSystemService } from '@/services/fileSystem';
 import { useCallback } from 'react';
 import { parseMetaMessage, extractDesignContent, constructFullHTML } from '@/utils/htmlProcessing';
+import { GET_INITIAL_TEMPLATE } from '@/utils/templates';
+import type { PageSize } from '@/types/editor';
 
 /**
  * ファイルシステム操作に関するビジネスロジックを扱うフック
+ * プロジェクトフォルダ管理システムに対応
  */
 export const useFileSystem = () => {
-    const { setFolderHandle, setFileName, setContent, setDirty, setLastSaveTime } = useEditorStore();
+    const {
+        content,
+        setProjectDirectoryHandle,
+        setCurrentFileHandle,
+        setProjectFolderName,
+        setContent,
+        setDirty,
+        setLastSaveTime,
+        setMetaMessage
+    } = useEditorStore();
 
     /**
-     * ルートディレクトリを選択して開く
+     * 新規作成
+     * 1. 比率を選択（呼び出し側で実施）
+     * 2. プロジェクトフォルダを選択
+     * 3. フォルダに新規ファイルを作成
+     * 4. エディタに表示
      */
-    const openFolder = useCallback(async () => {
-        try {
-            const handle = await fileSystemService.requestFolderHandle();
-            if (!handle) return;
-
-            setFolderHandle(handle);
-
-            // ルート直下に index.html があればデフォルトで開く候補にする
-            // (要件では「開くボタン」でファイルを選択させるが、まずはハンドル保持が優先)
-            // ここでは簡易的に images フォルダの存在確認も行う
-            await fileSystemService.ensureImagesDirectory(handle);
-
-            setDirty(false);
-            console.log('Folder opened successfully');
-        } catch (error) {
-            console.error('Failed to open folder:', error);
-            alert('フォルダのアクセス権限を確認してください。');
+    const handleNew = useCallback(async (pageSize: PageSize) => {
+        // 未保存の変更がある場合は警告
+        if (content && !confirm('未保存の変更が失われますが、よろしいですか？')) {
+            return;
         }
-    }, [setFolderHandle, setDirty]);
-
-    /**
-     * 指定したファイルを開く
-     */
-    const openFile = useCallback(async (fileName: string) => {
-        const { folderHandle } = useEditorStore.getState();
-        if (!folderHandle) return;
 
         try {
-            const rawContent = await fileSystemService.readFile(folderHandle, fileName);
+            // プロジェクトフォルダを選択
+            const directoryHandle = await fileSystemService.selectProjectFolder();
+            if (!directoryHandle) return; // キャンセル
 
-            // メタデータの抽出
-            const meta = parseMetaMessage(rawContent);
-            if (meta) {
-                useEditorStore.getState().setMetaMessage(meta);
+            // ストアに保存
+            setProjectDirectoryHandle(directoryHandle);
+            setProjectFolderName(directoryHandle.name);
+
+            // 新規ファイルを作成
+            const template = GET_INITIAL_TEMPLATE(pageSize);
+            const fullHTML = constructFullHTML(template, useEditorStore.getState().metaMessage);
+            const fileHandle = await fileSystemService.createNewDesignFile(directoryHandle, fullHTML);
+
+            // ファイルハンドルをストアに保存
+            setCurrentFileHandle(fileHandle);
+
+            // エディタにテンプレートを読み込み
+            setContent(template, true); // 履歴に積まない
+            setDirty(false);
+            setLastSaveTime(Date.now());
+
+            console.log('新規ファイルを作成しました:', fileHandle.name);
+        } catch (error) {
+            console.error('新規作成に失敗:', error);
+            alert('新規ファイルの作成に失敗しました。');
+        }
+    }, [content, setProjectDirectoryHandle, setProjectFolderName, setCurrentFileHandle, setContent, setDirty, setLastSaveTime]);
+
+    /**
+     * 開く
+     * 1. プロジェクトフォルダを選択
+     * 2. フォルダ内からファイルを選択
+     * 3. エディタに表示
+     */
+    const handleOpen = useCallback(async () => {
+        // 未保存の変更がある場合は警告
+        if (content && !confirm('未保存の変更が失われますが、よろしいですか？')) {
+            return;
+        }
+
+        try {
+            // プロジェクトフォルダを選択
+            const directoryHandle = await fileSystemService.selectProjectFolder();
+            if (!directoryHandle) return; // キャンセル
+
+            // ストアに保存
+            setProjectDirectoryHandle(directoryHandle);
+            setProjectFolderName(directoryHandle.name);
+
+            // フォルダ内からファイルを選択
+            const { fileHandle, content: htmlContent } = await fileSystemService.openFileFromFolder(directoryHandle);
+
+            // ファイルハンドルをストアに保存
+            setCurrentFileHandle(fileHandle);
+
+            // エディタに読み込み
+            const designContent = extractDesignContent(htmlContent);
+            const meta = parseMetaMessage(htmlContent);
+
+            setContent(designContent, true); // 履歴に積まない
+            if (meta) setMetaMessage(meta);
+            setDirty(false);
+
+            console.log('ファイルを開きました:', fileHandle.name);
+        } catch (error) {
+            const err = error as Error;
+            if (err.message === 'ファイル選択がキャンセルされました') {
+                // キャンセルは何もしない
+                return;
             }
-
-            // コンテンツの抽出
-            const designContent = extractDesignContent(rawContent);
-            setContent(designContent, true); // 読込時は履歴に積まない
-
-            setFileName(fileName);
-            setDirty(false);
-        } catch (error) {
-            console.error('Failed to read file:', error);
-            alert('ファイルの読み込みに失敗しました。');
+            console.error('ファイルを開くのに失敗:', error);
+            alert('ファイルを開くのに失敗しました。');
         }
-    }, [setContent, setFileName, setDirty]);
+    }, [content, setProjectDirectoryHandle, setProjectFolderName, setCurrentFileHandle, setContent, setMetaMessage, setDirty]);
 
     /**
-     * 現在のファイルを上書き保存
+     * 上書き保存
+     * 現在開いているファイルに保存
      */
-    const saveCurrentFile = useCallback(async () => {
-        const { folderHandle, fileName, content, metaMessage } = useEditorStore.getState();
+    const handleOverwrite = useCallback(async () => {
+        const { currentFileHandle, content, metaMessage } = useEditorStore.getState();
 
-        if (!folderHandle) {
-            alert('まずプロジェクトフォルダを選択してください。');
+        // ファイルハンドルの存在確認
+        if (!currentFileHandle) {
+            alert('保存先のファイルが見つかりません。\n新規作成または開くから始めてください。');
             return;
         }
 
-        if (!fileName) {
-            return saveFileAs();
-        }
-
         try {
-            const fullHtml = constructFullHTML(content, metaMessage);
-            await fileSystemService.saveFile(folderHandle, fileName, fullHtml);
+            // HTML を構築
+            const fullHTML = constructFullHTML(content, metaMessage);
+
+            // 上書き保存
+            await fileSystemService.saveToCurrentFile(currentFileHandle, fullHTML);
+
             setLastSaveTime(Date.now());
             setDirty(false);
-            console.log(`File saved successfully: ${fileName}`);
+
+            console.log('保存しました:', currentFileHandle.name);
         } catch (error) {
-            console.error('Failed to save file:', error);
+            console.error('保存に失敗:', error);
             alert('保存に失敗しました。');
         }
-    }, [setDirty]);
-
-    /**
-     * 名前を付けて保存
-     */
-    const saveFileAs = useCallback(async () => {
-        const { folderHandle, content, metaMessage, fileName } = useEditorStore.getState();
-
-        if (!folderHandle) {
-            alert('まずプロジェクトフォルダを選択してください。');
-            return;
-        }
-
-        const inputName = prompt('保存するファイル名を入力してください（例: index.html）', fileName || 'index.html');
-        if (!inputName) return; // キャンセル
-
-        const targetFileName = inputName.endsWith('.html') ? inputName : `${inputName}.html`;
-
-        try {
-            const fullHtml = constructFullHTML(content, metaMessage);
-            await fileSystemService.saveFile(folderHandle, targetFileName, fullHtml);
-            setLastSaveTime(Date.now());
-            setFileName(targetFileName);
-            setDirty(false);
-            console.log(`File saved as: ${targetFileName}`);
-        } catch (error) {
-            console.error('Failed to save file:', error);
-            alert('保存に失敗しました。');
-        }
-    }, [setDirty, setFileName]);
+    }, [setLastSaveTime, setDirty]);
 
     return {
-        openFolder,
-        openFile,
-        saveCurrentFile,
-        saveFileAs,
+        handleNew,
+        handleOpen,
+        handleOverwrite,
     };
 };
