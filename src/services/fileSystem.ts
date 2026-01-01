@@ -151,9 +151,24 @@ export const fileSystemService = {
         htmlContent: string
     ): Promise<void> {
         try {
+            // 書き込み権限を確認・再要求
+            // @ts-ignore - queryPermission と requestPermission は File System Access API の拡張
+            if (fileHandle.queryPermission && fileHandle.requestPermission) {
+                // @ts-ignore
+                const permission = await fileHandle.queryPermission({ mode: 'readwrite' });
+                if (permission !== 'granted') {
+                    // @ts-ignore
+                    const newPermission = await fileHandle.requestPermission({ mode: 'readwrite' });
+                    if (newPermission !== 'granted') {
+                        throw new Error('ファイルへの書き込み権限が拒否されました');
+                    }
+                }
+            }
+
             const writable = await fileHandle.createWritable();
             await writable.write(htmlContent);
             await writable.close();
+            console.log('ファイルを保存しました');
         } catch (err) {
             console.error('ファイルの保存に失敗:', err);
             throw err;

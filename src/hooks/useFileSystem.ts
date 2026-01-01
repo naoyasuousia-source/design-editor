@@ -117,6 +117,10 @@ export const useFileSystem = () => {
     const handleOverwrite = useCallback(async () => {
         const { currentFileHandle, content, metaMessage } = useEditorStore.getState();
 
+        console.log('handleOverwrite called');
+        console.log('currentFileHandle:', currentFileHandle);
+        console.log('content length:', content?.length);
+
         // ファイルハンドルの存在確認
         if (!currentFileHandle) {
             alert('保存先のファイルが見つかりません。\n新規作成または開くから始めてください。');
@@ -126,6 +130,7 @@ export const useFileSystem = () => {
         try {
             // HTML を構築
             const fullHTML = constructFullHTML(content, metaMessage);
+            console.log('fullHTML constructed, length:', fullHTML.length);
 
             // 上書き保存
             await fileSystemService.saveToCurrentFile(currentFileHandle, fullHTML);
@@ -136,7 +141,7 @@ export const useFileSystem = () => {
             console.log('保存しました:', currentFileHandle.name);
         } catch (error) {
             console.error('保存に失敗:', error);
-            alert('保存に失敗しました。');
+            alert(`保存に失敗しました。\n${(error as Error).message}`);
         }
     }, [setLastSaveTime, setDirty]);
 
