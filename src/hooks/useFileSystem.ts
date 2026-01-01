@@ -1,6 +1,7 @@
 import { useEditorStore } from '@/store/useEditorStore';
 import { fileSystemService } from '@/services/fileSystem';
 import { useCallback } from 'react';
+import { parseMetaMessage, extractDesignContent, constructFullHTML } from '@/utils/htmlProcessing';
 
 /**
  * ファイルシステム操作に関するビジネスロジックを扱うフック
@@ -39,8 +40,18 @@ export const useFileSystem = () => {
         if (!folderHandle) return;
 
         try {
-            const content = await fileSystemService.readFile(folderHandle, fileName);
-            setContent(content);
+            const rawContent = await fileSystemService.readFile(folderHandle, fileName);
+
+            // メタデータの抽出
+            const meta = parseMetaMessage(rawContent);
+            if (meta) {
+                useEditorStore.getState().setMetaMessage(meta);
+            }
+
+            // コンテンツの抽出
+            const designContent = extractDesignContent(rawContent);
+            setContent(designContent, true); // 読込時は履歴に積まない
+
             setFileName(fileName);
             setDirty(false);
         } catch (error) {
@@ -53,16 +64,19 @@ export const useFileSystem = () => {
      * 現在のファイルを上書き保存
      */
     const saveCurrentFile = useCallback(async () => {
-        const { folderHandle, fileName, content } = useEditorStore.getState();
+        const { folderHandle, fileName, content, metaMessage } = useEditorStore.getState();
         if (!folderHandle || !fileName) {
             alert('保存先のファイルが指定されていません。');
             return;
         }
 
         try {
-            await fileSystemService.saveFile(folderHandle, fileName, content);
+            // メタデータを含めたフルHTMLを構築
+            const fullHtml = constructFullHTML(content, metaMessage);
+            await fileSystemService.saveFile(folderHandle, fileName, fullHtml);
+
             setDirty(false);
-            console.log('File saved successfully');
+            console.log('File saved successfully with metadata');
         } catch (error) {
             console.error('Failed to save file:', error);
             alert('保存に失敗しました。');

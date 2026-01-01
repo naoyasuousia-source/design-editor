@@ -8,14 +8,15 @@ import {
     ZoomIn,
     Undo,
     Redo,
-    MessageSquare,
     HelpCircle,
     Link2,
-    ChevronDown
+    ChevronDown,
+    Brain,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useEditorStore } from '@/store/useEditorStore';
 import { useFileSystem } from '@/hooks/useFileSystem';
+import MetaMessageEditor from './MetaMessageEditor';
 import type { PageSize } from '@/types/editor';
 import { PAGE_SIZES } from '@/types/editor';
 
@@ -45,6 +46,7 @@ const NavButton: React.FC<NavButtonProps> = ({ icon, label, onClick, className, 
 
 const Navbar: React.FC = () => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [showMetaEditor, setShowMetaEditor] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     const {
@@ -170,11 +172,23 @@ const Navbar: React.FC = () => {
                     />
                 </div>
 
+                {/* AI 要件エリア */}
                 <div className="flex flex-wrap items-center gap-1 border-l border-white/10 pl-4">
-                    <NavButton icon={<MessageSquare />} label="AIへの指示" />
+                    <button
+                        onClick={() => setShowMetaEditor(true)}
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium text-blue-400 bg-blue-500/5 hover:bg-blue-500/10 hover:text-blue-300 border border-blue-500/10 transition-all group"
+                    >
+                        <Brain className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                        <span>AI要件</span>
+                    </button>
                     <NavButton icon={<HelpCircle />} label="ヒント" className="p-1 min-w-0" />
                 </div>
             </div>
+
+            {/* AI 要件エディタ */}
+            {showMetaEditor && (
+                <MetaMessageEditor onClose={() => setShowMetaEditor(false)} />
+            )}
         </nav>
     );
 };

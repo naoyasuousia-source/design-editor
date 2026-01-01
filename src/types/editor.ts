@@ -40,4 +40,5 @@ export type EditorState = {
     hasPendingChanges: boolean;
     pendingContent: string;
     pendingSnapshot: string | null; // Base64
+    metaMessage: MetaMessage;
 }

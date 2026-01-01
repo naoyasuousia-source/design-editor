@@ -16,6 +16,13 @@ HTML内の不可視なメタメッセージを通じてAIと意図を共有し�
     - Inter, Montserrat, Roboto, Playfair Display, Oswald, Poppins, JetBrains Mono, Times New Roman
 - [x] 基本レイアウト：ウィンドウ幅に応じて見切れない「アダプティブ・ツールバー」の実装
 
+### 【最優先・実装漏れ修正】AI連携基盤の完成
+- [x] **MetaMessage の状態管理統合**: `EditorState` に要求、コンセプト、配色等の情報を保持
+- [x] **HTML パーサー ＆ クリーンアップエンジン**:
+    - [x] `id`, `data-group-id` 以外の不要な属性（`contentEditable`等）の自動除去
+    - [x] HTML内の隠しエリア（JSONデータ）のパース ＆ 書き出し同期
+- [x] **テキスト編集の高度化**: テキストボックス内への子要素混入制限 ＆ リサイズ時の自動フォントサイズ調整
+
 ### フェーズ 2: 高度な状態管理 & 保存ロジック (Services/Logic)
 - [x] **履歴管理スタック (Snapshot Engine)**: Undo/Redo の実装。GUI操作とAI同期の両方を正確に管理
 - [x] **Dirtyチェック**: 編集状態のフラグ管理（新規作成時の警告用）

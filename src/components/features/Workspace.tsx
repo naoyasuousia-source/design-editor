@@ -114,15 +114,43 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
                     }}
                     onDragEnd={updateContentFromDOM}
                     onResize={e => {
-                        e.target.style.width = `${e.width}px`;
-                        e.target.style.height = `${e.height}px`;
-                        e.target.style.transform = e.drag.transform;
+                        const { width, height, drag, target } = e;
+                        target.style.width = `${width}px`;
+                        target.style.height = `${height}px`;
+                        target.style.transform = drag.transform;
+
+                        // テキストサイズのスケーリング連動
+                        // 元の幅に対する比率でフォントサイズを調整
+                        const lastWidth = parseFloat(target.getAttribute('data-last-width') || target.style.width);
+                        if (lastWidth > 0) {
+                            const ratio = width / lastWidth;
+                            const currentFontSize = parseFloat(window.getComputedStyle(target).fontSize);
+                            target.style.fontSize = `${currentFontSize * ratio}px`;
+                        }
+                        target.setAttribute('data-last-width', width.toString());
                     }}
                     onResizeGroup={e => {
                         e.events.forEach(ev => {
-                            ev.target.style.width = `${ev.width}px`;
-                            ev.target.style.height = `${ev.height}px`;
-                            ev.target.style.transform = ev.drag.transform;
+                            const { target, width, height, drag } = ev;
+                            target.style.width = `${width}px`;
+                            target.style.height = `${height}px`;
+                            target.style.transform = drag.transform;
+
+                            const lastWidth = parseFloat(target.getAttribute('data-last-width') || target.style.width);
+                            if (lastWidth > 0) {
+                                const ratio = width / lastWidth;
+                                const currentFontSize = parseFloat(window.getComputedStyle(target).fontSize);
+                                target.style.fontSize = `${currentFontSize * ratio}px`;
+                            }
+                            target.setAttribute('data-last-width', width.toString());
+                        });
+                    }}
+                    onResizeStart={e => {
+                        e.target.setAttribute('data-last-width', (e.target as HTMLElement).offsetWidth.toString());
+                    }}
+                    onResizeGroupStart={e => {
+                        e.events.forEach(ev => {
+                            (ev.target as HTMLElement).setAttribute('data-last-width', (ev.target as HTMLElement).offsetWidth.toString());
                         });
                     }}
                     onResizeEnd={updateContentFromDOM}

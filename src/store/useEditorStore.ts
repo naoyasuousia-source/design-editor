@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { EditorState, PageSize } from '@/types/editor';
 import { DEFAULT_PAGE_SIZE } from '@/constants/editor';
+import { parseMetaMessage, extractDesignContent, constructFullHTML } from '@/utils/htmlProcessing';
 
 interface EditorStore extends EditorState {
     setPageSize: (size: PageSize) => void;
@@ -17,6 +18,7 @@ interface EditorStore extends EditorState {
     detectExternalUpdate: (newContent: string, snapshot: string | null) => void;
     approveUpdate: () => Promise<void>;
     discardUpdate: () => Promise<void>;
+    setMetaMessage: (meta: Partial<import('@/types/editor').MetaMessage>) => void;
     reset: () => void;
 }
 
@@ -37,6 +39,17 @@ const initialState: EditorState = {
     hasPendingChanges: false,
     pendingContent: '',
     pendingSnapshot: null,
+    metaMessage: {
+        requirements: [],
+        notes: [],
+        concept: '',
+        colors: {
+            primary: '#3b82f6',
+            secondary: '#1f2937',
+            accent: '#fbbf24',
+        },
+        remarks: '',
+    },
 };
 
 export const useEditorStore = create<EditorStore>((set, get) => ({
@@ -59,25 +72,31 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
 
     setLocked: (isLocked) => set({ isLocked }),
 
-    detectExternalUpdate: (newContent, snapshot) => {
+    detectExternalUpdate: (newFullContent, snapshot) => {
+        const meta = parseMetaMessage(newFullContent);
+        const designContent = extractDesignContent(newFullContent);
+
         set({
             hasPendingChanges: true,
             isLocked: true,
-            pendingContent: newContent,
+            pendingContent: designContent,
             pendingSnapshot: snapshot,
+            // 外部更新時もメタデータを更新（承認待ち状態だが、比較用に保持）
+            metaMessage: meta || get().metaMessage,
         });
     },
 
     approveUpdate: async () => {
-        const { pendingContent, folderHandle, fileName } = get();
+        const { pendingContent, folderHandle, fileName, metaMessage } = get();
+
         // 履歴を積んでから更新
         get().setContent(pendingContent);
 
-        // 要件：承認した場合は、上書き保存後、ロック解除。
-        // AIがすでに上書きしているはずだが、エディタの状態を確定させるために保存
+        // 承認した場合は、上書き保存後、ロック解除。
         if (folderHandle && fileName) {
             const { fileSystemService } = await import('@/services/fileSystem');
-            await fileSystemService.saveFile(folderHandle, fileName, pendingContent);
+            const fullHtml = constructFullHTML(pendingContent, metaMessage);
+            await fileSystemService.saveFile(folderHandle, fileName, fullHtml);
         }
 
         set({
@@ -90,12 +109,13 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     },
 
     discardUpdate: async () => {
-        const { content, folderHandle, fileName } = get();
+        const { content, folderHandle, fileName, metaMessage } = get();
 
-        // 要件：破棄した場合は、AIの変更を破棄し、元のデザインに戻して上書き保存。
+        // 破棄した場合は、AIの変更を破棄し、元のデザインに戻して上書き保存。
         if (folderHandle && fileName) {
             const { fileSystemService } = await import('@/services/fileSystem');
-            await fileSystemService.saveFile(folderHandle, fileName, content);
+            const fullHtml = constructFullHTML(content, metaMessage);
+            await fileSystemService.saveFile(folderHandle, fileName, fullHtml);
         }
 
         set({
@@ -149,6 +169,10 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
             isDirty: true
         });
     },
+
+    setMetaMessage: (meta) => set((state) => ({
+        metaMessage: { ...state.metaMessage, ...meta }
+    })),
 
     reset: () => set(initialState),
 }));
