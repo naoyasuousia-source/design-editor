@@ -29,12 +29,10 @@
 
 <requirement>
 <content>
-現在、保存ボタンを押すと、まず、プロジェクトフォルダを選択してくださいと表示され、保存できない。以下のような仕様にしてほしい。
-
-
+現在、新規作成から新規デザインを保存することは可能。しかし、ブラウザでhtmlを開くと、真っ白で何も表示されない。→デザイン領域がそのまま表示されるようにしてほしい。（背景は黒）
 </content>
 <current-situation></current-situation>
-<remarks></remarks>
+<remarks>出力されるファイルはnew-design.htmlとして、ルートに置いてあるので、確認してほしい。</remarks>
 <permission-to-move>NG</permission-to-move>
 </requirement>
 
