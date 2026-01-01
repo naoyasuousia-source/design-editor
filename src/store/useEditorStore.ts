@@ -22,12 +22,13 @@ interface EditorStore extends EditorState {
     approveUpdate: () => Promise<void>;
     discardUpdate: () => Promise<void>;
     setMetaMessage: (meta: Partial<import('@/types/editor').MetaMessage>) => void;
+    setLastSaveTime: (time: number) => void;
     reset: () => void;
 }
 
 const MAX_HISTORY = 50;
 
-const initialState: EditorState = {
+const initialState: EditorState & { lastSaveTime: number } = {
     pageSize: DEFAULT_PAGE_SIZE,
     customWidth: null,
     customHeight: null,
@@ -55,6 +56,7 @@ const initialState: EditorState = {
         },
         remarks: '',
     },
+    lastSaveTime: 0,
 };
 
 export const useEditorStore = create<EditorStore>((set, get) => ({
@@ -194,6 +196,6 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     setMetaMessage: (meta) => set((state) => ({
         metaMessage: { ...state.metaMessage, ...meta }
     })),
-
+    setLastSaveTime: (lastSaveTime) => set({ lastSaveTime }),
     reset: () => set(initialState),
 }));

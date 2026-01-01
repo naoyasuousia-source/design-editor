@@ -40,10 +40,10 @@ export const cleanHTML = (html: string): string => {
     cleaned = cleaned.replace(/\scontenteditable="[^"]*"/g, '');
     // spellcheck 属性の除去
     cleaned = cleaned.replace(/\sspellcheck="[^"]*"/g, '');
-    // 空の style 属性の除去（もしあれば）
+    // エディタ用の一時的な data 属性を除去 (data-group-id は維持)
+    cleaned = cleaned.replace(/\sdata-(?!group-id)[a-zA-Z0-9-]+="[^"]*"/g, '');
+    // 空の style 属性の除去
     cleaned = cleaned.replace(/\sstyle=""/g, '');
-    // 特定のクラス（Moveableなど）の除去は、DesignSurface の外側に配置することで対応を推奨するが、
-    // もし内部に混入した場合はここで除去する
     return cleaned.trim();
 };
 

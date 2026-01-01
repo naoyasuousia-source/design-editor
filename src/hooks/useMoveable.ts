@@ -54,13 +54,14 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
         if (isLocked) return;
 
         const target = e.target as HTMLElement;
+        const isShift = e.shiftKey;
 
         // 既に編集中の要素があれば無視
         if (target.contentEditable === 'true') return;
 
-        // キャンバス自体のクリックなら選択解除
+        // キャンバス自体のクリックなら選択解除（Shiftがない場合のみ）
         if (target.classList.contains('DesignSurface')) {
-            setTargets([]);
+            if (!isShift) setTargets([]);
             return;
         }
 
@@ -72,14 +73,22 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
 
         if (el) {
             const groupId = el.getAttribute('data-group-id');
-            if (groupId) {
-                // 同じグループIDを持つ要素をすべて選択
-                const groupElements = Array.from(
-                    canvasRef.current?.querySelectorAll(`[data-group-id="${groupId}"]`) || []
-                ) as HTMLElement[];
-                setTargets(groupElements);
+            const groupElements = groupId
+                ? Array.from(canvasRef.current?.querySelectorAll(`[data-group-id="${groupId}"]`) || []) as HTMLElement[]
+                : [el];
+
+            if (isShift) {
+                // Shift+クリック: 選択への追加・削除
+                setTargets(prev => {
+                    const alreadySelected = groupElements.every(item => prev.includes(item));
+                    if (alreadySelected) {
+                        return prev.filter(item => !groupElements.includes(item));
+                    } else {
+                        return [...prev, ...groupElements];
+                    }
+                });
             } else {
-                setTargets([el]);
+                setTargets(groupElements);
             }
         }
     }, [isLocked, canvasRef]);

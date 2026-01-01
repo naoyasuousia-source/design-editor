@@ -7,7 +7,7 @@ import { parseMetaMessage, extractDesignContent, constructFullHTML } from '@/uti
  * ファイルシステム操作に関するビジネスロジックを扱うフック
  */
 export const useFileSystem = () => {
-    const { setFolderHandle, setFileName, setContent, setDirty } = useEditorStore();
+    const { setFolderHandle, setFileName, setContent, setDirty, setLastSaveTime } = useEditorStore();
 
     /**
      * ルートディレクトリを選択して開く
@@ -78,6 +78,7 @@ export const useFileSystem = () => {
         try {
             const fullHtml = constructFullHTML(content, metaMessage);
             await fileSystemService.saveFile(folderHandle, fileName, fullHtml);
+            setLastSaveTime(Date.now());
             setDirty(false);
             console.log(`File saved successfully: ${fileName}`);
         } catch (error) {
@@ -105,6 +106,7 @@ export const useFileSystem = () => {
         try {
             const fullHtml = constructFullHTML(content, metaMessage);
             await fileSystemService.saveFile(folderHandle, targetFileName, fullHtml);
+            setLastSaveTime(Date.now());
             setFileName(targetFileName);
             setDirty(false);
             console.log(`File saved as: ${targetFileName}`);

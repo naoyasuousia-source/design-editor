@@ -8,7 +8,9 @@ import {
     Square,
     Circle,
     Copy,
-    Trash2
+    Trash2,
+    Group,
+    Ungroup
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { EDITOR_FONTS } from '@/constants/editor';
@@ -49,6 +51,8 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
 
     const isText = target.innerText.trim().length > 0 && target.tagName.toLowerCase() !== 'img';
     const isImage = target.tagName.toLowerCase() === 'img' || target.style.backgroundImage;
+    const isGrouped = targets.every(el => el.hasAttribute('data-group-id')) && targets.length > 1;
+    const canGroup = targets.length > 1 && !isGrouped;
 
     const applyStyle = (property: string, value: string) => {
         targets.forEach(el => {
@@ -61,6 +65,17 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
         targets.forEach(el => {
             el.setAttribute(name, value);
         });
+        onUpdate();
+    };
+
+    const handleGroup = () => {
+        const groupId = `group-${Math.random().toString(36).substr(2, 9)}`;
+        targets.forEach(el => el.setAttribute('data-group-id', groupId));
+        onUpdate();
+    };
+
+    const handleUngroup = () => {
+        targets.forEach(el => el.removeAttribute('data-group-id'));
         onUpdate();
     };
 
@@ -145,12 +160,31 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
 
             {/* 共通操作 */}
             <div className="flex items-center gap-1 px-1">
+                {canGroup && (
+                    <button
+                        className="p-1.5 hover:bg-white/5 rounded text-gray-400 hover:text-blue-400 transition-all"
+                        onClick={handleGroup}
+                        title="Group"
+                    >
+                        <Group size={14} />
+                    </button>
+                )}
+                {isGrouped && (
+                    <button
+                        className="p-1.5 hover:bg-white/5 rounded text-gray-400 hover:text-orange-400 transition-all"
+                        onClick={handleUngroup}
+                        title="Ungroup"
+                    >
+                        <Ungroup size={14} />
+                    </button>
+                )}
                 <button
                     className="p-1.5 hover:bg-red-500/20 rounded text-gray-400 hover:text-red-400 transition-all"
                     onClick={() => {
                         targets.forEach(el => el.remove());
                         onUpdate();
                     }}
+                    title="Delete"
                 >
                     <Trash2 size={14} />
                 </button>

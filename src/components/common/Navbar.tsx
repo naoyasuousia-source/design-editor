@@ -16,6 +16,7 @@ import { cn } from '@/utils/cn';
 import { useEditorStore } from '@/store/useEditorStore';
 import { useFileSystem } from '@/hooks/useFileSystem';
 import MetaMessageEditor from './MetaMessageEditor';
+import HintDialog from './HintDialog';
 import type { PageSize } from '@/types/editor';
 import { PAGE_SIZES } from '@/types/editor';
 
@@ -46,6 +47,7 @@ const NavButton: React.FC<NavButtonProps> = ({ icon, label, onClick, className, 
 const Navbar: React.FC = () => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [showMetaEditor, setShowMetaEditor] = useState(false);
+    const [showHint, setShowHint] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     const {
@@ -190,13 +192,21 @@ const Navbar: React.FC = () => {
                         <Brain className="w-4 h-4 group-hover:scale-110 transition-transform" />
                         <span>AI要件</span>
                     </button>
-                    <NavButton icon={<HelpCircle />} label="ヒント" className="p-1 min-w-0" />
+                    <NavButton
+                        icon={<HelpCircle />}
+                        label="ヒント"
+                        className="p-1 min-w-0"
+                        onClick={() => setShowHint(true)}
+                    />
                 </div>
             </div>
 
-            {/* AI 要件エディタ */}
+            {/* ダイアログ類 */}
             {showMetaEditor && (
                 <MetaMessageEditor onClose={() => setShowMetaEditor(false)} />
+            )}
+            {showHint && (
+                <HintDialog onClose={() => setShowHint(false)} />
             )}
         </nav>
     );

@@ -43,4 +43,5 @@ export type EditorState = {
     pendingContent: string;
     pendingSnapshot: string | null; // Base64
     metaMessage: MetaMessage;
+    lastSaveTime: number;
 }

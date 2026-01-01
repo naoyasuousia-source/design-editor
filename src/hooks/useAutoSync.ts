@@ -14,6 +14,14 @@ export const useAutoSync = () => {
         if (import.meta.hot) {
             // @ts-ignore
             import.meta.hot.on('design-update', async (data: { fileName: string }) => {
+                const { folderHandle, fileName, lastSaveTime } = useEditorStore.getState();
+
+                // 自己保存直後の場合は無視する（1秒以内の更新検知）
+                if (Date.now() - lastSaveTime < 1000) {
+                    console.log('Ignoring self-save update signal');
+                    return;
+                }
+
                 if (folderHandle && fileName === data.fileName) {
                     console.log(`External update detected for: ${data.fileName}`);
 
