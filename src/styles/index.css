@@ -4,8 +4,19 @@
 
 @layer base {
     body {
-        @apply bg-[#0f0f0f] text-white overflow-hidden;
+        @apply text-white overflow-hidden;
+        background: radial-gradient(circle at top left, #1a1a1a 0%, #0f0f0f 100%);
         font-family: 'Inter', 'Noto Sans JP', sans-serif;
+    }
+}
+
+@layer utilities {
+    .glass {
+        @apply bg-white/5 backdrop-blur-md border border-white/10 shadow-xl;
+    }
+
+    .glass-dark {
+        @apply bg-black/40 backdrop-blur-xl border border-white/5 shadow-2xl;
     }
 }
 
@@ -48,5 +59,14 @@
 
     .CustomScrollbar::-webkit-scrollbar-thumb:hover {
         background: rgba(255, 255, 255, 0.2);
+    }
+
+    /* プレミアムな遷移アニメーション */
+    .animate-premium {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .hover-glow:hover {
+        @apply shadow-[0_0_15px_rgba(59, 130, 246, 0.3)] border-primary/50;
     }
 }

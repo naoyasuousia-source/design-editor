@@ -1,18 +1,14 @@
 import React, { useEffect, useState, useRef } from 'react';
 import {
-    Type,
     Palette,
-    Type as TypeIcon,
-    Maximize2,
-    Image as ImageIcon,
-    Square,
     Circle,
-    Copy,
     Trash2,
     Group,
     Ungroup,
     ImagePlus,
-    Hash
+    Hash,
+    Scissor,
+    Square
 } from 'lucide-react';
 import { useAssets } from '@/hooks/useAssets';
 import { cn } from '@/utils/cn';
@@ -26,6 +22,7 @@ interface FloatingMenuProps {
 const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
     const [rect, setRect] = useState<DOMRect | null>(null);
     const [showImagePicker, setShowImagePicker] = useState(false);
+    const [showCropPicker, setShowCropPicker] = useState(false);
     const { imageFiles, imageUrls } = useAssets();
     const menuRef = useRef<HTMLDivElement>(null);
     const target = targets[0]; // 最初の要素を基準にする
@@ -41,7 +38,6 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
         window.addEventListener('scroll', updateRect, true);
         window.addEventListener('resize', updateRect);
 
-        // Observer for target changes
         const observer = new MutationObserver(updateRect);
         observer.observe(target, { attributes: true, subtree: true });
 
@@ -62,13 +58,6 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
     const applyStyle = (property: string, value: string) => {
         targets.forEach(el => {
             (el.style as any)[property] = value;
-        });
-        onUpdate();
-    };
-
-    const applyAttribute = (name: string, value: string) => {
-        targets.forEach(el => {
-            el.setAttribute(name, value);
         });
         onUpdate();
     };
@@ -137,7 +126,6 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
                 {isImage && (
                     <>
                         <div className="flex items-center gap-1 px-1 border-r border-white/5">
-                            {/* 枠線 */}
                             <button
                                 className="p-1.5 hover:bg-white/5 rounded text-gray-400 hover:text-white transition-all"
                                 onClick={() => {
@@ -147,6 +135,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
                                     applyStyle('borderWidth', next);
                                     if (!target.style.borderColor) applyStyle('borderColor', '#ffffff');
                                 }}
+                                title="Border"
                             >
                                 <Square size={14} />
                             </button>
@@ -156,7 +145,6 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
                                 value={rgbToHex(window.getComputedStyle(target).borderColor)}
                                 onChange={(e) => applyStyle('borderColor', e.target.value)}
                             />
-                            {/* 角丸 */}
                             <button
                                 className="p-1.5 hover:bg-white/5 rounded text-gray-400 hover:text-white transition-all"
                                 onClick={() => {
@@ -164,16 +152,33 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
                                     const next = current === '0px' ? '8px' : current === '8px' ? '9999px' : '0px';
                                     applyStyle('borderRadius', next);
                                 }}
+                                title="Border Radius"
                             >
                                 <Circle size={14} />
                             </button>
-                            {/* 画像差し替えボタン */}
+                            <button
+                                className={cn(
+                                    "p-1.5 rounded transition-all",
+                                    showCropPicker ? "bg-blue-500 text-white" : "text-gray-400 hover:bg-white/5 hover:text-white"
+                                )}
+                                onClick={() => {
+                                    setShowCropPicker(!showCropPicker);
+                                    setShowImagePicker(false);
+                                    if (!target.style.objectFit) target.style.objectFit = 'cover';
+                                }}
+                                title="Positioning (Crop)"
+                            >
+                                <Scissor size={14} />
+                            </button>
                             <button
                                 className={cn(
                                     "p-1.5 rounded transition-all",
                                     showImagePicker ? "bg-blue-500 text-white" : "text-gray-400 hover:bg-white/5 hover:text-white"
                                 )}
-                                onClick={() => setShowImagePicker(!showImagePicker)}
+                                onClick={() => {
+                                    setShowImagePicker(!showImagePicker);
+                                    setShowCropPicker(false);
+                                }}
                                 title="Replace Image"
                             >
                                 <ImagePlus size={14} />
@@ -215,9 +220,52 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
                 </div>
             </div>
 
-            {/* 画像ピッカー（簡易グリッド） */}
+            {/* ポジショニング（トリミング）パネル */}
+            {showCropPicker && isImage && (
+                <div className="p-3 border-t border-white/5 flex flex-col gap-2 bg-white/5">
+                    <span className="text-[10px] text-gray-400 uppercase font-bold tracking-widest">Image Positioning</span>
+                    <div className="flex flex-col gap-3 p-2 bg-black/20 rounded">
+                        <div className="flex flex-col gap-1">
+                            <div className="flex justify-between text-[9px] text-gray-500">
+                                <span>Horizontal</span>
+                                <span>{target.style.objectPosition.split(' ')[0] || '50%'}</span>
+                            </div>
+                            <input
+                                type="range"
+                                min="0"
+                                max="100"
+                                className="w-full accent-blue-500 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer"
+                                onChange={(e) => {
+                                    const y = target.style.objectPosition.split(' ')[1] || '50%';
+                                    target.style.objectPosition = `${e.target.value}% ${y}`;
+                                    onUpdate();
+                                }}
+                            />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                            <div className="flex justify-between text-[9px] text-gray-500">
+                                <span>Vertical</span>
+                                <span>{target.style.objectPosition.split(' ')[1] || '50%'}</span>
+                            </div>
+                            <input
+                                type="range"
+                                min="0"
+                                max="100"
+                                className="w-full accent-blue-500 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer"
+                                onChange={(e) => {
+                                    const x = target.style.objectPosition.split(' ')[0] || '50%';
+                                    target.style.objectPosition = `${x} ${e.target.value}%`;
+                                    onUpdate();
+                                }}
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* 画像ピッカー */}
             {showImagePicker && isImage && (
-                <div className="p-2 border-t border-white/5 grid grid-cols-4 gap-1 max-h-32 overflow-y-auto CustomScrollbar">
+                <div className="p-2 border-t border-white/5 grid grid-cols-4 gap-1 max-h-32 overflow-y-auto CustomScrollbar bg-white/5">
                     {imageFiles.map(file => (
                         <button
                             key={file}
@@ -245,9 +293,8 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
     );
 };
 
-// ヘルパー関数: RGBをHexに変換
 function rgbToHex(rgb: string) {
-    if (!rgb || rgb === 'initial' || rgb === 'transparent') return '#ffffff';
+    if (!rgb || rgb === 'initial' || rgb === 'transparent' || rgb === 'rgba(0, 0, 0, 0)') return '#ffffff';
     const match = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
     if (!match) return '#ffffff';
     const r = parseInt(match[1]);
