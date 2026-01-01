@@ -1,10 +1,13 @@
 import { create } from 'zustand';
 import type { EditorState, PageSize } from '@/types/editor';
+import { PAGE_SIZES } from '@/types/editor';
 import { DEFAULT_PAGE_SIZE } from '@/constants/editor';
 import { parseMetaMessage, extractDesignContent, constructFullHTML } from '@/utils/htmlProcessing';
 
 interface EditorStore extends EditorState {
     setPageSize: (size: PageSize) => void;
+    setCustomSize: (width: number | null, height: number | null) => void;
+    expandCanvas: (neededWidth: number, neededHeight: number) => void;
     setZoom: (zoom: number) => void;
     setDirty: (isDirty: boolean) => void;
     setContent: (content: string, skipHistory?: boolean) => void;
@@ -26,6 +29,8 @@ const MAX_HISTORY = 50;
 
 const initialState: EditorState = {
     pageSize: DEFAULT_PAGE_SIZE,
+    customWidth: null,
+    customHeight: null,
     zoom: 1.0,
     isDirty: false,
     content: '',
@@ -55,7 +60,23 @@ const initialState: EditorState = {
 export const useEditorStore = create<EditorStore>((set, get) => ({
     ...initialState,
 
-    setPageSize: (pageSize) => set({ pageSize }),
+    setPageSize: (pageSize) => set({ pageSize, customWidth: null, customHeight: null }),
+    setCustomSize: (width, height) => set({ customWidth: width, customHeight: height }),
+
+    expandCanvas: (neededWidth, neededHeight) => {
+        const { pageSize, customWidth, customHeight } = get();
+        const config = PAGE_SIZES[pageSize];
+        const currentW = customWidth || config.width;
+        const currentH = customHeight || config.height;
+
+        if (neededWidth > currentW || neededHeight > currentH) {
+            set({
+                customWidth: Math.max(currentW, parseInt(neededWidth.toString())),
+                customHeight: Math.max(currentH, parseInt(neededHeight.toString()))
+            });
+        }
+    },
+
     setZoom: (zoom) => set({ zoom }),
     setDirty: (isDirty) => set({ isDirty }),
 

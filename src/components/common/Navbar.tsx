@@ -148,13 +148,23 @@ const Navbar: React.FC = () => {
 
                 <div className="flex flex-wrap items-center gap-1 border-l border-white/10 pl-4">
                     <NavButton icon={<ImageIcon />} label="画像として保存" />
-                    <button
-                        onClick={() => setZoom(zoom === 1 ? 1.5 : zoom === 1.5 ? 2 : 1)}
-                        className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-white/10"
-                    >
-                        <ZoomIn className="w-4 h-4" />
-                        <span>{Math.round(zoom * 100)}%</span>
-                    </button>
+                    <div className="flex items-center gap-1 px-2 py-1 bg-white/5 rounded-md border border-white/10 ml-2">
+                        <button
+                            onClick={() => setZoom(Math.max(0.5, zoom - 0.25))}
+                            className="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 rounded transition-colors"
+                        >
+                            -
+                        </button>
+                        <span className="text-[11px] font-mono text-gray-300 w-12 text-center">
+                            {Math.round(zoom * 100)}%
+                        </span>
+                        <button
+                            onClick={() => setZoom(Math.min(3.0, zoom + 0.25))}
+                            className="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 rounded transition-colors"
+                        >
+                            +
+                        </button>
+                    </div>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-1 border-l border-white/10 pl-4">

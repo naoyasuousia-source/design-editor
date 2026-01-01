@@ -65,23 +65,34 @@ export const useFileSystem = () => {
      */
     const saveCurrentFile = useCallback(async () => {
         const { folderHandle, fileName, content, metaMessage } = useEditorStore.getState();
-        if (!folderHandle || !fileName) {
-            alert('保存先のファイルが指定されていません。');
+
+        if (!folderHandle) {
+            alert('まずプロジェクトフォルダを選択してください。');
             return;
+        }
+
+        let targetFileName = fileName;
+
+        // ファイル名がない（新規作成時など）場合は、名前を付けて保存
+        if (!targetFileName) {
+            const inputName = prompt('保存するファイル名を入力してください（例: index.html）', 'index.html');
+            if (!inputName) return; // キャンセル
+            targetFileName = inputName.endsWith('.html') ? inputName : `${inputName}.html`;
+            setFileName(targetFileName);
         }
 
         try {
             // メタデータを含めたフルHTMLを構築
             const fullHtml = constructFullHTML(content, metaMessage);
-            await fileSystemService.saveFile(folderHandle, fileName, fullHtml);
+            await fileSystemService.saveFile(folderHandle, targetFileName, fullHtml);
 
             setDirty(false);
-            console.log('File saved successfully with metadata');
+            console.log(`File saved successfully: ${targetFileName}`);
         } catch (error) {
             console.error('Failed to save file:', error);
             alert('保存に失敗しました。');
         }
-    }, [setDirty]);
+    }, [setDirty, setFileName]);
 
     return {
         openFolder,

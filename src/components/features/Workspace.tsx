@@ -12,8 +12,12 @@ interface WorkspaceProps {
 
 const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
     const canvasRef = useRef<HTMLDivElement>(null);
-    const { pageSize, zoom, content } = useEditorStore();
+    const { pageSize, zoom, content, customWidth, customHeight, expandCanvas } = useEditorStore();
     const config = PAGE_SIZES[pageSize];
+
+    // 現在の論理サイズ（カスタム値があれば優先）
+    const currentWidth = customWidth || config.width;
+    const currentHeight = customHeight || config.height;
 
     // GUI 編集ロジック
     const {
@@ -35,8 +39,8 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
             <div
                 ref={canvasRef}
                 style={{
-                    width: `${config.width * zoom}px`,
-                    height: `${config.height * zoom}px`,
+                    width: `${currentWidth * zoom}px`,
+                    height: `${currentHeight * zoom}px`,
                 }}
                 className={cn(
                     "bg-white shadow-2xl relative transition-all duration-300 origin-center",
@@ -90,11 +94,13 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
                     resizable={true}
                     rotatable={false}
                     snappable={true}
+                    // 拡張を許容するため、bounds を現在のサイズより広く設定、または制限を緩める
+                    // ここでは要素が完全に見失われない程度の広い範囲を設定
                     bounds={{
-                        left: 0,
-                        top: 0,
-                        right: config.width,
-                        bottom: config.height,
+                        left: -2000,
+                        top: -2000,
+                        right: currentWidth + 2000,
+                        bottom: currentHeight + 2000,
                     }}
                     snapThreshold={5}
                     elementSnapDirections={true}
@@ -106,11 +112,29 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
                     throttleResize={1}
                     onDrag={e => {
                         e.target.style.transform = e.transform;
+
+                        // はみ出しチェックと拡張
+                        const rect = e.target.getBoundingClientRect();
+                        const canvasRect = canvasRef.current?.getBoundingClientRect();
+                        if (canvasRect) {
+                            const relativeRight = (rect.right - canvasRect.left) / zoom;
+                            const relativeBottom = (rect.bottom - canvasRect.top) / zoom;
+                            expandCanvas(relativeRight, relativeBottom);
+                        }
                     }}
                     onDragGroup={e => {
+                        let maxR = 0;
+                        let maxB = 0;
                         e.events.forEach(ev => {
                             ev.target.style.transform = ev.transform;
+                            const rect = ev.target.getBoundingClientRect();
+                            const canvasRect = canvasRef.current?.getBoundingClientRect();
+                            if (canvasRect) {
+                                maxR = Math.max(maxR, (rect.right - canvasRect.left) / zoom);
+                                maxB = Math.max(maxB, (rect.bottom - canvasRect.top) / zoom);
+                            }
                         });
+                        if (maxR > 0 || maxB > 0) expandCanvas(maxR, maxB);
                     }}
                     onDragEnd={updateContentFromDOM}
                     onResize={e => {
@@ -120,7 +144,6 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
                         target.style.transform = drag.transform;
 
                         // テキストサイズのスケーリング連動
-                        // 元の幅に対する比率でフォントサイズを調整
                         const lastWidth = parseFloat(target.getAttribute('data-last-width') || target.style.width);
                         if (lastWidth > 0) {
                             const ratio = width / lastWidth;
@@ -128,6 +151,13 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
                             target.style.fontSize = `${currentFontSize * ratio}px`;
                         }
                         target.setAttribute('data-last-width', width.toString());
+
+                        // 拡張
+                        const rect = target.getBoundingClientRect();
+                        const canvasRect = canvasRef.current?.getBoundingClientRect();
+                        if (canvasRect) {
+                            expandCanvas((rect.right - canvasRect.left) / zoom, (rect.bottom - canvasRect.top) / zoom);
+                        }
                     }}
                     onResizeGroup={e => {
                         e.events.forEach(ev => {

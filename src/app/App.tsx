@@ -4,6 +4,7 @@ import Workspace from '@/components/features/Workspace';
 import ComparisonView from '@/components/features/ComparisonView';
 import TemporaryBar from '@/components/common/TemporaryBar';
 import { useHotkeys } from '@/hooks/useHotkeys';
+import { useBeforeUnload } from '@/hooks/useBeforeUnload';
 import { useEditorStore } from '@/store/useEditorStore';
 
 const App: React.FC = () => {
@@ -20,6 +21,8 @@ const App: React.FC = () => {
 
     // ショートカットキーの有効化
     useHotkeys();
+    // 終了警告の有効化
+    useBeforeUnload();
 
     return (
         <div className="flex flex-col h-screen w-screen bg-background overflow-hidden">

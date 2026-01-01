@@ -26,6 +26,8 @@ export interface MetaMessage {
 
 export type EditorState = {
     pageSize: PageSize;
+    customWidth: number | null;
+    customHeight: number | null;
     zoom: number;
     isDirty: boolean;
     content: string; // HTML string
