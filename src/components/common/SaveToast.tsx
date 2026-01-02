@@ -30,7 +30,7 @@ const SaveToast: React.FC<SaveToastProps> = ({ message, duration = 1000, onClose
     }, [duration, onClose]);
 
     return (
-        <div className="fixed inset-0 flex items-center justify-center z-[100] pointer-events-none">
+        <div className="fixed inset-x-0 top-0 flex items-start justify-center z-[100] pointer-events-none pt-2">
             <div
                 className={cn(
                     "bg-green-500/95 text-white px-6 py-4 rounded-lg shadow-2xl",

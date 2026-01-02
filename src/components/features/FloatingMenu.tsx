@@ -8,7 +8,10 @@ import {
     Hash,
     Scissors,
     Square,
-    Maximize
+    Maximize,
+    Bold,
+    Copy,
+    Pipette
 } from 'lucide-react';
 import { useEditorStore } from '@/store/useEditorStore';
 import { useAssets } from '@/hooks/useAssets';
@@ -19,6 +22,13 @@ interface FloatingMenuProps {
     targets: HTMLElement[];
     onUpdate: () => void;
 }
+
+const DEFAULT_COLORS = [
+    '#ffffff', '#000000', '#71717a', '#ef4444', '#f97316',
+    '#eab308', '#22c55e', '#3b82f6', '#a855f7', '#ec4899'
+];
+
+const PRESET_FONT_SIZES = [10, 12, 14, 16, 18, 20, 24, 32, 40, 48, 64, 80, 96, 128];
 
 const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
     const [rect, setRect] = useState<DOMRect | null>(null);
@@ -77,6 +87,32 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
         onUpdate();
     };
 
+    const toggleBold = () => {
+        const currentWeight = window.getComputedStyle(target).fontWeight;
+        const isBold = currentWeight === 'bold' || parseInt(currentWeight) >= 700;
+        applyStyle('fontWeight', isBold ? 'normal' : 'bold');
+    };
+
+    const handleCopyId = () => {
+        if (!target.id) return;
+        navigator.clipboard.writeText(target.id);
+    };
+
+    const openEyeDropper = async (property: 'color' | 'borderColor' = 'color') => {
+        if (!('EyeDropper' in window)) {
+            alert('Your browser does not support the EyeDropper API');
+            return;
+        }
+        try {
+            // @ts-ignore
+            const eyeDropper = new window.EyeDropper();
+            const result = await eyeDropper.open();
+            applyStyle(property, result.sRGBHex);
+        } catch (e) {
+            console.error('EyeDropper failed:', e);
+        }
+    };
+
     return (
         <div
             ref={menuRef}
@@ -88,11 +124,22 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
             }}
         >
             {/* 要素 ID 表示チャネル */}
-            <div className="flex items-center gap-1.5 px-2 py-1 border-b border-white/5 bg-white/5 rounded-t-md">
-                <Hash size={10} className="text-gray-500" />
-                <span className="text-[10px] font-mono text-gray-400 truncate">
-                    {targets.length > 1 ? `${targets.length} elements selected` : target.id || 'no-id'}
-                </span>
+            <div className="flex items-center justify-between px-2 py-1 border-b border-white/5 bg-white/5 rounded-t-md">
+                <div className="flex items-center gap-1.5 overflow-hidden">
+                    <Hash size={10} className="text-gray-500" />
+                    <span className="text-[10px] font-mono text-gray-400 truncate">
+                        {targets.length > 1 ? `${targets.length} elements selected` : target.id || 'no-id'}
+                    </span>
+                </div>
+                {targets.length === 1 && target.id && (
+                    <button
+                        onClick={handleCopyId}
+                        className="p-1 hover:bg-white/10 rounded text-gray-400 hover:text-white transition-all flex items-center gap-1"
+                        title="Copy ID to clipboard"
+                    >
+                        <Copy size={10} />
+                    </button>
+                )}
             </div>
 
             <div className="flex items-center gap-1">
@@ -100,7 +147,8 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
                     <>
                         <div className="flex items-center gap-1 px-1 border-r border-white/5">
                             <select
-                                className="bg-transparent text-[10px] text-gray-300 hover:text-white outline-none cursor-pointer max-w-[100px] py-1"
+                                title="Font Family"
+                                className="bg-transparent text-[10px] text-gray-300 hover:text-white outline-none cursor-pointer max-w-[80px] py-1"
                                 value={target.style.fontFamily.replace(/['"]/g, '')}
                                 onChange={(e) => applyStyle('fontFamily', e.target.value)}
                             >
@@ -108,20 +156,67 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
                                     <option key={f.value} value={f.value} className="bg-sidebar">{f.label}</option>
                                 ))}
                             </select>
-                            <input
-                                type="number"
-                                className="w-12 bg-transparent text-[10px] text-gray-300 hover:text-white outline-none py-1 pl-1"
-                                value={Math.round(parseFloat(window.getComputedStyle(target).fontSize) || 16)}
-                                onChange={(e) => applyStyle('fontSize', `${e.target.value}px`)}
-                            />
+
+                            <div className="flex items-center gap-0.5 ml-1">
+                                <select
+                                    title="Font Size Preset"
+                                    className="bg-transparent text-[10px] text-gray-300 hover:text-white outline-none cursor-pointer w-10 py-1 border-l border-white/5 pl-1"
+                                    value={PRESET_FONT_SIZES.includes(Math.round(parseFloat(window.getComputedStyle(target).fontSize))) ? Math.round(parseFloat(window.getComputedStyle(target).fontSize)) : ''}
+                                    onChange={(e) => {
+                                        if (e.target.value) applyStyle('fontSize', `${e.target.value}px`);
+                                    }}
+                                >
+                                    <option value="" disabled className="bg-sidebar">-</option>
+                                    {PRESET_FONT_SIZES.map(s => (
+                                        <option key={s} value={s} className="bg-sidebar">{s}</option>
+                                    ))}
+                                </select>
+                                <input
+                                    title="Custom Font Size"
+                                    type="text"
+                                    className="w-10 bg-transparent text-[10px] text-gray-300 hover:text-white outline-none py-1 border-l border-white/5 pl-1"
+                                    placeholder="Size"
+                                    value={Math.round(parseFloat(window.getComputedStyle(target).fontSize) || 16)}
+                                    onChange={(e) => {
+                                        const val = e.target.value.replace(/[^0-9]/g, '');
+                                        if (val) applyStyle('fontSize', `${val}px`);
+                                    }}
+                                />
+                            </div>
                         </div>
                         <div className="flex items-center gap-1 px-1 border-r border-white/5">
-                            <input
-                                type="color"
-                                className="w-5 h-5 bg-transparent border-none cursor-pointer p-0"
-                                value={rgbToHex(window.getComputedStyle(target).color)}
-                                onChange={(e) => applyStyle('color', e.target.value)}
-                            />
+                            <button
+                                className={cn(
+                                    "p-1.5 rounded transition-all",
+                                    (window.getComputedStyle(target).fontWeight === 'bold' || parseInt(window.getComputedStyle(target).fontWeight) >= 700)
+                                        ? "bg-blue-500 text-white"
+                                        : "text-gray-400 hover:bg-white/5 hover:text-white"
+                                )}
+                                onClick={toggleBold}
+                                title="Bold"
+                            >
+                                <Bold size={14} />
+                            </button>
+                        </div>
+                        <div className="flex items-center gap-1 px-1 border-r border-white/5">
+                            <div className="grid grid-cols-5 gap-0.5">
+                                {DEFAULT_COLORS.slice(0, 10).map(c => (
+                                    <button
+                                        key={c}
+                                        className="w-3.5 h-3.5 rounded-full border border-white/10 hover:border-white transition-all"
+                                        style={{ backgroundColor: c }}
+                                        onClick={() => applyStyle('color', c)}
+                                        title={c}
+                                    />
+                                ))}
+                            </div>
+                            <button
+                                className="p-1.5 hover:bg-white/5 rounded text-gray-400 hover:text-white transition-all ml-1"
+                                onClick={() => openEyeDropper('color')}
+                                title="Eyedropper"
+                            >
+                                <Pipette size={14} />
+                            </button>
                         </div>
                     </>
                 )}
@@ -143,12 +238,24 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
                             >
                                 <Square size={14} />
                             </button>
-                            <input
-                                type="color"
-                                className="w-5 h-5 bg-transparent border-none cursor-pointer p-0"
-                                value={rgbToHex(window.getComputedStyle(target).borderColor)}
-                                onChange={(e) => applyStyle('borderColor', e.target.value)}
-                            />
+                            <div className="grid grid-cols-5 gap-0.5 ml-1 mr-1">
+                                {DEFAULT_COLORS.slice(0, 10).map(c => (
+                                    <button
+                                        key={c}
+                                        className="w-3.5 h-3.5 rounded-full border border-white/10 hover:border-white transition-all"
+                                        style={{ backgroundColor: c }}
+                                        onClick={() => applyStyle('borderColor', c)}
+                                        title={c}
+                                    />
+                                ))}
+                            </div>
+                            <button
+                                className="p-1.5 hover:bg-white/5 rounded text-gray-400 hover:text-white transition-all"
+                                onClick={() => openEyeDropper('borderColor')}
+                                title="Eyedropper"
+                            >
+                                <Pipette size={14} />
+                            </button>
                             <button
                                 className="p-1.5 hover:bg-white/5 rounded text-gray-400 hover:text-white transition-all"
                                 onClick={() => {
