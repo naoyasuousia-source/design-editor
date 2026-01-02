@@ -133,7 +133,7 @@ const ImageSaveWizard: React.FC = () => {
                             ].map(ratio => (
                                 <button
                                     key={ratio.label}
-                                    onClick={() => setCropAspectRatio(ratio.value as any)}
+                                    onClick={() => setCropAspectRatio(ratio.value as number | 'free' | null)}
                                     className={cn(
                                         "px-2 py-1 rounded-full text-[10px] uppercase font-bold transition-all",
                                         cropAspectRatio === ratio.value ? "bg-white/10 text-white" : "text-gray-500 hover:text-gray-300"

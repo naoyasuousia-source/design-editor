@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useRef } from 'react';
 import {
     Circle,
     Trash2,
@@ -9,59 +9,45 @@ import {
     Scissors,
     Square,
     Maximize,
-    Bold,
     Copy,
-    Pipette,
-    ChevronDown
 } from 'lucide-react';
-import { useEditorStore } from '@/store/useEditorStore';
 import { useAssets } from '@/hooks/useAssets';
 import { cn } from '@/utils/cn';
-import { EDITOR_FONTS } from '@/constants/editor';
+import { useFloatingMenu } from '@/hooks/useFloatingMenu';
+import ColorPalette from './floating-menu/ColorPalette';
+import ImagePositionPanel from './floating-menu/ImagePositionPanel';
+import RadiusPicker from './floating-menu/RadiusPicker';
+import ImageReplacePanel from './floating-menu/ImageReplacePanel';
+import TextSettings from './floating-menu/TextSettings';
 
 interface FloatingMenuProps {
     targets: HTMLElement[];
     onUpdate: () => void;
 }
 
-const COLOR_PALETTE = [
-    ['#000000', '#434343', '#666666', '#999999', '#B7B7B7', '#CCCCCC', '#FFFFFF'],
-    ['#FF0000', '#FF5E5E', '#FF71A8', '#E2A1F8', '#D258EE', '#9B51E0', '#6124B5'],
-    ['#0097A7', '#2DCCFF', '#80E9FF', '#4DABFF', '#5E81AC', '#104E8B', '#001F3F'],
-    ['#00C853', '#8BC34A', '#CCFF33', '#FFD54F', '#FFB74D', '#FF8A65', '#E65100']
-];
-
-const PRESET_FONT_SIZES = [10, 12, 14, 16, 18, 20, 24, 32, 40, 48, 64, 80, 96, 128];
-
 const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
-    const [rect, setRect] = useState<DOMRect | null>(null);
-    const [showImagePicker, setShowImagePicker] = useState(false);
-    const [showCropPicker, setShowCropPicker] = useState(false);
-    const [showColorPalette, setShowColorPalette] = useState(false);
-    const [showBorderPalette, setShowBorderPalette] = useState(false);
-    const [showBgPalette, setShowBgPalette] = useState(false);
-    const [showRadiusPicker, setShowRadiusPicker] = useState(false);
-    const [localRadius, setLocalRadius] = useState<number | null>(null);
-    const [showSizeDropdown, setShowSizeDropdown] = useState(false);
     const { imageFiles, imageUrls } = useAssets();
-    const { isResponsiveResize, setResponsiveResize } = useEditorStore();
     const menuRef = useRef<HTMLDivElement>(null);
-    const target = targets[0];
 
-    useEffect(() => {
-        if (!target) return;
-        const updateRect = () => setRect(target.getBoundingClientRect());
-        updateRect();
-        window.addEventListener('scroll', updateRect, true);
-        window.addEventListener('resize', updateRect);
-        const observer = new MutationObserver(updateRect);
-        observer.observe(target, { attributes: true, subtree: true });
-        return () => {
-            window.removeEventListener('scroll', updateRect, true);
-            window.removeEventListener('resize', updateRect);
-            observer.disconnect();
-        };
-    }, [target]);
+    const {
+        rect,
+        target,
+        showImagePicker, setShowImagePicker,
+        showCropPicker, setShowCropPicker,
+        showColorPalette, setShowColorPalette,
+        showBorderPalette, setShowBorderPalette,
+        showBgPalette, setShowBgPalette,
+        showRadiusPicker, setShowRadiusPicker,
+        localRadius, setLocalRadius,
+        showSizeDropdown, setShowSizeDropdown,
+        isResponsiveResize, setResponsiveResize,
+        applyStyle,
+        handleGroup,
+        handleUngroup,
+        toggleBold,
+        openEyeDropper,
+        closeAllPanels
+    } = useFloatingMenu(targets, onUpdate);
 
     if (!rect || !target) return null;
 
@@ -73,52 +59,11 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
     const isGrouped = targets.every(el => el.hasAttribute('data-group-id')) && targets.length > 1;
     const canGroup = targets.length > 1 && !isGrouped;
 
-    const applyStyle = (property: keyof CSSStyleDeclaration, value: string, shouldUpdateStore = true) => {
-        targets.forEach(el => {
-            const cssProperty = (property as string).replace(/[A-Z]/g, m => `-${m.toLowerCase()}`);
-            el.style.setProperty(cssProperty, value);
-        });
-        if (shouldUpdateStore) onUpdate();
-    };
-
-    const handleGroup = () => {
-        const groupId = `group-${Math.random().toString(36).substr(2, 9)}`;
-        targets.forEach(el => el.setAttribute('data-group-id', groupId));
-        onUpdate();
-    };
-
-    const handleUngroup = () => {
-        targets.forEach(el => el.removeAttribute('data-group-id'));
-        onUpdate();
-    };
-
-    const toggleBold = () => {
-        const currentWeight = window.getComputedStyle(target).fontWeight;
-        const isBold = currentWeight === 'bold' || parseInt(currentWeight) >= 700;
-        applyStyle('fontWeight', isBold ? 'normal' : 'bold');
-    };
-
     const handleCopyId = () => {
         if (!target.id) return;
         navigator.clipboard.writeText(target.id);
     };
 
-    const openEyeDropper = async (property: 'color' | 'borderColor' | 'backgroundColor' = 'color') => {
-        if (!('EyeDropper' in window)) {
-            alert('Your browser does not support the EyeDropper API');
-            return;
-        }
-        try {
-            // @ts-ignore
-            const eyeDropper = new window.EyeDropper();
-            const result = await eyeDropper.open();
-            applyStyle(property, result.sRGBHex);
-        } catch (e) {
-            console.error('EyeDropper failed:', e);
-        }
-    };
-
-    // 画面上部に見切れないための配置判定 (300px 程度の余白があるか)
     const growsUpwards = rect.top > 300;
 
     return (
@@ -138,7 +83,6 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
                 transform: 'translateX(-50%)',
             }}
         >
-            {/* 1. ID Bar (上展開時は一番上、下展開時は一番下に配置される) */}
             <div className="flex items-center justify-between px-2 py-1 border-b border-white/5 bg-white/5 rounded-t-md">
                 <div className="flex items-center gap-1.5 overflow-hidden">
                     <Hash size={10} className="text-gray-500" />
@@ -153,243 +97,63 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
                 )}
             </div>
 
-            {/* 2. Color Palette Sub-panel */}
-            {(showColorPalette || showBorderPalette || showBgPalette) && (
-                <div className="p-3 border-b border-white/10 flex flex-col gap-3 bg-white/5 animate-in slide-in-from-bottom-1 duration-200">
-                    <div className="flex items-center justify-between">
-                        <span className="text-[10px] text-gray-400 uppercase font-bold tracking-widest">
-                            {showColorPalette ? 'Text Color' : showBgPalette ? 'Fill Color' : 'Border Color'}
-                        </span>
-                        <button
-                            className="p-1 hover:bg-white/10 rounded text-gray-400 hover:text-white flex items-center gap-1 text-[10px]"
-                            onClick={() => openEyeDropper(showColorPalette ? 'color' : showBgPalette ? 'backgroundColor' : 'borderColor')}
-                        >
-                            <Pipette size={12} />
-                            <span>Pick</span>
-                        </button>
-                    </div>
-                    <div className="flex flex-col gap-1.5">
-                        {COLOR_PALETTE.map((row, i) => (
-                            <div key={i} className="flex gap-1.5 justify-center">
-                                {row.map(color => (
-                                    <button
-                                        key={color}
-                                        className="w-5 h-5 rounded-full border border-white/10 hover:border-white hover:scale-110 transition-all shadow-md"
-                                        style={{ backgroundColor: color }}
-                                        onClick={() => applyStyle(showColorPalette ? 'color' : showBgPalette ? 'backgroundColor' : 'borderColor', color)}
-                                    />
-                                ))}
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
+            {showColorPalette && <ColorPalette type="color" onPick={openEyeDropper} onApply={applyStyle} />}
+            {showBgPalette && <ColorPalette type="backgroundColor" onPick={openEyeDropper} onApply={applyStyle} />}
+            {showBorderPalette && <ColorPalette type="borderColor" onPick={openEyeDropper} onApply={applyStyle} />}
 
-            {/* 3. Image Positioning Sub-panel */}
-            {showCropPicker && isImage && (
-                <div className="p-3 border-b border-white/5 flex flex-col gap-2 bg-white/5 animate-in slide-in-from-bottom-1 duration-200">
-                    <span className="text-[10px] text-gray-400 uppercase font-bold tracking-widest">Image Positioning</span>
-                    <div className="flex flex-col gap-3 p-2 bg-black/20 rounded">
-                        <div className="flex flex-col gap-1">
-                            <div className="flex justify-between text-[9px] text-gray-500">
-                                <span>Horizontal</span>
-                                <span>{target.style.objectPosition.split(' ')[0] || '50%'}</span>
-                            </div>
-                            <input
-                                type="range" min="0" max="100"
-                                className="w-full accent-blue-500 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer"
-                                onChange={(e) => {
-                                    const y = target.style.objectPosition.split(' ')[1] || '50%';
-                                    target.style.objectPosition = `${e.target.value}% ${y}`;
-                                    onUpdate();
-                                }}
-                            />
-                        </div>
-                        <div className="flex flex-col gap-1">
-                            <div className="flex justify-between text-[9px] text-gray-500">
-                                <span>Vertical</span>
-                                <span>{target.style.objectPosition.split(' ')[1] || '50%'}</span>
-                            </div>
-                            <input
-                                type="range" min="0" max="100"
-                                className="w-full accent-blue-500 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer"
-                                onChange={(e) => {
-                                    const x = target.style.objectPosition.split(' ')[0] || '50%';
-                                    target.style.objectPosition = `${x} ${e.target.value}%`;
-                                    onUpdate();
-                                }}
-                            />
-                        </div>
-                    </div>
-                </div>
-            )}
+            {showCropPicker && isImage && <ImagePositionPanel target={target} onUpdate={onUpdate} />}
 
-            {/* 4. Radius Picker Sub-panel */}
             {showRadiusPicker && (
-                <div className="p-3 border-b border-white/10 flex flex-col gap-2 bg-white/5 animate-in slide-in-from-bottom-1 duration-200">
-                    <div className="flex items-center justify-between">
-                        <span className="text-[10px] text-gray-400 uppercase font-bold tracking-widest">Corner Radius</span>
-                        <div className="flex gap-1">
-                            <button
-                                className="px-1.5 py-0.5 bg-white/10 hover:bg-white/20 rounded text-[9px] text-gray-300"
-                                onClick={() => applyStyle('borderRadius', '0px')}
-                            >Flat</button>
-                            <button
-                                className="px-1.5 py-0.5 bg-white/10 hover:bg-white/20 rounded text-[9px] text-gray-300"
-                                onClick={() => applyStyle('borderRadius', '9999px')}
-                            >Circle</button>
-                        </div>
-                    </div>
-                    <div className="flex flex-col gap-1 px-1">
-                        <div className="flex justify-between text-[9px] text-gray-500">
-                            <span>Radius</span>
-                            <span>{localRadius ?? (parseInt(target.style.borderRadius) || 0)}px</span>
-                        </div>
-                        <input
-                            type="range" min="0" max="100"
-                            className="w-full accent-blue-500 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer"
-                            value={localRadius ?? (parseInt(target.style.borderRadius) || 0)}
-                            onInput={(e) => {
-                                const val = parseInt((e.target as HTMLInputElement).value);
-                                setLocalRadius(val);
-                                applyStyle('borderRadius', `${val}px`, false);
-                            }}
-                            onMouseUp={() => {
-                                onUpdate();
-                                setLocalRadius(null);
-                            }}
-                            onTouchEnd={() => {
-                                onUpdate();
-                                setLocalRadius(null);
-                            }}
-                        />
-                    </div>
-                </div>
+                <RadiusPicker
+                    target={target}
+                    localRadius={localRadius}
+                    setLocalRadius={setLocalRadius}
+                    onApply={applyStyle}
+                    onUpdate={onUpdate}
+                />
             )}
 
-            {/* 5. Image Replace Sub-panel */}
             {showImagePicker && isImage && (
-                <div className="p-2 border-b border-white/5 grid grid-cols-4 gap-1 max-h-32 overflow-y-auto CustomScrollbar bg-white/5 animate-in slide-in-from-bottom-1 duration-200">
-                    {imageFiles.map(file => (
-                        <button
-                            key={file}
-                            className="aspect-square bg-black/20 rounded border border-white/5 hover:border-blue-500 overflow-hidden transition-all"
-                            onClick={() => {
-                                const path = `./images/${file}`;
-                                if (target.tagName.toLowerCase() === 'img') {
-                                    (target as HTMLImageElement).src = path;
-                                } else {
-                                    target.style.backgroundImage = `url('${path}')`;
-                                }
-                                setShowImagePicker(false);
-                                onUpdate();
-                            }}
-                        >
-                            <img src={imageUrls[file]} alt={file} className="w-full h-full object-contain" />
-                        </button>
-                    ))}
-                    {imageFiles.length === 0 && <div className="col-span-4 py-2 text-[10px] text-gray-600 italic text-center">No images</div>}
-                </div>
+                <ImageReplacePanel
+                    imageFiles={imageFiles}
+                    imageUrls={imageUrls}
+                    target={target}
+                    onClose={() => setShowImagePicker(false)}
+                    onUpdate={onUpdate}
+                />
             )}
 
-            {/* 5. Main Control Bar (Bottom) */}
             <div className="flex items-center gap-1 p-1">
                 {isText && (
-                    <>
-                        <div className="flex items-center gap-1 px-1 border-r border-white/5">
-                            <select
-                                className="bg-transparent text-[10px] text-gray-300 hover:text-white outline-none cursor-pointer max-w-[80px] py-1"
-                                value={target.style.fontFamily.replace(/['"]/g, '')}
-                                onChange={(e) => applyStyle('fontFamily', e.target.value)}
-                            >
-                                {EDITOR_FONTS.map(f => (
-                                    <option key={f.value} value={f.value} className="bg-[#1a1a1a] text-white text-[10px]">{f.label}</option>
-                                ))}
-                            </select>
-                            <div className="relative flex items-center bg-white/5 rounded border border-white/10 hover:border-white/20 ml-1 group">
-                                <input
-                                    type="text"
-                                    className="w-10 bg-transparent text-[10px] text-center text-gray-300 hover:text-white outline-none py-1"
-                                    value={Math.round(parseFloat(window.getComputedStyle(target).fontSize) || 16)}
-                                    onChange={(e) => {
-                                        const val = e.target.value.replace(/[^0-9]/g, '');
-                                        if (val) applyStyle('fontSize', `${val}px`);
-                                    }}
-                                />
-                                <div
-                                    className="relative h-6 flex items-center border-l border-white/10 px-0.5 cursor-pointer hover:bg-white/5 transition-colors"
-                                    onClick={() => setShowSizeDropdown(!showSizeDropdown)}
-                                >
-                                    <ChevronDown size={10} className={cn("text-gray-500 transition-transform", showSizeDropdown && "rotate-180")} />
-
-                                    {showSizeDropdown && (
-                                        <div className="absolute top-full right-0 mt-1 bg-[#1a1a1a] border border-white/10 rounded-md shadow-xl py-1 z-[110] min-w-[60px] max-h-48 overflow-y-auto CustomScrollbar">
-                                            {PRESET_FONT_SIZES.map(s => (
-                                                <div
-                                                    key={s}
-                                                    className="px-3 py-1 text-[10px] text-white hover:bg-blue-500 cursor-pointer transition-colors"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation(); // 親の onClick (閉じる) を防ぐ
-                                                        applyStyle('fontSize', `${s}px`);
-                                                        // 自動で閉じないようにするため setShowSizeDropdown(false) は呼ばない
-                                                    }}
-                                                >
-                                                    {s}px
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-1 px-1 border-r border-white/5">
-                            <button
-                                className={cn("p-1.5 rounded transition-all", (window.getComputedStyle(target).fontWeight === 'bold' || parseInt(window.getComputedStyle(target).fontWeight) >= 700) ? "bg-blue-500 text-white" : "text-gray-400 hover:bg-white/5 hover:text-white")}
-                                onClick={toggleBold}
-                            >
-                                <Bold size={14} />
-                            </button>
-                        </div>
-                        <div className="flex items-center gap-1 px-1 border-r border-white/5">
-                            <button
-                                className="w-6 h-6 rounded border border-white/20 hover:border-white transition-all relative"
-                                style={{ backgroundColor: window.getComputedStyle(target).color }}
-                                onClick={() => {
-                                    setShowColorPalette(!showColorPalette);
-                                    setShowBorderPalette(false);
-                                    setShowBgPalette(false);
-                                    setShowRadiusPicker(false);
-                                    setShowCropPicker(false);
-                                    setShowImagePicker(false);
-                                    setShowSizeDropdown(false);
-                                }}
-                            >
-                                {showColorPalette && <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-blue-500 rounded-full" />}
-                            </button>
-                        </div>
-                    </>
+                    <TextSettings
+                        target={target}
+                        showSizeDropdown={showSizeDropdown}
+                        setShowSizeDropdown={setShowSizeDropdown}
+                        showColorPalette={showColorPalette}
+                        setShowColorPalette={(show) => {
+                            closeAllPanels();
+                            setShowColorPalette(show);
+                        }}
+                        onApply={applyStyle}
+                        onToggleBold={toggleBold}
+                    />
                 )}
 
                 {isShape && (
                     <div className="flex items-center gap-1 px-1 border-r border-white/5">
-                        {/* 1. 内部カラー */}
                         <button
                             className="w-6 h-6 rounded border border-white/20 hover:border-white transition-all relative"
                             style={{ backgroundColor: window.getComputedStyle(target).backgroundColor }}
                             onClick={() => {
-                                setShowBgPalette(!showBgPalette);
-                                setShowColorPalette(false);
-                                setShowBorderPalette(false);
-                                setShowCropPicker(false);
-                                setShowImagePicker(false);
-                                setShowSizeDropdown(false);
+                                const next = !showBgPalette;
+                                closeAllPanels();
+                                setShowBgPalette(next);
                             }}
                             title="Fill Color"
                         >
                             {showBgPalette && <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-blue-500 rounded-full" />}
                         </button>
 
-                        {/* 2. 枠線onoff */}
                         <button
                             className="p-1.5 hover:bg-white/5 rounded text-gray-400 hover:text-white transition-all"
                             onClick={() => {
@@ -404,34 +168,25 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
                             <Square size={14} />
                         </button>
 
-                        {/* 3. 枠線カラー */}
                         <button
                             className="w-6 h-6 rounded border border-white/20 hover:border-white transition-all relative"
                             style={{ backgroundColor: window.getComputedStyle(target).borderColor }}
                             onClick={() => {
-                                setShowBorderPalette(!showBorderPalette);
-                                setShowBgPalette(false);
-                                setShowColorPalette(false);
-                                setShowCropPicker(false);
-                                setShowImagePicker(false);
-                                setShowSizeDropdown(false);
+                                const next = !showBorderPalette;
+                                closeAllPanels();
+                                setShowBorderPalette(next);
                             }}
                             title="Border Color"
                         >
                             {showBorderPalette && <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-blue-500 rounded-full" />}
                         </button>
 
-                        {/* 4. かどの丸み */}
                         <button
                             className={cn("p-1.5 rounded transition-all relative", showRadiusPicker ? "bg-blue-500 text-white" : "text-gray-400 hover:bg-white/5 hover:text-white")}
                             onClick={() => {
-                                setShowRadiusPicker(!showRadiusPicker);
-                                setShowBgPalette(false);
-                                setShowBorderPalette(false);
-                                setShowColorPalette(false);
-                                setShowCropPicker(false);
-                                setShowImagePicker(false);
-                                setShowSizeDropdown(false);
+                                const next = !showRadiusPicker;
+                                closeAllPanels();
+                                setShowRadiusPicker(next);
                             }}
                             title="Corner Radius"
                         >
@@ -439,7 +194,6 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
                             {showRadiusPicker && <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-white rounded-full" />}
                         </button>
 
-                        {/* 5. 子要素レスポンシブonoff */}
                         <button
                             className={cn(
                                 "p-1.5 rounded transition-all",
@@ -472,13 +226,9 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
                             className="w-6 h-6 rounded border border-white/20 hover:border-white transition-all relative"
                             style={{ backgroundColor: window.getComputedStyle(target).borderColor }}
                             onClick={() => {
-                                setShowBorderPalette(!showBorderPalette);
-                                setShowColorPalette(false);
-                                setShowBgPalette(false);
-                                setShowRadiusPicker(false);
-                                setShowCropPicker(false);
-                                setShowImagePicker(false);
-                                setShowSizeDropdown(false);
+                                const next = !showBorderPalette;
+                                closeAllPanels();
+                                setShowBorderPalette(next);
                             }}
                             title="Border Color"
                         >
@@ -498,13 +248,9 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
                         <button
                             className={cn("p-1.5 rounded transition-all", showCropPicker ? "bg-blue-500 text-white" : "text-gray-400 hover:bg-white/5 hover:text-white")}
                             onClick={() => {
-                                setShowCropPicker(!showCropPicker);
-                                setShowImagePicker(false);
-                                setShowColorPalette(false);
-                                setShowBorderPalette(false);
-                                setShowBgPalette(false);
-                                setShowRadiusPicker(false);
-                                setShowSizeDropdown(false);
+                                const next = !showCropPicker;
+                                closeAllPanels();
+                                setShowCropPicker(next);
                             }}
                             title="Crop"
                         >
@@ -513,13 +259,9 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
                         <button
                             className={cn("p-1.5 rounded transition-all", showImagePicker ? "bg-blue-500 text-white" : "text-gray-400 hover:bg-white/5 hover:text-white")}
                             onClick={() => {
-                                setShowImagePicker(!showImagePicker);
-                                setShowCropPicker(false);
-                                setShowColorPalette(false);
-                                setShowBorderPalette(false);
-                                setShowBgPalette(false);
-                                setShowRadiusPicker(false);
-                                setShowSizeDropdown(false);
+                                const next = !showImagePicker;
+                                closeAllPanels();
+                                setShowImagePicker(next);
                             }}
                             title="Replace Image"
                         >

@@ -45,8 +45,7 @@ const ComparisonView: React.FC<ComparisonViewProps> = ({ onClose, oldImage, newH
                     <div className="flex-1 bg-white/5 flex items-center justify-center p-8 overflow-auto CustomScrollbar">
                         {newHtml ? (
                             <div
-                                className="bg-white shadow-2xl relative"
-                                style={{ width: '600px', height: '600px' }} // 簡易的に固定サイズ、本来は pageSize を参照
+                                className="bg-white shadow-2xl relative w-[600px] h-[600px]"
                                 dangerouslySetInnerHTML={{ __html: newHtml }}
                             />
                         ) : (
