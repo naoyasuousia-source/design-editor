@@ -41,6 +41,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
     const [showBorderPalette, setShowBorderPalette] = useState(false);
     const [showBgPalette, setShowBgPalette] = useState(false);
     const [showRadiusPicker, setShowRadiusPicker] = useState(false);
+    const [localRadius, setLocalRadius] = useState<number | null>(null);
     const [showSizeDropdown, setShowSizeDropdown] = useState(false);
     const { imageFiles, imageUrls } = useAssets();
     const { isResponsiveResize, setResponsiveResize } = useEditorStore();
@@ -72,12 +73,12 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
     const isGrouped = targets.every(el => el.hasAttribute('data-group-id')) && targets.length > 1;
     const canGroup = targets.length > 1 && !isGrouped;
 
-    const applyStyle = (property: keyof CSSStyleDeclaration, value: string) => {
+    const applyStyle = (property: keyof CSSStyleDeclaration, value: string, shouldUpdateStore = true) => {
         targets.forEach(el => {
             const cssProperty = (property as string).replace(/[A-Z]/g, m => `-${m.toLowerCase()}`);
             el.style.setProperty(cssProperty, value);
         });
-        onUpdate();
+        if (shouldUpdateStore) onUpdate();
     };
 
     const handleGroup = () => {
@@ -232,13 +233,25 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
                     <div className="flex flex-col gap-1 px-1">
                         <div className="flex justify-between text-[9px] text-gray-500">
                             <span>Radius</span>
-                            <span>{parseInt(target.style.borderRadius) || 0}px</span>
+                            <span>{localRadius ?? (parseInt(target.style.borderRadius) || 0)}px</span>
                         </div>
                         <input
                             type="range" min="0" max="100"
                             className="w-full accent-blue-500 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer"
-                            value={parseInt(target.style.borderRadius) || 0}
-                            onChange={(e) => applyStyle('borderRadius', `${e.target.value}px`)}
+                            value={localRadius ?? (parseInt(target.style.borderRadius) || 0)}
+                            onInput={(e) => {
+                                const val = parseInt((e.target as HTMLInputElement).value);
+                                setLocalRadius(val);
+                                applyStyle('borderRadius', `${val}px`, false);
+                            }}
+                            onMouseUp={() => {
+                                onUpdate();
+                                setLocalRadius(null);
+                            }}
+                            onTouchEnd={() => {
+                                onUpdate();
+                                setLocalRadius(null);
+                            }}
                         />
                     </div>
                 </div>
