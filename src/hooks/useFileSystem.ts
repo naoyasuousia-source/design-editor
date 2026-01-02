@@ -25,8 +25,9 @@ export const useFileSystem = () => {
      * 新規作成
      * 1. 比率を選択（呼び出し側で実施）
      * 2. プロジェクトフォルダを選択
-     * 3. フォルダに新規ファイルを作成
-     * 4. エディタに表示
+     * 3. ファイル名を入力
+     * 4. フォルダに新規ファイルを作成
+     * 5. エディタに表示
      */
     const handleNew = useCallback(async (pageSize: PageSize) => {
         // 未保存の変更がある場合は警告
@@ -43,10 +44,29 @@ export const useFileSystem = () => {
             setProjectDirectoryHandle(directoryHandle);
             setProjectFolderName(directoryHandle.name);
 
+            // ファイル名を入力
+            const timestamp = Date.now();
+            const defaultFileName = `untitled-${timestamp}.html`;
+            let fileName = prompt('ファイル名を入力してください:', defaultFileName);
+
+            if (!fileName) return; // キャンセル
+
+            // 拡張子を確認・補完
+            fileName = fileName.trim();
+            if (!fileName.endsWith('.html')) {
+                fileName = `${fileName}.html`;
+            }
+
+            // 無効なファイル名のチェック
+            if (fileName === '.html' || fileName.length === 0) {
+                alert('有効なファイル名を入力してください。');
+                return;
+            }
+
             // 新規ファイルを作成
             const template = GET_INITIAL_TEMPLATE(pageSize);
             const fullHTML = constructFullHTML(template, useEditorStore.getState().metaMessage);
-            const fileHandle = await fileSystemService.createNewDesignFile(directoryHandle, fullHTML);
+            const fileHandle = await fileSystemService.createNewDesignFile(directoryHandle, fileName, fullHTML);
 
             // ファイルハンドルをストアに保存
             setCurrentFileHandle(fileHandle);

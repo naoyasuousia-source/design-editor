@@ -85,17 +85,16 @@ export const fileSystemService = {
     /**
      * プロジェクトフォルダに新規デザインファイルを作成
      * @param directoryHandle - プロジェクトフォルダハンドル
+     * @param fileName - 作成するファイル名（拡張子を含む）
      * @param template - 初期テンプレートHTML
      * @returns ファイルハンドル
      */
     async createNewDesignFile(
         directoryHandle: FileSystemDirectoryHandle,
+        fileName: string,
         template: string
     ): Promise<FileSystemFileHandle> {
         try {
-            const timestamp = Date.now();
-            const fileName = `untitled-${timestamp}.html`;
-
             const fileHandle = await directoryHandle.getFileHandle(fileName, { create: true });
             const writable = await fileHandle.createWritable();
             await writable.write(template);
