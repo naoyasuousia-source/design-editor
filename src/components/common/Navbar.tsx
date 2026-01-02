@@ -16,6 +16,7 @@ import { useEditorStore } from '@/store/useEditorStore';
 import { useFileSystem } from '@/hooks/useFileSystem';
 import MetaMessageEditor from './MetaMessageEditor';
 import HintDialog from './HintDialog';
+import ZoomControl from './ZoomControl';
 import type { PageSize } from '@/types/editor';
 import { PAGE_SIZES } from '@/types/editor';
 
@@ -155,23 +156,7 @@ const Navbar: React.FC = () => {
                         onClick={() => setImageSaveMode(true)}
                         disabled={isImageSaveMode}
                     />
-                    <div className="flex items-center gap-1 px-2 py-1 bg-white/5 rounded-md border border-white/10 ml-2">
-                        <button
-                            onClick={() => setZoom(Math.max(0.5, zoom - 0.25))}
-                            className="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 rounded transition-colors"
-                        >
-                            -
-                        </button>
-                        <span className="text-[11px] font-mono text-gray-300 w-12 text-center">
-                            {Math.round(zoom * 100)}%
-                        </span>
-                        <button
-                            onClick={() => setZoom(Math.min(3.0, zoom + 0.25))}
-                            className="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 rounded transition-colors"
-                        >
-                            +
-                        </button>
-                    </div>
+                    <ZoomControl zoom={zoom} onZoomChange={setZoom} />
                 </div>
 
                 <div className="flex flex-wrap items-center gap-1 border-l border-white/10 pl-4">
