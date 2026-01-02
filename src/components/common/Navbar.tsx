@@ -67,15 +67,15 @@ const Navbar: React.FC = () => {
     };
 
     // 保存前にテキスト編集を確定
-    const handleSave = () => {
+    const handleSave = async () => {
         const activeElement = document.activeElement as HTMLElement;
+
         if (activeElement && activeElement.contentEditable === 'true') {
             activeElement.blur();
-            requestAnimationFrame(() => {
-                handleOverwrite();
-            });
+            await new Promise(resolve => requestAnimationFrame(resolve));
+            await handleOverwrite();
         } else {
-            handleOverwrite();
+            await handleOverwrite();
         }
     };
 
@@ -142,7 +142,7 @@ const Navbar: React.FC = () => {
                     />
                     <NavButton
                         icon={<Save />}
-                        label="保存"
+                        label="上書き保存"
                         onClick={handleSave}
                         disabled={isImageSaveMode}
                     />

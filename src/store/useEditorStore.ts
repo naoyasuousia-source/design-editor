@@ -30,6 +30,7 @@ interface EditorStore extends EditorState {
     setImageSaveMode: (enabled: boolean) => void;
     setCropAspectRatio: (ratio: number | 'free' | null) => void;
     setResponsiveResize: (enabled: boolean) => void;
+    setShowSaveToast: (show: boolean) => void;
     reset: () => void;
 }
 
@@ -40,6 +41,7 @@ const initialState: EditorState & {
     // 画像保存ウィザード用
     isImageSaveMode: boolean;
     cropAspectRatio: number | 'free' | null;
+    showSaveToast: boolean;
 } = {
     pageSize: DEFAULT_PAGE_SIZE,
     customWidth: null,
@@ -76,6 +78,7 @@ const initialState: EditorState & {
     isImageSaveMode: false,
     cropAspectRatio: null,
     isResponsiveResize: false,
+    showSaveToast: false,
 };
 
 export const useEditorStore = create<EditorStore>((set, get) => ({
@@ -224,5 +227,6 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     setImageSaveMode: (isImageSaveMode) => set({ isImageSaveMode, isLocked: isImageSaveMode }),
     setCropAspectRatio: (cropAspectRatio) => set({ cropAspectRatio }),
     setResponsiveResize: (isResponsiveResize) => set({ isResponsiveResize }),
+    setShowSaveToast: (showSaveToast) => set({ showSaveToast }),
     reset: () => set(initialState),
 }));

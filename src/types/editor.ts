@@ -52,6 +52,8 @@ export type EditorState = {
     isImageSaveMode: boolean;
     cropAspectRatio: number | 'free' | null;
     isResponsiveResize: boolean;
+    // UI状態
+    showSaveToast: boolean;
 }
 
 export const _REFRESH_FIX = Date.now();

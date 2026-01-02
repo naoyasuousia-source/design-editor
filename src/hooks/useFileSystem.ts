@@ -133,9 +133,10 @@ export const useFileSystem = () => {
     /**
      * 上書き保存
      * 現在開いているファイルに保存
+     * @returns 保存成功時は true、失敗時は false
      */
-    const handleOverwrite = useCallback(async () => {
-        const { currentFileHandle, content, metaMessage } = useEditorStore.getState();
+    const handleOverwrite = useCallback(async (): Promise<boolean> => {
+        const { currentFileHandle, content, metaMessage, setShowSaveToast } = useEditorStore.getState();
 
         console.log('handleOverwrite called');
         console.log('currentFileHandle:', currentFileHandle);
@@ -144,7 +145,7 @@ export const useFileSystem = () => {
         // ファイルハンドルの存在確認
         if (!currentFileHandle) {
             alert('保存先のファイルが見つかりません。\n新規作成または開くから始めてください。');
-            return;
+            return false;
         }
 
         try {
@@ -159,9 +160,15 @@ export const useFileSystem = () => {
             setDirty(false);
 
             console.log('保存しました:', currentFileHandle.name);
+
+            // 保存成功トーストを表示
+            setShowSaveToast(true);
+
+            return true;
         } catch (error) {
             console.error('保存に失敗:', error);
             alert(`保存に失敗しました。\n${(error as Error).message}`);
+            return false;
         }
     }, [setLastSaveTime, setDirty]);
 

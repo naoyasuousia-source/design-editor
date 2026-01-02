@@ -5,6 +5,7 @@ import ComparisonView from '@/components/features/ComparisonView';
 import AssetSidebar from '@/components/features/AssetSidebar';
 import TemporaryBar from '@/components/common/TemporaryBar';
 import ImageSaveWizard from '@/components/features/ImageSaveWizard';
+import SaveToast from '@/components/common/SaveToast';
 import { useHotkeys } from '@/hooks/useHotkeys';
 import { useBeforeUnload } from '@/hooks/useBeforeUnload';
 import { useEditorStore } from '@/store/useEditorStore';
@@ -17,7 +18,9 @@ const App: React.FC = () => {
         discardUpdate,
         pendingSnapshot,
         pendingContent,
-        isImageSaveMode
+        isImageSaveMode,
+        showSaveToast,
+        setShowSaveToast
     } = useEditorStore();
 
     const [showComparison, setShowComparison] = useState(false);
@@ -62,6 +65,11 @@ const App: React.FC = () => {
                     onDiscard={discardUpdate}
                     onCompare={() => setShowComparison(true)}
                 />
+            )}
+
+            {/* 保存成功トースト */}
+            {showSaveToast && (
+                <SaveToast message="上書き保存しました" onClose={() => setShowSaveToast(false)} />
             )}
         </div>
     );
