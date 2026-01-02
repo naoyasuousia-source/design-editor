@@ -28,32 +28,30 @@
 ## 1. 未解決要件（移動許可がNGの要件は絶対に移動・編集しないこと）（勝手に移動許可をOKに書き換えないこと）
 
 <requirement>
-<content>
-- 親要素の縮小制限、高さ方向は完璧だが、横方向は要改善である。
-- 親要素の幅の縮小時、子要素は絶対にレスポンシブさせず、幅を縮めない。
-- そのうえで、子要素全体の幅を親要素縮小の制限とする。</content>
-<current-situation>現在は、子要素が勝手に折り返されてしまう。</current-situation>
+<content>- </content>
+<current-situation></current-situation>
 <remarks></remarks>
 <permission-to-move>NG</permission-to-move>
-</requirement
+</requirement>
 
 ## 2. 未解決要件に関するコード変更履歴（目的、変更内容、変更日時）
 
-### 2026-01-03 01:00 - 親要素の縮小制限（子要素のはみ出し防止）の実装
+### 2026-01-03 01:05 - 親要素縮小制限の抜本的改善（子要素の完全固定化）
 
-**目的**: 親要素を縮小する際に、中に含まれる子要素が外にはみ出さないよう、子要素の占有領域を最小サイズ（Minimum Size）として制限する。
+**目的**: 親要素の幅を縮める際に、子要素がレスポンシブ挙動（%指定等）によって勝手に縮小・折り返しされるのを防ぎ、子要素の「本来のサイズ」を維持したまま親の縮小限界として機能させる。
 
 **変更内容**:
-1. `src/components/features/Workspace.tsx`
-   - `onResize` および `onResizeGroup` において、`isResponsiveResize`（レスポンシブ縮小）がオフの場合の縮小制限を追加。
-   - リサイズ対象要素の全子要素を走査し、親要素の左上からの最大右端（`left + width`）と最大下端（`top + height`）を計算。
-   - 計算された値を `minW`, `minH` とし、Moveableから渡される新しい `width`, `height` がこれらを下回らないよう `Math.max` でクリップ。
+1. `src/hooks/useMoveable.ts` & `src/components/features/Workspace.tsx`
+   - `onResizeStart` / `onResizeGroupStart` において、`isResponsiveResize`（レスポンシブモード）がオフの場合、全子要素のスタイル（`left`, `top`, `width`, `height`, `fontSize`）を、その瞬間の `px` 値で上書き固定する処理を追加。
+   - 固定した子要素の占有範囲から、親要素が維持すべき最小サイズ（`data-min-w`, `data-min-h`）を算出し、ターゲットに記録。
+2. `src/components/features/Workspace.tsx`
+   - `onResize` において、上記で記録された最小サイズを絶対的なしきい値として使用し、リサイズを制限。
 
 ## 3. 分析中に気づいた重要ポイント（試してだめだったこと、仮設、制約条件等...）
 
-### 制限の適用条件
-- 「子要素をレスポンシブさせる（比率固定）」モードが有効な場合は、親の縮小に合わせて子要素も同様に縮小されるため、このハード制限は適用しない（適用すると親の自由なリサイズを妨げるため）。
-- 通常の「引き伸ばし」リサイズにおいて、子要素を「押しつぶしたり」「隠したり」することを防ぐためのガードレールとして機能する。
+### リアルタイム計算の罠
+- リサイズ中に毎回 `offsetLeft` 等を計算すると、親の縮小に伴って子要素（%指定等）も縮んでしまい、計算上の最小サイズも連動して小さくなってしまう「追いかけっこ」状態が発生していた。
+- リサイズ開始時に「スナップショット」を撮り、かつ子要素を `px` 指に一時変換（固定化）することで、物理的な「壁」としての挙動を完璧に実現できた。
 
 ## 4. 解決済み要件とその解決方法
 
@@ -90,7 +88,7 @@
 - テキストの拡大縮小ロジックを大幅改善する。
 - テキストボックスのパディングは常に0にする。
 - 拡大縮小ポイントは、四隅と、左右のみとし、上下は廃止する。
-- 四隅では、今まで通り、フォントサイズをレスポンシブながら、テキストボックスを拡大縮小する。
+- 四隅では、今まで通り、フォントサイズをレスポンシブさせながら、テキストボックスを拡大縮小する。
 - 左右ポイントではフォントサイズは絶対に変えない。
 - 左右ポイントでは、テキストボックスの横幅を狭くすると、テキストを折り返して全テキストを表示する。
 - 横幅を広くすると、折り返しを解除していき、最終的に一行にする。
@@ -111,7 +109,7 @@
 - テキストボックスをダブルクリックすると、水色枠とポイントは表示したまま、編集モードに入る。
 （現在の編集モード時の黒枠は廃止する）</content>
 <current-situation>解決済み</current-situation>
-<remarks>CSSとHookのライフサイクル調整により実現。</remarks>
+<remarks>CSSとHookの調整により実現。</remarks>
 <permission-to-move>OK</permission-to-move>
 </requirement>
 
@@ -127,26 +125,30 @@
 - ある要素が選択され、水色枠&ポイントが表示されている場合、ほかの要素をホバーしたら、選択要素の水色枠&ポイントは維持したまま、ホバー要素の水色枠を表示する。
 - その後、ほかの要素を選択しなおした場合は、元の選択要素の水色枠&ポイントを非表示にする。</content>
 <current-situation>解決済み</current-situation>
-<remarks>CSSの :has(*:hover) を用いて、ホバー対象を最前面の1要素に限定。 </remarks>
+<remarks>CSSの :has(*:hover) を採用。</remarks>
 <permission-to-move>OK</permission-to-move>
 </requirement>
 
 <requirement>
-<content>現在、子要素は親要素よりはみ出さないようにできているが、逆に、親要素の高さ・幅縮小する場合でも、子要素がはみ出さないようにする。（子要素全体の高さ、幅が縮小の制限となる）</content>
+<content>
+- 親要素の縮小制限、高さ方向は完璧だが、横方向は要改善である。
+- 親要素の幅の縮小時、子要素は絶対にレスポンシブさせず、幅を縮めない。
+- そのうえで、子要素全体の幅を親要素縮小の制限とする。</content>
 <current-situation>解決済み</current-situation>
-<remarks>onResize時に子要素の最大座標を動的に計算し、親の最小サイズとして適用。</remarks>
+<remarks>リサイズ開始時に子要素のスタイルをpxで強制固定化し、物理的な限界サイズをスナップショットとして使用することで解決。</remarks>
 <permission-to-move>OK</permission-to-move>
 </requirement>
 
 ## 5. 要件に関連する全ファイルのファイル構成（それぞれの役割を1行で併記）
 
 ```
-src/components/features/Workspace.tsx - リサイズイベントにおけるサイズバリデーション（最小サイズ制限）の実装
+src/hooks/useMoveable.ts - 単一選択時の子要素固定化と最小サイズ記録
+src/components/features/Workspace.tsx - グループ選択時の子要素固定化と、全リサイズ時おけるスナップショットベースの制限適用
 ```
 
 ## 6. 要件に関する機能の技術スタックと動作原理（依存関係含む）
 
-### 構造的整合性の維持（逆方向のガード）
-1. **Dynamic Content Bounds**: 親要素のリサイズ中、リアルタイムで全 `children` の `offsetLeft + offsetWidth` および `offsetTop + offsetHeight` を取得し、それらを包含するのに必要な矩形領域を算出。
-2. **Min-Size Enforcement**: Moveable から通知された `width / height` を、算出した包含領域のサイズで強制的に下限設定 (`Math.max`)。
-3. **Responsive Bypass**: ただし、子要素自体も同時に縮小させる「レスポンシブ・リサイズ」が有効な場合は、拡大縮小率に基づいた整合性が保たれるため、このガードをバイパスして自由な縮小を許可。
+### 非レスポンシブ・リサイズにおける子要素の「凍結」
+1. **Style Freezing**: `onResizeStart` 時に全子要素の `offsetLeft`, `offsetWidth` 等を読み取り、`style.left`, `style.width` 等に `px` 値として書き込む。これにより、親の `width` が変化しても CSS の再計算（%計算）による子要素の変形が発生しなくなる。
+2. **Snapshot Limit**: 子要素の配置から「絶対に必要な親の最小幅・高」をリサイズ開始の瞬間に1度だけ算出し、ターゲットに保持。
+3. **Impenetrable Boundary**: リサイズイベント中、Moveable からの入力値をこの保持された最小値と比較し、絶対にそれを下回らないよう制御することで、子要素を一切圧縮・折り返しさせない強固な構造維持を実現。

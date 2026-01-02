@@ -203,19 +203,12 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
                                 const isText = isTextBox(target);
 
                                 // 子要素がはみ出さないための最小サイズ制限（レスポンシブ縮小でない場合）
-                                if (!isResponsiveResize && target.children.length > 0) {
-                                    let minW = 0;
-                                    let minH = 0;
-                                    Array.from(target.children).forEach(child => {
-                                        const el = child as HTMLElement;
-                                        const r = (parseFloat(el.style.left) || el.offsetLeft) + (parseFloat(el.style.width) || el.offsetWidth);
-                                        const b = (parseFloat(el.style.top) || el.offsetTop) + (parseFloat(el.style.height) || el.offsetHeight);
-                                        minW = Math.max(minW, r);
-                                        minH = Math.max(minH, b);
-                                    });
-                                    // 左右ハンドルの縮小制限
-                                    if (direction[0] !== 0) width = Math.max(width, minW);
-                                    if (direction[1] !== 0) height = Math.max(height, minH);
+                                if (!isResponsiveResize) {
+                                    const minW = parseFloat(target.getAttribute('data-min-w') || '0');
+                                    const minH = parseFloat(target.getAttribute('data-min-h') || '0');
+
+                                    if (minW > 0 && direction[0] !== 0) width = Math.max(width, minW);
+                                    if (minH > 0 && direction[1] !== 0) height = Math.max(height, minH);
                                 }
 
                                 // 全ての要素でパディングを0に強制（特にテキストボックス）
@@ -287,18 +280,11 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
                                     let { target, width, height, drag } = ev;
 
                                     // 子要素の制限
-                                    if (!isResponsiveResize && target.children.length > 0) {
-                                        let minW = 0;
-                                        let minH = 0;
-                                        Array.from(target.children).forEach(child => {
-                                            const el = child as HTMLElement;
-                                            const r = (parseFloat(el.style.left) || el.offsetLeft) + (parseFloat(el.style.width) || el.offsetWidth);
-                                            const b = (parseFloat(el.style.top) || el.offsetTop) + (parseFloat(el.style.height) || el.offsetHeight);
-                                            minW = Math.max(minW, r);
-                                            minH = Math.max(minH, b);
-                                        });
-                                        width = Math.max(width, minW);
-                                        height = Math.max(height, minH);
+                                    if (!isResponsiveResize) {
+                                        const minW = parseFloat(target.getAttribute('data-min-w') || '0');
+                                        const minH = parseFloat(target.getAttribute('data-min-h') || '0');
+                                        if (minW > 0) width = Math.max(width, minW);
+                                        if (minH > 0) height = Math.max(height, minH);
                                     }
 
                                     target.style.width = `${width}px`;
@@ -317,7 +303,34 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
                             onResizeStart={handleResizeStart}
                             onResizeGroupStart={e => {
                                 e.events.forEach(ev => {
-                                    (ev.target as HTMLElement).setAttribute('data-last-width', (ev.target as HTMLElement).offsetWidth.toString());
+                                    const target = ev.target as HTMLElement;
+                                    target.setAttribute('data-last-width', target.offsetWidth.toString());
+                                    target.setAttribute('data-last-height', target.offsetHeight.toString());
+
+                                    // グリッド子要素の固定化（非レスポンシブ時）
+                                    if (!isResponsiveResize && target.children.length > 0) {
+                                        let maxR = 0;
+                                        let maxB = 0;
+                                        Array.from(target.children).forEach(child => {
+                                            const el = child as HTMLElement;
+                                            const w = el.offsetWidth;
+                                            const h = el.offsetHeight;
+                                            const l = el.offsetLeft;
+                                            const t = el.offsetTop;
+                                            const fs = parseFloat(window.getComputedStyle(el).fontSize);
+
+                                            el.style.width = `${w}px`;
+                                            el.style.height = `${h}px`;
+                                            el.style.left = `${l}px`;
+                                            el.style.top = `${t}px`;
+                                            el.style.fontSize = `${fs}px`;
+
+                                            maxR = Math.max(maxR, l + w);
+                                            maxB = Math.max(maxB, t + h);
+                                        });
+                                        target.setAttribute('data-min-w', maxR.toString());
+                                        target.setAttribute('data-min-h', maxB.toString());
+                                    }
                                 });
                             }}
                             onResizeEnd={updateContentFromDOM}
