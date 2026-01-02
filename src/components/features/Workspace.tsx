@@ -199,8 +199,24 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
                                 if (maxR > 0 || maxB > 0) expandCanvas(maxR, maxB);
                             }}
                             onResize={e => {
-                                const { width, height, drag, target, direction } = e;
+                                let { width, height, drag, target, direction } = e;
                                 const isText = isTextBox(target);
+
+                                // 子要素がはみ出さないための最小サイズ制限（レスポンシブ縮小でない場合）
+                                if (!isResponsiveResize && target.children.length > 0) {
+                                    let minW = 0;
+                                    let minH = 0;
+                                    Array.from(target.children).forEach(child => {
+                                        const el = child as HTMLElement;
+                                        const r = (parseFloat(el.style.left) || el.offsetLeft) + (parseFloat(el.style.width) || el.offsetWidth);
+                                        const b = (parseFloat(el.style.top) || el.offsetTop) + (parseFloat(el.style.height) || el.offsetHeight);
+                                        minW = Math.max(minW, r);
+                                        minH = Math.max(minH, b);
+                                    });
+                                    // 左右ハンドルの縮小制限
+                                    if (direction[0] !== 0) width = Math.max(width, minW);
+                                    if (direction[1] !== 0) height = Math.max(height, minH);
+                                }
 
                                 // 全ての要素でパディングを0に強制（特にテキストボックス）
                                 if (isText) target.style.padding = '0';
@@ -268,7 +284,23 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
                             }}
                             onResizeGroup={e => {
                                 e.events.forEach(ev => {
-                                    const { target, width, height, drag } = ev;
+                                    let { target, width, height, drag } = ev;
+
+                                    // 子要素の制限
+                                    if (!isResponsiveResize && target.children.length > 0) {
+                                        let minW = 0;
+                                        let minH = 0;
+                                        Array.from(target.children).forEach(child => {
+                                            const el = child as HTMLElement;
+                                            const r = (parseFloat(el.style.left) || el.offsetLeft) + (parseFloat(el.style.width) || el.offsetWidth);
+                                            const b = (parseFloat(el.style.top) || el.offsetTop) + (parseFloat(el.style.height) || el.offsetHeight);
+                                            minW = Math.max(minW, r);
+                                            minH = Math.max(minH, b);
+                                        });
+                                        width = Math.max(width, minW);
+                                        height = Math.max(height, minH);
+                                    }
+
                                     target.style.width = `${width}px`;
                                     target.style.height = `${height}px`;
                                     target.style.transform = drag.transform;
