@@ -28,9 +28,16 @@
 ## 1. 未解決要件（移動許可がNGの要件は絶対に移動・編集しないこと）（勝手に移動許可をOKに書き換えないこと）
 
 <requirement>
-<content>現在、新規作成時も、開く選択時も、上書き保存できない。（ボタンctrl+Sいずれも不可）</content>
-<current-situation>上書き保存しようとすると、編集前のデフォルト画面に戻ってしまい、編集後の状態で上書きされない。コンソールエラーは消えた。</current-situation>
-<remarks>newpostの要素がテキストをuiで編集後、テキスト編集が確定されないのが、デフォルト画面に戻ってしまう原因かも。</remarks>
+<content>テキストボックスをクリックしたら、拡大縮小ポイントが表示され、さらにテキストをダブルクリックすると、テキスト編集モードとなり、テキスト内の任意の位置にキャレットが挿入でき、編集でき、テキストボックス外を押すと、編集が確定し、テキストボックスの選択が解除されるようにしたい。</content>
+<current-situation>シングルクリックでは拡大縮小ポイント表示され、そとクリックで選択が解除される。しかし、ダブルクリックしてもキャレットが挿入されず、現状テキスト編集不可である。コンソールは先ほどと変化したが、依然uiではダブルクリックで何も起こらない。</current-situation>
+<remarks></remarks>
+<permission-to-move>NG</permission-to-move>
+</requirement>
+
+<requirement>
+<content>テキストボックスにはpaddingをつけることを禁じる。デフォルトのNerPostの場合は、黒枠の白四角図形を親要素とし、その中に子要素として、二つのテキストボックスを配置する。</content>
+<current-situation></current-situation>
+<remarks></remarks>
 <permission-to-move>NG</permission-to-move>
 </requirement>
 
@@ -69,6 +76,98 @@
    - フォントサイズ取得時に NaN が発生しないよう、デフォルト値（16）を設定
 2. `src/utils/htmlProcessing.ts`
    - `extractDesignContent`: DOMパーサーを使用して信頼性を向上（ネストされた div 構造でも正しく抽出）
+
+### 2026-01-02 08:52 - テキスト編集確定前の保存問題を修正
+
+**目的**: テキスト編集中に保存すると編集前に戻る問題を解決
+
+**原因**: テキスト編集中（contentEditable=true）のまま保存すると、blur イベントが発火せず `updateContentFromDOM` が呼ばれないため、古い content が保存される
+
+**変更内容**:
+1. `src/hooks/useHotkeys.ts`
+   - Ctrl+S 押下時、編集中の要素があれば blur を発生させてから保存
+   - `requestAnimationFrame` で blur 後のストア更新を待つ
+2. `src/components/common/Navbar.tsx`
+   - 保存ボタン用の `handleSave` 関数を追加（同様の blur 処理）
+   - NavButton の onClick を `handleSave` に変更
+
+### 2026-01-02 09:02 - テキストボックス外クリック時の編集確定問題を修正
+
+**目的**: テキストボックス外をクリックしても選択が解除されず、変更が確定しない問題を解決
+
+**原因**: 
+1. `handleCanvasClick` が編集中要素の外側クリックを正しく処理していなかった
+2. blur イベントに依存していたが、イベントの発火タイミングが不安定
+
+**変更内容**:
+1. `src/hooks/useMoveable.ts`
+   - `editingElementRef` を追加して編集中の要素を追跡
+   - `finishEditing` 関数を追加（編集終了と更新の一元管理）
+   - `handleCanvasClick`: 編集中要素の外側クリック時に `finishEditing` を呼び出し
+   - `handleDoubleClick`: `caretRangeFromPoint` でクリック位置にカーソルを配置
+   - Esc キーで編集終了も追加
+
+### 2026-01-02 09:17 - テキスト編集が確定されない問題（リグレッション修正）
+
+**目的**: 「なにをしても変更が確定しなくなった」リグレッションを解決
+
+**原因**: 
+- DesignSurface 全体に `contentEditable={!isLocked}` が設定されていた
+- 内部要素の `contentEditable` 設定と競合
+- `updateContentFromDOM` が `contentEditable` 属性を含んだまま保存
+
+**変更内容**:
+1. `src/components/features/Workspace.tsx`
+   - DesignSurface から `contentEditable` と `suppressContentEditableWarning` を削除
+   - 個別の子要素でのみテキスト編集を許可
+2. `src/hooks/useMoveable.ts`
+   - `isEditingRef` を追加して編集状態を明示的に追跡
+   - `updateContentFromDOM`: contentEditable 属性を削除してから HTML を取得
+   - `finishEditing`: blur() を呼び出してフォーカスを解除
+   - デバッグログを追加
+
+### 2026-01-02 09:23 - ダブルクリックでテキスト編集モードに入れない問題のデバッグ
+
+**目的**: ダブルクリックしてもキャレットが挿入されない問題を調査
+
+**変更内容**:
+1. `src/hooks/useMoveable.ts`
+   - `handleDoubleClick` に詳細なデバッグログを追加
+   - `target.focus()` を必ず呼び出すように変更（try-catch 前に移動）
+   - カーソル位置設定を try-catch でラップしてエラーをキャッチ
+
+### 2026-01-02 09:27 - ダブルクリックイベントが発火しない問題を修正
+
+**目的**: handleDoubleClick が呼ばれない問題を解決
+
+**原因**: 
+- 外側の canvas div に `onDoubleClick` が設定されていたが、DesignSurface div には設定されていなかった
+- `dangerouslySetInnerHTML` を使用しているため、内部要素のイベントが親要素の React イベントハンドラにバブルアップしない
+
+**変更内容**:
+1. `src/components/features/Workspace.tsx`
+   - DesignSurface div に `onDoubleClick={handleDoubleClick}` を追加
+   - DesignSurface div に `onMouseDown={handleCanvasClick}` を追加
+
+### 2026-01-02 09:55 - テキスト編集モード移行時の描画干渉を修正
+
+**目的**: ダブルクリックしてもテキスト編集モードに入れない（キャレットが出ない）問題を解決
+
+**原因**: 
+- `handleDoubleClick` 内で `setTargets([])` を呼び出すと、親の `Workspace` が再描画される。
+- `Workspace` が再描画される際、`dangerouslySetInnerHTML={{ __html: content }}` が再適用される。
+- これにより、`target.contentEditable = 'true'` と直接書き換えた DOM が、元の属性なし HTML で上書きされて消滅していた。
+
+**解決方法**:
+1. `src/components/features/Workspace.tsx`
+   - `DesignContent` コンポーネントを `React.memo` で作成。`content` が変わらない限り再描画しないように設定。
+   - `Workspace` 内の他の状態（`targets` 等）が変化しても、デザイン領域全体の DOM ツリーが保持されるようにした。
+2. `src/hooks/useMoveable.ts`
+   - `handleDoubleClick` において、`requestAnimationFrame` を使用して再描画サイクルと競合しないようにフォーカスとカーソル位置を設定。
+   - `e.stopPropagation()` を追加し、イベントの重複発火を抑制。
+
+**結果**: 
+- 編集中の状態が再描画によってリセットされなくなり、正常にキャレットが挿入され編集可能になった。
 
 
 ## 3. 分析中に気づいた重要ポイント（試してだめだったこと、仮設、制約条件等...）
@@ -111,6 +210,41 @@
    - ネストされた `</div>` タグで正規表現が誤マッチする可能性
    - → DOMパーサーを使用して信頼性を向上
 
+5. **テキスト編集確定前の保存問題**（2026-01-02 発見・解決）
+   - テキストをダブルクリックで編集モードに入る（contentEditable=true）
+   - 編集中のまま Ctrl+S で保存すると、blur イベントが発火しない
+   - `updateContentFromDOM` が呼ばれず、古い content が保存される
+   - → 保存前に強制的に blur を発生させて解決
+
+6. **テキストボックス外クリック時の編集確定問題**（2026-01-02 発見・解決）
+   - `handleCanvasClick` が `target.contentEditable === 'true'` のチェックのみで、他の要素の編集状態を確認していなかった
+   - blur イベントはマウスダウン後に発火するため、タイミングが不安定
+   - → `editingElementRef` で編集中要素を追跡し、外側クリック時に `finishEditing` を呼び出す
+
+7. **ダブルクリック位置にカーソルが配置されない問題**（2026-01-02 発見・解決）
+   - `target.focus()` はカーソルを先頭に配置する
+   - → `caretRangeFromPoint` でマウス位置からテキストノード内の位置を特定
+
+8. **DesignSurface の contentEditable 問題**（2026-01-02 発見・解決）
+   - Workspace.tsx の DesignSurface に `contentEditable={!isLocked}` が設定されていた
+   - これにより、DesignSurface 全体が編集可能になり、内部要素の contentEditable 設定と競合
+   - `updateContentFromDOM` が contentEditable 属性を含んだままの HTML を保存
+   - → DesignSurface から contentEditable を削除し、個別の子要素でのみテキスト編集を許可
+   - → `updateContentFromDOM` で contentEditable 属性を削除してから HTML を取得
+
+9. **ダブルクリックイベントが発火しない問題**（2026-01-02 発見・解決）
+   - 外側の canvas div に `onDoubleClick` が設定されていたが、DesignSurface div には設定されていなかった
+   - `dangerouslySetInnerHTML` を使用しているため、内部要素のイベントが React の合成イベントシステムでバブルアップしない
+   - → DesignSurface div に直接 `onDoubleClick` と `onMouseDown` を追加
+
+10. **Moveable によるダブルクリックの干渉**（2026-01-02 発見・解決）
+    - `handleCanvasClick` で要素が選択されると `Moveable` の UI が要素の上に重なる。
+    - そのため、2回目のクリックが `Moveable` のコントロールの一部（または非可視のオーバーレイ）に当たり、同一要素への `onDoubleClick` として成立しない場合がある。
+    - → `onMouseDown` (handleCanvasClick) 内で `e.detail === 2` を見ることで、ダブルクリックを確実に初動でキャッチして解決。
+
+11. **React.memo による DOM 保護の必要性**（2026-01-02 発見・解決）
+    - `dangerouslySetInnerHTML` を使っている環境で、直接 DOM 操作（`contentEditable`等）を行う場合、親コンポーネントの再描画が「DOM の再適用（初期化）」を引き起こすため、`React.memo` や `useMemo` で DOM ツリーの更新を明示的に抑制する必要がある。
+
 
 ## 4. 解決済み要件とその解決方法
 
@@ -120,6 +254,13 @@
 - `extractDesignContent` でDesignSurfaceラッパーを除去し、純粋なコンテンツのみを返すよう修正
 - `constructFullHTML` でブラウザ表示用の基本CSS（html, body の高さ、背景色#1a1a1a、flexbox配置）を追加
 - DesignSurfaceに min-width/min-height 設定で position: absolute の子要素のみでも表示可能に
+
+### 上書き保存時に編集前の状態に戻る問題
+
+**解決方法**:
+- テキスト編集中（contentEditable=true）のまま保存すると blur が発火せず古い content が保存される
+- 保存前に強制的に `activeElement.blur()` を呼び出してテキスト編集を確定
+- `requestAnimationFrame` で blur 後のストア更新を待ってから保存
 
 ## 5. 要件に関連する全ファイルのファイル構成（それぞれの役割を1行で併記）
 

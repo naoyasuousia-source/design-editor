@@ -28,9 +28,9 @@ export const GET_INITIAL_TEMPLATE = (size: PageSize): string => {
             `.trim();
         case 'SQUARE':
             return `
-                <div id="${id}" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; text-align: center; border: 2px solid #1a1a1a; padding: 40px;">
-                    <h1 id="${titleId}" style="font-family: 'Playfair Display', serif; font-size: 40px; color: #1a1a1a; margin-bottom: 10px;">New Post</h1>
-                    <p id="${descId}" style="font-family: 'Montserrat', sans-serif; font-size: 14px; color: #999; text-transform: uppercase; letter-spacing: 0.2em;">Social Media Template</p>
+                <div id="${id}" style="position: absolute; top: 100px; left: 100px; width: 600px; height: 600px; border: 4px solid black; background: white; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;">
+                    <div id="${titleId}" style="font-family: 'Playfair Display', serif; font-size: 64px; color: #1a1a1a; margin: 0; padding: 0; text-align: center; width: 80%;">TITLE HERE</div>
+                    <div id="${descId}" style="font-family: 'Montserrat', sans-serif; font-size: 24px; color: #666; text-transform: uppercase; letter-spacing: 0.1em; margin: 0; padding: 0; text-align: center; width: 80%;">Description here</div>
                 </div>
             `.trim();
         default:

@@ -66,6 +66,19 @@ const Navbar: React.FC = () => {
         setIsDropdownOpen(false);
     };
 
+    // 保存前にテキスト編集を確定
+    const handleSave = () => {
+        const activeElement = document.activeElement as HTMLElement;
+        if (activeElement && activeElement.contentEditable === 'true') {
+            activeElement.blur();
+            requestAnimationFrame(() => {
+                handleOverwrite();
+            });
+        } else {
+            handleOverwrite();
+        }
+    };
+
     // 外側クリックでドロップダウンを閉じる
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -130,7 +143,7 @@ const Navbar: React.FC = () => {
                     <NavButton
                         icon={<Save />}
                         label="保存"
-                        onClick={handleOverwrite}
+                        onClick={handleSave}
                         disabled={isImageSaveMode}
                     />
                 </div>

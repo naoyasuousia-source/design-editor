@@ -12,7 +12,18 @@ export const useHotkeys = () => {
             // Ctrl + S: 保存
             if ((e.ctrlKey || e.metaKey) && e.key === 's') {
                 e.preventDefault();
-                handleOverwrite();
+
+                // 編集中の要素がある場合、blur を発生させてテキスト編集を確定
+                const activeElement = document.activeElement as HTMLElement;
+                if (activeElement && activeElement.contentEditable === 'true') {
+                    activeElement.blur();
+                    // blur イベントハンドラが updateContentFromDOM を呼ぶのを待つ
+                    requestAnimationFrame(() => {
+                        handleOverwrite();
+                    });
+                } else {
+                    handleOverwrite();
+                }
             }
 
             // Ctrl + O: 開く

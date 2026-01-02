@@ -11,6 +11,37 @@ interface WorkspaceProps {
     isLocked: boolean;
 }
 
+/**
+ * デザインの実際の内容を描画するコンポーネント。
+ * React.memo を使用して、content が変更された時のみ再描画されるようにする。
+ * これにより、GUI編集（targetsの変更）による不要な HTML の再適用を防ぎ、
+ * テキスト編集モードでの contentEditable 属性の喪失を防止する。
+ */
+const DesignContent = React.memo(({
+    content,
+    onMouseDown,
+    onPaste,
+    onDragOver,
+    onDrop
+}: {
+    content: string;
+    onMouseDown: (e: React.MouseEvent) => void;
+    onPaste: (e: React.ClipboardEvent) => void;
+    onDragOver: (e: React.DragEvent) => void;
+    onDrop: (e: React.DragEvent) => void;
+}) => {
+    return (
+        <div
+            className="absolute inset-0 w-full h-full DesignSurface"
+            dangerouslySetInnerHTML={{ __html: content }}
+            onMouseDown={onMouseDown}
+            onPaste={onPaste}
+            onDragOver={onDragOver}
+            onDrop={onDrop}
+        />
+    );
+}, (prev, next) => prev.content === next.content);
+
 const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
     const canvasRef = useRef<HTMLDivElement>(null);
     const { pageSize, zoom, content, customWidth, customHeight, expandCanvas } = useEditorStore();
@@ -48,18 +79,23 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
                     isLocked && "brightness-75 grayscale-[0.2]"
                 )}
                 onMouseDown={handleCanvasClick}
-                onDoubleClick={handleDoubleClick}
             >
                 {/* メインコンテンツ（AI生成HTML） */}
-                <div
-                    className="absolute inset-0 w-full h-full DesignSurface"
-                    dangerouslySetInnerHTML={{ __html: content }}
-                    contentEditable={!isLocked}
-                    suppressContentEditableWarning={true}
+                <DesignContent
+                    content={content}
+                    onMouseDown={handleCanvasClick}
                     onPaste={(e) => {
-                        e.preventDefault();
-                        const text = e.clipboardData.getData('text/plain');
-                        document.execCommand('insertText', false, text);
+                        // contentEditable な子要素内でのペースト処理
+                        const target = e.target as HTMLElement;
+                        if (target.contentEditable === 'true') {
+                            e.preventDefault();
+                            const text = e.clipboardData.getData('text/plain');
+                            document.execCommand('insertText', false, text);
+                        }
+                    }}
+                    onInput={() => {
+                        // テキスト編集時にリアルタイムで更新はしない
+                        // finishEditing で一括更新
                     }}
                     onDragOver={(e) => {
                         e.preventDefault();
