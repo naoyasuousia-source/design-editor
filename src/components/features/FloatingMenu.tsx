@@ -118,17 +118,27 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
         }
     };
 
+    // 画面上部に見切れないための配置判定 (300px 程度の余白があるか)
+    const growsUpwards = rect.top > 300;
+
     return (
         <div
             ref={menuRef}
-            className="fixed z-[100] bg-sidebar border border-white/10 rounded-lg shadow-2xl p-1 flex flex-col gap-1 animate-in fade-in zoom-in-95 duration-200 min-w-[200px]"
-            style={{
+            className={cn(
+                "fixed z-[100] bg-sidebar border border-white/10 rounded-lg shadow-2xl p-1 flex gap-1 animate-in fade-in zoom-in-95 duration-200 min-w-[200px]",
+                growsUpwards ? "flex-col" : "flex-col-reverse"
+            )}
+            style={growsUpwards ? {
                 bottom: `${window.innerHeight - rect.top + 8}px`,
+                left: `${rect.left + rect.width / 2}px`,
+                transform: 'translateX(-50%)',
+            } : {
+                top: `${rect.bottom + 8}px`,
                 left: `${rect.left + rect.width / 2}px`,
                 transform: 'translateX(-50%)',
             }}
         >
-            {/* 1. ID Bar (Top) */}
+            {/* 1. ID Bar (上展開時は一番上、下展開時は一番下に配置される) */}
             <div className="flex items-center justify-between px-2 py-1 border-b border-white/5 bg-white/5 rounded-t-md">
                 <div className="flex items-center gap-1.5 overflow-hidden">
                     <Hash size={10} className="text-gray-500" />
