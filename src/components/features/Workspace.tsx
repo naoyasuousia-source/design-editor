@@ -63,7 +63,9 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
         getBounds,
         handleCanvasClick,
         handleDoubleClick,
-        updateContentFromDOM
+        updateContentFromDOM,
+        isTextBox,
+        getRenderDirections
     } = useMoveable(canvasRef);
 
     useAutoSync();
@@ -160,6 +162,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
                             container={canvasRef.current || undefined}
                             draggable={true}
                             resizable={true}
+                            renderDirections={getRenderDirections()}
                             snappable={true}
                             bounds={getBounds() || {
                                 left: -2000,
@@ -194,37 +197,66 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
                                 if (maxR > 0 || maxB > 0) expandCanvas(maxR, maxB);
                             }}
                             onResize={e => {
-                                const { width, height, drag, target } = e;
+                                const { width, height, drag, target, direction } = e;
+                                const isText = isTextBox(target);
+
+                                // 全ての要素でパディングを0に強制（特にテキストボックス）
+                                if (isText) target.style.padding = '0';
+
                                 target.style.width = `${width}px`;
-                                target.style.height = `${height}px`;
                                 target.style.transform = drag.transform;
 
-                                const lastWidth = parseFloat(target.getAttribute('data-last-width') || target.style.width);
-                                const lastHeight = parseFloat(target.getAttribute('data-last-height') || target.style.height);
-                                if (lastWidth > 0) {
-                                    const ratioW = width / lastWidth;
-                                    const ratioH = lastHeight > 0 ? height / lastHeight : ratioW;
+                                // テキストボックスかつ左右ハンドル（辺）の場合
+                                const [dh, dv] = direction;
+                                const isSide = (dh !== 0 && dv === 0);
 
-                                    if (isResponsiveResize && target.children.length > 0) {
-                                        Array.from(target.children).forEach(child => {
-                                            const el = child as HTMLElement;
-                                            const cW = parseFloat(el.style.width) || el.offsetWidth;
-                                            const cH = parseFloat(el.style.height) || el.offsetHeight;
-                                            const cL = parseFloat(el.style.left) || el.offsetLeft;
-                                            const cT = parseFloat(el.style.top) || el.offsetTop;
-                                            const cFs = parseFloat(window.getComputedStyle(el).fontSize);
-                                            el.style.width = `${cW * ratioW}px`;
-                                            el.style.height = `${cH * ratioH}px`;
-                                            el.style.left = `${cL * ratioW}px`;
-                                            el.style.top = `${cT * ratioH}px`;
-                                            el.style.fontSize = `${cFs * (ratioW + ratioH) / 2}px`;
-                                        });
+                                if (isText && isSide) {
+                                    // 左右ハンドルの場合はフォントサイズを変えず、高さは中身に合わせる
+                                    target.style.height = 'auto';
+                                    // 強制的に再計算させるために一旦 auto にしてから scrollHeight を取得
+                                    const newHeight = target.scrollHeight;
+                                    target.style.height = `${newHeight}px`;
+                                } else {
+                                    // 角ハンドル、またはテキスト以外
+                                    target.style.height = `${height}px`;
+
+                                    const lastWidth = parseFloat(target.getAttribute('data-last-width') || target.style.width);
+                                    if (lastWidth > 0) {
+                                        const ratioW = width / lastWidth;
+
+                                        // レスポンシブ連動（子要素がある場合）
+                                        if (isResponsiveResize && target.children.length > 0) {
+                                            const lastHeight = parseFloat(target.getAttribute('data-last-height') || target.style.height);
+                                            const ratioH = lastHeight > 0 ? height / lastHeight : ratioW;
+
+                                            Array.from(target.children).forEach(child => {
+                                                const el = child as HTMLElement;
+                                                const cW = parseFloat(el.style.width) || el.offsetWidth;
+                                                const cH = parseFloat(el.style.height) || el.offsetHeight;
+                                                const cL = parseFloat(el.style.left) || el.offsetLeft;
+                                                const cT = parseFloat(el.style.top) || el.offsetTop;
+                                                const cFs = parseFloat(window.getComputedStyle(el).fontSize);
+                                                el.style.width = `${cW * ratioW}px`;
+                                                el.style.height = `${cH * ratioH}px`;
+                                                el.style.left = `${cL * ratioW}px`;
+                                                el.style.top = `${cT * ratioH}px`;
+                                                el.style.fontSize = `${cFs * (ratioW + ratioH) / 2}px`;
+                                            });
+                                        }
+
+                                        // 本体がテキスト要素ならフォントサイズをスケール
+                                        if (isText) {
+                                            const currentFontSize = parseFloat(window.getComputedStyle(target).fontSize);
+                                            target.style.fontSize = `${currentFontSize * ratioW}px`;
+                                            // フォントサイズ変更後に高さを再調整
+                                            target.style.height = 'auto';
+                                            target.style.height = `${target.scrollHeight}px`;
+                                        }
                                     }
-                                    const currentFontSize = parseFloat(window.getComputedStyle(target).fontSize);
-                                    target.style.fontSize = `${currentFontSize * ratioW}px`;
                                 }
+
                                 target.setAttribute('data-last-width', width.toString());
-                                target.setAttribute('data-last-height', height.toString());
+                                target.setAttribute('data-last-height', target.offsetHeight.toString());
 
                                 const rect = target.getBoundingClientRect();
                                 const canvasRect = canvasRef.current?.getBoundingClientRect();

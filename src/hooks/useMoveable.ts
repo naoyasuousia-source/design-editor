@@ -17,6 +17,29 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
     const editingElementRef = useRef<HTMLElement | null>(null);
     const isEditingRef = useRef<boolean>(false);
 
+    /**
+     * 要素がテキストボックスかどうかを判定する
+     * (子要素を持たない、または画像でない要素)
+     */
+    const isTextBox = useCallback((el: HTMLElement) => {
+        if (el.tagName.toLowerCase() === 'img') return false;
+        // デザイン上のテキスト要素は概ね子要素を持たない div
+        return el.children.length === 0;
+    }, []);
+
+    /**
+     * 現在のターゲットに基づいたリサイズハンドルの方向を返す
+     */
+    const getRenderDirections = useCallback(() => {
+        if (targets.length === 0) return ["nw", "ne", "sw", "se", "w", "e", "n", "s"];
+        const first = targets[0];
+        if (isTextBox(first)) {
+            // テキストボックスは四隅と左右のみ
+            return ["nw", "ne", "sw", "se", "w", "e"];
+        }
+        return ["nw", "ne", "sw", "se", "w", "e", "n", "s"];
+    }, [targets, isTextBox]);
+
     // 編集内容をストアに保存
     const updateContentFromDOM = useCallback(() => {
         const surface = canvasRef.current?.querySelector('.DesignSurface');
@@ -225,5 +248,7 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
         handleDoubleClick,
         updateContentFromDOM,
         finishEditing,
+        isTextBox,
+        getRenderDirections,
     };
 };
