@@ -108,42 +108,61 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
     // リサイズ開始時の挙動制御
     const handleResizeStart = useCallback((e: any) => {
         const target = e.target as HTMLElement;
-        // e.direction [h, v] : 0 以外が2つあれば角
         const [h, v] = e.direction;
         const isCorner = h !== 0 && v !== 0;
         setKeepRatio(isCorner);
 
-        // 元のサイズを記録
-        target.setAttribute('data-last-width', target.offsetWidth.toString());
-        target.setAttribute('data-last-height', target.offsetHeight.toString());
+        // 親（ターゲット）の開始サイズを記録
+        const startW = target.offsetWidth;
+        const startH = target.offsetHeight;
+        target.setAttribute('data-start-w', startW.toString());
+        target.setAttribute('data-start-h', startH.toString());
+        target.setAttribute('data-last-width', startW.toString());
+        target.setAttribute('data-last-height', startH.toString());
 
-        // 子要素の固定化と最小サイズ計算（レスポンシブモードでない場合）
-        if (!isResponsiveResize && target.children.length > 0) {
+        // ターゲット自体がテキストならフォントサイズを記録
+        if (isTextBox(target)) {
+            const fs = parseFloat(window.getComputedStyle(target).fontSize);
+            target.setAttribute('data-start-fs', fs.toString());
+        }
+
+        // 子要素の状態を記録
+        if (target.children.length > 0) {
             let maxR = 0;
             let maxB = 0;
             Array.from(target.children).forEach(child => {
                 const el = child as HTMLElement;
-                // 現在の絶対値を px として再設定（% 等を固定化）
                 const w = el.offsetWidth;
                 const h = el.offsetHeight;
                 const l = el.offsetLeft;
                 const t = el.offsetTop;
                 const fs = parseFloat(window.getComputedStyle(el).fontSize);
 
-                el.style.width = `${w}px`;
-                el.style.height = `${h}px`;
-                el.style.left = `${l}px`;
-                el.style.top = `${t}px`;
-                el.style.fontSize = `${fs}px`;
+                el.setAttribute('data-start-w', w.toString());
+                el.setAttribute('data-start-h', h.toString());
+                el.setAttribute('data-start-l', l.toString());
+                el.setAttribute('data-start-t', t.toString());
+                el.setAttribute('data-start-fs', fs.toString());
+
+                if (!isResponsiveResize) {
+                    el.style.width = `${w}px`;
+                    el.style.height = `${h}px`;
+                    el.style.left = `${l}px`;
+                    el.style.top = `${t}px`;
+                    el.style.fontSize = `${fs}px`;
+                }
 
                 maxR = Math.max(maxR, l + w);
                 maxB = Math.max(maxB, t + h);
             });
-            target.setAttribute('data-min-w', maxR.toString());
-            target.setAttribute('data-min-h', maxB.toString());
-        } else {
-            target.removeAttribute('data-min-w');
-            target.removeAttribute('data-min-h');
+
+            if (!isResponsiveResize) {
+                target.setAttribute('data-min-w', maxR.toString());
+                target.setAttribute('data-min-h', maxB.toString());
+            } else {
+                target.removeAttribute('data-min-w');
+                target.removeAttribute('data-min-h');
+            }
         }
     }, [isResponsiveResize]);
 

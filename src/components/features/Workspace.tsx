@@ -231,34 +231,37 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
                                     // 角ハンドル、またはテキスト以外
                                     target.style.height = `${height}px`;
 
-                                    const lastWidth = parseFloat(target.getAttribute('data-last-width') || target.style.width);
-                                    if (lastWidth > 0) {
-                                        const ratioW = width / lastWidth;
+                                    const startW = parseFloat(target.getAttribute('data-start-w') || '0');
+                                    const startH = parseFloat(target.getAttribute('data-start-h') || '0');
+
+                                    if (startW > 0 && startH > 0) {
+                                        const totalRatioW = width / startW;
+                                        const totalRatioH = height / startH;
 
                                         // レスポンシブ連動（子要素がある場合）
                                         if (isResponsiveResize && target.children.length > 0) {
-                                            const lastHeight = parseFloat(target.getAttribute('data-last-height') || target.style.height);
-                                            const ratioH = lastHeight > 0 ? height / lastHeight : ratioW;
-
                                             Array.from(target.children).forEach(child => {
                                                 const el = child as HTMLElement;
-                                                const cW = parseFloat(el.style.width) || el.offsetWidth;
-                                                const cH = parseFloat(el.style.height) || el.offsetHeight;
-                                                const cL = parseFloat(el.style.left) || el.offsetLeft;
-                                                const cT = parseFloat(el.style.top) || el.offsetTop;
-                                                const cFs = parseFloat(window.getComputedStyle(el).fontSize);
-                                                el.style.width = `${cW * ratioW}px`;
-                                                el.style.height = `${cH * ratioH}px`;
-                                                el.style.left = `${cL * ratioW}px`;
-                                                el.style.top = `${cT * ratioH}px`;
-                                                el.style.fontSize = `${cFs * (ratioW + ratioH) / 2}px`;
+                                                const cw = parseFloat(el.getAttribute('data-start-w') || '0');
+                                                const ch = parseFloat(el.getAttribute('data-start-h') || '0');
+                                                const cl = parseFloat(el.getAttribute('data-start-l') || '0');
+                                                const ct = parseFloat(el.getAttribute('data-start-t') || '0');
+                                                const cfs = parseFloat(el.getAttribute('data-start-fs') || '0');
+
+                                                if (cw > 0) {
+                                                    el.style.width = `${cw * totalRatioW}px`;
+                                                    el.style.height = `${ch * totalRatioH}px`;
+                                                    el.style.left = `${cl * totalRatioW}px`;
+                                                    el.style.top = `${ct * totalRatioH}px`;
+                                                    if (cfs > 0) el.style.fontSize = `${cfs * (totalRatioW + totalRatioH) / 2}px`;
+                                                }
                                             });
                                         }
 
                                         // 本体がテキスト要素ならフォントサイズをスケール
                                         if (isText) {
-                                            const currentFontSize = parseFloat(window.getComputedStyle(target).fontSize);
-                                            target.style.fontSize = `${currentFontSize * ratioW}px`;
+                                            const startFs = parseFloat(target.getAttribute('data-start-fs') || window.getComputedStyle(target).fontSize);
+                                            target.style.fontSize = `${startFs * totalRatioW}px`;
                                             // フォントサイズ変更後に高さを再調整
                                             target.style.height = 'auto';
                                             target.style.height = `${target.scrollHeight}px`;

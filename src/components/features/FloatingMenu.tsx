@@ -40,6 +40,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
     const [showColorPalette, setShowColorPalette] = useState(false);
     const [showBorderPalette, setShowBorderPalette] = useState(false);
     const [showBgPalette, setShowBgPalette] = useState(false);
+    const [showRadiusPicker, setShowRadiusPicker] = useState(false);
     const [showSizeDropdown, setShowSizeDropdown] = useState(false);
     const { imageFiles, imageUrls } = useAssets();
     const { isResponsiveResize, setResponsiveResize } = useEditorStore();
@@ -212,7 +213,38 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
                 </div>
             )}
 
-            {/* 4. Image Replace Sub-panel */}
+            {/* 4. Radius Picker Sub-panel */}
+            {showRadiusPicker && (
+                <div className="p-3 border-b border-white/10 flex flex-col gap-2 bg-white/5 animate-in slide-in-from-bottom-1 duration-200">
+                    <div className="flex items-center justify-between">
+                        <span className="text-[10px] text-gray-400 uppercase font-bold tracking-widest">Corner Radius</span>
+                        <div className="flex gap-1">
+                            <button
+                                className="px-1.5 py-0.5 bg-white/10 hover:bg-white/20 rounded text-[9px] text-gray-300"
+                                onClick={() => applyStyle('borderRadius', '0px')}
+                            >Flat</button>
+                            <button
+                                className="px-1.5 py-0.5 bg-white/10 hover:bg-white/20 rounded text-[9px] text-gray-300"
+                                onClick={() => applyStyle('borderRadius', '9999px')}
+                            >Circle</button>
+                        </div>
+                    </div>
+                    <div className="flex flex-col gap-1 px-1">
+                        <div className="flex justify-between text-[9px] text-gray-500">
+                            <span>Radius</span>
+                            <span>{parseInt(target.style.borderRadius) || 0}px</span>
+                        </div>
+                        <input
+                            type="range" min="0" max="100"
+                            className="w-full accent-blue-500 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer"
+                            value={parseInt(target.style.borderRadius) || 0}
+                            onChange={(e) => applyStyle('borderRadius', `${e.target.value}px`)}
+                        />
+                    </div>
+                </div>
+            )}
+
+            {/* 5. Image Replace Sub-panel */}
             {showImagePicker && isImage && (
                 <div className="p-2 border-b border-white/5 grid grid-cols-4 gap-1 max-h-32 overflow-y-auto CustomScrollbar bg-white/5 animate-in slide-in-from-bottom-1 duration-200">
                     {imageFiles.map(file => (
@@ -303,6 +335,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
                                     setShowColorPalette(!showColorPalette);
                                     setShowBorderPalette(false);
                                     setShowBgPalette(false);
+                                    setShowRadiusPicker(false);
                                     setShowCropPicker(false);
                                     setShowImagePicker(false);
                                     setShowSizeDropdown(false);
@@ -367,15 +400,20 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
 
                         {/* 4. かどの丸み */}
                         <button
-                            className="p-1.5 hover:bg-white/5 rounded text-gray-400 hover:text-white transition-all"
+                            className={cn("p-1.5 rounded transition-all relative", showRadiusPicker ? "bg-blue-500 text-white" : "text-gray-400 hover:bg-white/5 hover:text-white")}
                             onClick={() => {
-                                const current = target.style.borderRadius || '0px';
-                                const next = current === '0px' ? '8px' : current === '8px' ? '9999px' : '0px';
-                                applyStyle('borderRadius', next);
+                                setShowRadiusPicker(!showRadiusPicker);
+                                setShowBgPalette(false);
+                                setShowBorderPalette(false);
+                                setShowColorPalette(false);
+                                setShowCropPicker(false);
+                                setShowImagePicker(false);
+                                setShowSizeDropdown(false);
                             }}
                             title="Corner Radius"
                         >
                             <Circle size={14} />
+                            {showRadiusPicker && <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-white rounded-full" />}
                         </button>
 
                         {/* 5. 子要素レスポンシブonoff */}
@@ -414,6 +452,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
                                 setShowBorderPalette(!showBorderPalette);
                                 setShowColorPalette(false);
                                 setShowBgPalette(false);
+                                setShowRadiusPicker(false);
                                 setShowCropPicker(false);
                                 setShowImagePicker(false);
                                 setShowSizeDropdown(false);
@@ -441,6 +480,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
                                 setShowColorPalette(false);
                                 setShowBorderPalette(false);
                                 setShowBgPalette(false);
+                                setShowRadiusPicker(false);
                                 setShowSizeDropdown(false);
                             }}
                             title="Crop"
@@ -455,6 +495,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
                                 setShowColorPalette(false);
                                 setShowBorderPalette(false);
                                 setShowBgPalette(false);
+                                setShowRadiusPicker(false);
                                 setShowSizeDropdown(false);
                             }}
                             title="Replace Image"
