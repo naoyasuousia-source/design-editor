@@ -24,21 +24,56 @@
 
     /* Moveable (Selection Tool) Styles */
     .SelectionTool.moveable-control-box {
-        --moveable-color: #3b82f6 !important;
-        /* primary color */
+        --moveable-color: #5dade2 !important;
+        /* Light Blue */
     }
 
     .SelectionTool .moveable-line {
-        @apply opacity-60;
+        @apply opacity-100;
         width: 1px !important;
+        background: #5dade2 !important;
     }
 
     .SelectionTool .moveable-control {
-        @apply bg-white border-2 border-primary rounded-full shadow-md;
-        width: 10px !important;
-        height: 10px !important;
-        margin-top: -5px !important;
-        margin-left: -5px !important;
+        @apply bg-white border-2 border-[#5dade2] rounded-none shadow-sm;
+        width: 8px !important;
+        height: 8px !important;
+        margin-top: -4px !important;
+        margin-left: -4px !important;
+    }
+
+    /* Hide the red origin point */
+    .SelectionTool .moveable-origin {
+        display: none !important;
+    }
+
+    /* Hover and Selection effect for design elements */
+    .DesignSurface * {
+        transition: outline 0.1s ease-in-out;
+    }
+
+    /* 
+       1. 選択中の要素は常に枠を表示
+       2. ホバー時は「最も深い（子要素がホバーされていない）」要素のみ枠を表示することで、親子同時の枠表示を防止
+    */
+    .DesignSurface *.moveable-target-active,
+    .DesignSurface *:hover:not(.DesignSurface):not(:has(*:hover)) {
+        outline: 1.5px solid #5dade2 !important;
+        outline-offset: 1px;
+    }
+
+    /* Remove default focus border during text editing, but keep our custom outline if needed */
+    /* However, for text editing, a clean look is usually better, but let's see if the user wants the blue frame even during edit. */
+    /* The requirement said "stay editor mode" with blue frame + points. */
+    [contenteditable="true"] {
+        outline: none !important;
+    }
+
+    /* If it's active and editable, we still want the outline from the rule above to apply. */
+
+    /* Allow clicking through the selection box to edit text */
+    .SelectionTool .moveable-area {
+        pointer-events: none !important;
     }
 
     /* カスタムスクロールバー */

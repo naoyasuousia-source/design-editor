@@ -11,10 +11,21 @@ import { useEditorStore } from '@/store/useEditorStore';
  * - 外側クリック → 編集確定、選択解除
  */
 export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
-    const [targets, setTargets] = useState<HTMLElement[]>([]);
+    const [targets, setTargetsState] = useState<HTMLElement[]>([]);
+
+    const setTargets = useCallback((newTargets: HTMLElement[] | ((prev: HTMLElement[]) => HTMLElement[])) => {
+        setTargetsState(prev => {
+            const next = typeof newTargets === 'function' ? newTargets(prev) : newTargets;
+            // クラスの付け替え
+            prev.forEach(el => el.classList.remove('moveable-target-active'));
+            next.forEach(el => el.classList.add('moveable-target-active'));
+            return next;
+        });
+    }, []);
     const [keepRatio, setKeepRatio] = useState(false);
     const { setContent, isLocked, zoom } = useEditorStore();
     const editingElementRef = useRef<HTMLElement | null>(null);
+    const [isEditing, setIsEditing] = useState<boolean>(false);
     const isEditingRef = useRef<boolean>(false);
 
     /**
@@ -60,6 +71,7 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
             editingElementRef.current.blur();
             updateContentFromDOM();
             editingElementRef.current = null;
+            setIsEditing(false);
             isEditingRef.current = false;
             console.log('finishEditing: 編集を確定しました');
         }
@@ -138,9 +150,10 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
         // テキスト編集モードに入る
         // 注意: Workspace.tsx で DesignContent を memo 化しているため、
         // targets の更新による再描画で contentEditable がリセットされるのを防げる
-        setTargets([]); // Moveable を隠す
+        // setTargets([]) // 枠とポイントを表示したままにするためコメントアウト
         target.contentEditable = 'true';
         editingElementRef.current = target;
+        setIsEditing(true);
         isEditingRef.current = true;
 
         // 次のフレームでフォーカスとカーソル位置を設定（再描画との競合回避）
@@ -250,5 +263,6 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
         finishEditing,
         isTextBox,
         getRenderDirections,
+        isEditing,
     };
 };

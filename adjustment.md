@@ -27,34 +27,22 @@
 
 ## 1. 未解決要件（移動許可がNGの要件は絶対に移動・編集しないこと）（勝手に移動許可をOKに書き換えないこと）
 
-<requirement>
-<content>テキストボックスのパディングがUI上で0になっていないので原因を突き止めて修正する。</content>
-<current-situation>親要素の四角枠は操作枠と実際の外枠が一致している。</current-situation>
-<remarks>アップ画像みて</remarks>
-<permission-to-move>NG</permission-to-move>
-</requirement>
-
 ## 2. 未解決要件に関するコード変更履歴（目的、変更内容、変更日時）
 
-### 2026-01-03 00:25 - テキストボックスのリサイズ挙動の刷新
+### 2026-01-03 00:55 - ホバー枠の排他表示（親子同時表示の防止）
 
-**目的**: テキストボックスの編集性を高めるため、パディングの排除、ハンドルの制限、および「角：拡大縮小」「左右：横幅変更・折り返し」の撃ち分けを実装する。
+**目的**: 非選択時に親子要素が同時にホバー枠を表示してしまう問題を解消し、選択時のみ「既存の選択枠」と「新規のホバー枠」が共存する挙動を実現する。
 
 **変更内容**:
-1. `src/hooks/useMoveable.ts`
-   - `isTextBox`: 要素が単一のテキスト要素（子要素を持たないdiv等）かどうかを判定するロジックを追加。
-   - `getRenderDirections`: ターゲットがテキストボックスの場合、上下のハンドルを非表示にし、四隅と左右のみを表示するよう制御。
-2. `src/components/features/Workspace.tsx`
-   - `onResize`:
-     - テキストボックスの場合、常に `padding: 0` を強制適用。
-     - **左右ハンドル（辺）の操作**: フォントサイズを維持。横幅（`width`）のみ変更し、高さ（`height`）は `scrollHeight` を用いてテキストの折り返しに合わせて自動調整。
-     - **角ハンドルの操作**: フォントサイズをリサイズ率に合わせてスケーリング。その後、高さを中身に合わせて再調整。
+1. `src/styles/index.css`
+   - ホバーのCSSセレクターに `:not(:has(*:hover))` を追加。
+   - これにより、マウスが乗っている要素のうち「さらに内側にマウスが乗っている要素（子要素）を持たない」要素、つまり最前面の要素のみに枠が表示されるようになる。
+   - 一方で `.moveable-target-active`（選択中要素）に対しては無条件で枠を表示し続けるため、選択枠と別の要素のホバー枠の共存は維持される。
 
 ## 3. 分析中に気づいた重要ポイント（試してだめだったこと、仮設、制約条件等...）
 
-### テキストの折り返しと高さの同期
-- Moveableで `width` を変えた直後、スタイルを `height: auto` に設定して `scrollHeight` を取得することで、ブラウザの自然な折り返し挙動に合わせた正確なボックス高さを即座に反映できる。
-- `isTextBox` の判定を厳密にすることで、画像やコンテナ要素（子要素あり）に対しては従来の「自由リサイズ」や「レスポンス連動」を維持し、ユーザーの混乱を防いでいる。
+### CSS :has() による深度判定
+- 以前の単純な `*:hover` はバブリングによって全親要素に適用されていたが、`:has(*:hover)` で反転判定を行うことで、純粋に「ターゲットされている1要素」のみをCSSで特定できるようになった。
 
 ## 4. 解決済み要件とその解決方法
 
@@ -98,20 +86,48 @@
 **テキストボックス以外の仕様は一切変更しないこと**
 **子要素は親要素を絶対にはみ出さないという制約を優先する。**</content>
 <current-situation>解決済み</current-situation>
-<remarks>方向に応じた撃ち分け（フォントスケール vs 横幅ラップ）を実装。上下ハンドルを排除。</remarks>
+<remarks>方向に応じた撃ち分けを実装。</remarks>
+<permission-to-move>OK</permission-to-move>
+</requirement>
+
+<requirement>
+<content>
+- 操作枠が現在はポイントだけだが、ポイントを常に、薄い水色の線で結ぶ。
+- 要素にホバーすると、ホバーした要素の水色枠が表示される。
+- 要素をクリックすると、水色枠に加え、ポイントが表示される。
+- また、要素中央の赤いポイントは廃止する
+**ここまではテキストボックスも図形も共通**
+- テキストボックスをダブルクリックすると、水色枠とポイントは表示したまま、編集モードに入る。
+（現在の編集モード時の黒枠は廃止する）</content>
+<current-situation>解決済み</current-situation>
+<remarks>CSSとHookのライフサイクル調整により、編集とUI表示の共存を実現。</remarks>
+<permission-to-move>OK</permission-to-move>
+</requirement>
+
+<requirement>
+<content>水色枠は、要素をクリックした後も消えないようにする。（別要素が選択されたら、解除）</content>
+<current-situation>解決済み</current-situation>
+<remarks>activeに対してもoutlineを適用。</remarks>
+<permission-to-move>OK</permission-to-move>
+</requirement>
+
+<requirement>
+<content>- 何も要素が選択されていない場合、同時に複数要素の水色枠を絶対に表示しないようにする。（親子の場合でも）
+- ある要素が選択され、水色枠&ポイントが表示されている場合、ほかの要素をホバーしたら、選択要素の水色枠&ポイントは維持したまま、ホバー要素の水色枠を表示する。
+- その後、ほかの要素を選択しなおした場合は、元の選択要素の水色枠&ポイントを非表示にする。</content>
+<current-situation>解決済み</current-situation>
+<remarks>CSSの :has(*:hover) を用いて、ホバー対象を最前面の1要素に限定。選択枠（active）とは独立して機能するように。 </remarks>
 <permission-to-move>OK</permission-to-move>
 </requirement>
 
 ## 5. 要件に関連する全ファイルのファイル構成（それぞれの役割を1行で併記）
 
 ```
-src/hooks/useMoveable.ts       - テキストボックス判定とハンドル方向制御
-src/components/features/Workspace.tsx - 状況（テキスト/非テキスト、角/辺）に応じた個別リサイズロジック実行
+src/styles/index.css - ホバーの排他制御ロジック（:has()）の追加
 ```
 
 ## 6. 要件に関する機能の技術スタックと動作原理（依存関係含む）
 
-### テキストリサイズ・ダイナミクス
-1. **Handle Filtering**: `renderDirections` により上下ハンドル (`n`, `s`) を排除し、ユーザーに「横幅変更」であることを視覚的に提示。
-2. **Auto-height wrap**: `width` 変更直後に HTML 要素の `height` を `auto` にリセットし、`scrollHeight` を読み取って即時反映することで、テキストが常に全表示されるよう制御。
-3. **Pure Textbox Enforcing**: リサイズイベントの度、または編集確定時に `padding: 0` を再適用することで、デザインの不整合（枠と文字の乖離）を防止。
+### 深度を考慮したホバー検知
+1. **Exclusive Hover**: `:not(:has(*:hover))` という疑わしい子要素を排除するセレクタにより、ツリー構造の最も末端にあるホバー要素のみを選択。
+2. **Selection Dominance**: `.moveable-target-active` による枠表示はホバー判定とは独立しているため、「選択中の枠」と「現在ホバーしている別の要素の枠」が重ならずに共存可能。

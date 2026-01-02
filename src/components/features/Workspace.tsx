@@ -65,7 +65,8 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
         handleDoubleClick,
         updateContentFromDOM,
         isTextBox,
-        getRenderDirections
+        getRenderDirections,
+        isEditing
     } = useMoveable(canvasRef);
 
     useAutoSync();
@@ -160,9 +161,10 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
                         <Moveable
                             target={targets}
                             container={canvasRef.current || undefined}
-                            draggable={true}
+                            draggable={!isEditing}
                             resizable={true}
                             renderDirections={getRenderDirections()}
+                            origin={false}
                             snappable={true}
                             bounds={getBounds() || {
                                 left: -2000,
