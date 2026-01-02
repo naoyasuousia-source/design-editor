@@ -34,53 +34,47 @@
 （トリミング、画像差し替えは、画像のメニューのみに表示）</content>
 <current-situation></current-situation>
 <remarks></remarks>
-<permission-to-move>NG</permission-to-move>
-</requirement>
-
-<requirement>
-<content></content>
-<current-situation></current-situation>
-<remarks></remarks>
-<permission-to-move>NG</permission-to-move>
-</requirement>
-
-<requirement>
-<content>- 現在カラーメニューがフォントメニューの下に展開され、テキストを覆い隠してしまうので、フォントメニューの上に展開するようにする。
-- また、カラーメニューは、現在カラーをクリックするまで開かないようにする。</content>
-<current-situation></current-situation>
-<remarks></remarks>
 <permission-to-move>OK</permission-to-move>
 </requirement>
 
 <requirement>
-<content>フォントサイズ変更ドロップダウンが、現在白背景に白文字で、数字が見えないので修正する。</content>
+<content>角の丸みはスライダーで連続的に変えれるようにする。</content>
 <current-situation></current-situation>
 <remarks></remarks>
-<permission-to-move>OK</permission-to-move>
+<permission-to-move>NG</permission-to-move>
 </requirement>
 
+<requirement>
+<content>子要素レスポンシブ状態での拡大縮小は、完全にレイアウトを保ったまま行うようにする。</content>
+<current-situation>現在は、テキストボックスとの位置関係等が乱れてしまう。できれば親子の位置関係と比率を完全に維持したい。</current-situation>
+<remarks></remarks>
+<permission-to-move>NG</permission-to-move>
+</requirement>
 
 ## 2. 未解決要件に関するコード変更履歴（目的、変更内容、変更日時）
-- 2026-01-03: `FloatingMenu.tsx` の UI 配置改善とドロップダウンの完全カスタム化
+- 2026-01-03: `FloatingMenu.tsx` の図形要素（Shape）対応
+    - テキスト、画像、図形を厳密に判定するロジックを導入。
+    - 図形要素専用メニュー（内部カラー、枠線トグル、枠線カラー、角丸、子要素レスポンシブ）を実装。
+    - 不要なメニュー（フォント設定、トリミング、画像差し替え）を各要素タイプに応じて非表示化。
     - メニューを要素の上方向に展開するように変更（`bottom` アンカーを使用）。
-    - カラーパレット等のサブパネルをメインメニューより上に配置し、操作対象を覆い隠さないように改善。
-    - ネイティブの `select` を廃止し、クリック後も閉じないカスタムドロップダウン（UL/LI）を実装。
-    - フォントサイズ/フォントファミリーのドロップダウンの文字サイズを 10px に統一。
-    - 連続変更時もメニューおよびドロップダウンが閉じないようにイベント管理を強化。
+    - 視認性向上のためカスタムドロップダウン（10px）と背景色固定を実装。
 
 
 ## 3. 分析中に気づいた重要ポイント（試してだめだったこと、仮設、制約条件等...）
-- メニューの `top` を固定すると高さが増した時に下方向に伸びて要素を隠してしまうため、`bottom` を固定することで上方向に伸びるように変更した。
-- ネイティブの `select` 要素は選択後に必ず閉じてしまう仕様であるため、`div` 等を組み合わせたカスタムドロップダウンを構築し、ステート制御で「勝手に閉じない」挙動を実現。
-- フォントサイズの変更イベントにおいて、バブリングを停止 (`e.stopPropagation()`) させることで、親要素へのイベント伝播による意図しないクローズを防いだ。
+- 要素の判定基準を整理（`img` タグ or 背景画像なら画像、テキストコンテンツがあればテキスト、それ以外を図形）。
+- ネイティブの `select` 要素は選択後に必ず閉じてしまうため、`div` 等を組み合わせたカスタムドロップダウンを構築。
+- `showBgPalette` などのステートを追加し、図形要素の「内部カラー」を個別に管理。
 - メニューの ID 再同期（`useMoveable.ts`）により、要素の置換後も座標計算が継続されるようになった。
 
 
 
 ## 4. 解決済み要件とその解決方法
+- **メニューの上展開とカラーパレット制御**: `bottom` 基準の座標計算に変更し、サブメニューをメインメニューの上に表示。カラーパレットはクリック時のみ開くように改善。
+- **視認性向上とドロップダウンカスタム化**: ネイティブ `select` を廃止し、背景（黒）・文字（白10px）を固定したカスタムドロップダウンを実装。連続変更に対応。
 - **メニューの連続変更とバグ修正**: `useMoveable.ts` にて `id` をキーとした再同期処理を実装し、DOM 置換後もメニューが要素を追従するように改善。
 - **フォントサイズ UI 統合**: テキスト入力とプリセット選択ドロップダウン（隠し `select` + アイコン）を一つのコンポーネントに統合。
 - **カラーパレット実装**: EyeDropper API と 28 色のカスタムパレットを持つサブメニューを実装。現在の色をクリックすることで展開。
+
 
 
 ## 5. 要件に関連する全ファイルのファイル構成（それぞれの役割を1行で併記）

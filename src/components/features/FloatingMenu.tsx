@@ -39,6 +39,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
     const [showCropPicker, setShowCropPicker] = useState(false);
     const [showColorPalette, setShowColorPalette] = useState(false);
     const [showBorderPalette, setShowBorderPalette] = useState(false);
+    const [showBgPalette, setShowBgPalette] = useState(false);
     const [showSizeDropdown, setShowSizeDropdown] = useState(false);
     const { imageFiles, imageUrls } = useAssets();
     const { isResponsiveResize, setResponsiveResize } = useEditorStore();
@@ -62,8 +63,11 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
 
     if (!rect || !target) return null;
 
-    const isText = target.innerText.trim().length > 0 && target.tagName.toLowerCase() !== 'img';
-    const isImage = target.tagName.toLowerCase() === 'img' || target.style.backgroundImage;
+    const tagName = target.tagName.toLowerCase();
+    const isImage = tagName === 'img' || (target.style.backgroundImage && target.style.backgroundImage.includes('url'));
+    const isText = !isImage && target.textContent?.trim() !== '' && target.children.length === 0;
+    const isShape = !isImage && !isText;
+
     const isGrouped = targets.every(el => el.hasAttribute('data-group-id')) && targets.length > 1;
     const canGroup = targets.length > 1 && !isGrouped;
 
@@ -97,7 +101,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
         navigator.clipboard.writeText(target.id);
     };
 
-    const openEyeDropper = async (property: 'color' | 'borderColor' = 'color') => {
+    const openEyeDropper = async (property: 'color' | 'borderColor' | 'backgroundColor' = 'color') => {
         if (!('EyeDropper' in window)) {
             alert('Your browser does not support the EyeDropper API');
             return;
@@ -107,7 +111,9 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
             const eyeDropper = new window.EyeDropper();
             const result = await eyeDropper.open();
             applyStyle(property, result.sRGBHex);
-        } catch (e) { console.error('EyeDropper failed:', e); }
+        } catch (e) {
+            console.error('EyeDropper failed:', e);
+        }
     };
 
     return (
@@ -136,15 +142,15 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
             </div>
 
             {/* 2. Color Palette Sub-panel */}
-            {(showColorPalette || showBorderPalette) && (
+            {(showColorPalette || showBorderPalette || showBgPalette) && (
                 <div className="p-3 border-b border-white/10 flex flex-col gap-3 bg-white/5 animate-in slide-in-from-bottom-1 duration-200">
                     <div className="flex items-center justify-between">
                         <span className="text-[10px] text-gray-400 uppercase font-bold tracking-widest">
-                            {showColorPalette ? 'Text Color' : 'Border Color'}
+                            {showColorPalette ? 'Text Color' : showBgPalette ? 'Fill Color' : 'Border Color'}
                         </span>
                         <button
                             className="p-1 hover:bg-white/10 rounded text-gray-400 hover:text-white flex items-center gap-1 text-[10px]"
-                            onClick={() => openEyeDropper(showColorPalette ? 'color' : 'borderColor')}
+                            onClick={() => openEyeDropper(showColorPalette ? 'color' : showBgPalette ? 'backgroundColor' : 'borderColor')}
                         >
                             <Pipette size={12} />
                             <span>Pick</span>
@@ -158,7 +164,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
                                         key={color}
                                         className="w-5 h-5 rounded-full border border-white/10 hover:border-white hover:scale-110 transition-all shadow-md"
                                         style={{ backgroundColor: color }}
-                                        onClick={() => applyStyle(showColorPalette ? 'color' : 'borderColor', color)}
+                                        onClick={() => applyStyle(showColorPalette ? 'color' : showBgPalette ? 'backgroundColor' : 'borderColor', color)}
                                     />
                                 ))}
                             </div>
@@ -296,6 +302,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
                                 onClick={() => {
                                     setShowColorPalette(!showColorPalette);
                                     setShowBorderPalette(false);
+                                    setShowBgPalette(false);
                                     setShowCropPicker(false);
                                     setShowImagePicker(false);
                                     setShowSizeDropdown(false);
@@ -305,6 +312,84 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
                             </button>
                         </div>
                     </>
+                )}
+
+                {isShape && (
+                    <div className="flex items-center gap-1 px-1 border-r border-white/5">
+                        {/* 1. 内部カラー */}
+                        <button
+                            className="w-6 h-6 rounded border border-white/20 hover:border-white transition-all relative"
+                            style={{ backgroundColor: window.getComputedStyle(target).backgroundColor }}
+                            onClick={() => {
+                                setShowBgPalette(!showBgPalette);
+                                setShowColorPalette(false);
+                                setShowBorderPalette(false);
+                                setShowCropPicker(false);
+                                setShowImagePicker(false);
+                                setShowSizeDropdown(false);
+                            }}
+                            title="Fill Color"
+                        >
+                            {showBgPalette && <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-blue-500 rounded-full" />}
+                        </button>
+
+                        {/* 2. 枠線onoff */}
+                        <button
+                            className="p-1.5 hover:bg-white/5 rounded text-gray-400 hover:text-white transition-all"
+                            onClick={() => {
+                                const current = target.style.borderWidth || '0px';
+                                const next = current === '0px' ? '2px' : '0px';
+                                applyStyle('borderStyle', 'solid');
+                                applyStyle('borderWidth', next);
+                                if (!target.style.borderColor) applyStyle('borderColor', '#ffffff');
+                            }}
+                            title="Border Toggle"
+                        >
+                            <Square size={14} />
+                        </button>
+
+                        {/* 3. 枠線カラー */}
+                        <button
+                            className="w-6 h-6 rounded border border-white/20 hover:border-white transition-all relative"
+                            style={{ backgroundColor: window.getComputedStyle(target).borderColor }}
+                            onClick={() => {
+                                setShowBorderPalette(!showBorderPalette);
+                                setShowBgPalette(false);
+                                setShowColorPalette(false);
+                                setShowCropPicker(false);
+                                setShowImagePicker(false);
+                                setShowSizeDropdown(false);
+                            }}
+                            title="Border Color"
+                        >
+                            {showBorderPalette && <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-blue-500 rounded-full" />}
+                        </button>
+
+                        {/* 4. かどの丸み */}
+                        <button
+                            className="p-1.5 hover:bg-white/5 rounded text-gray-400 hover:text-white transition-all"
+                            onClick={() => {
+                                const current = target.style.borderRadius || '0px';
+                                const next = current === '0px' ? '8px' : current === '8px' ? '9999px' : '0px';
+                                applyStyle('borderRadius', next);
+                            }}
+                            title="Corner Radius"
+                        >
+                            <Circle size={14} />
+                        </button>
+
+                        {/* 5. 子要素レスポンシブonoff */}
+                        <button
+                            className={cn(
+                                "p-1.5 rounded transition-all",
+                                isResponsiveResize ? "bg-blue-500 text-white" : "text-gray-400 hover:bg-white/5 hover:text-white"
+                            )}
+                            onClick={() => setResponsiveResize(!isResponsiveResize)}
+                            title="Responsive Resize"
+                        >
+                            <Maximize size={14} />
+                        </button>
+                    </div>
                 )}
 
                 {isImage && (
@@ -318,6 +403,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
                                 applyStyle('borderWidth', next);
                                 if (!target.style.borderColor) applyStyle('borderColor', '#ffffff');
                             }}
+                            title="Border Toggle"
                         >
                             <Square size={14} />
                         </button>
@@ -327,15 +413,14 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
                             onClick={() => {
                                 setShowBorderPalette(!showBorderPalette);
                                 setShowColorPalette(false);
+                                setShowBgPalette(false);
                                 setShowCropPicker(false);
                                 setShowImagePicker(false);
                                 setShowSizeDropdown(false);
                             }}
+                            title="Border Color"
                         >
                             {showBorderPalette && <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-blue-500 rounded-full" />}
-                        </button>
-                        <button className="p-1.5 hover:bg-white/5 rounded text-gray-400 hover:text-white transition-all" onClick={() => openEyeDropper('borderColor')}>
-                            <Pipette size={14} />
                         </button>
                         <button
                             className="p-1.5 hover:bg-white/5 rounded text-gray-400 hover:text-white transition-all"
@@ -344,6 +429,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
                                 const next = current === '0px' ? '8px' : current === '8px' ? '9999px' : '0px';
                                 applyStyle('borderRadius', next);
                             }}
+                            title="Corner Radius"
                         >
                             <Circle size={14} />
                         </button>
@@ -354,8 +440,10 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
                                 setShowImagePicker(false);
                                 setShowColorPalette(false);
                                 setShowBorderPalette(false);
+                                setShowBgPalette(false);
                                 setShowSizeDropdown(false);
                             }}
+                            title="Crop"
                         >
                             <Scissors size={14} />
                         </button>
@@ -366,8 +454,10 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
                                 setShowCropPicker(false);
                                 setShowColorPalette(false);
                                 setShowBorderPalette(false);
+                                setShowBgPalette(false);
                                 setShowSizeDropdown(false);
                             }}
+                            title="Replace Image"
                         >
                             <ImagePlus size={14} />
                         </button>
@@ -375,14 +465,9 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
                 )}
 
                 <div className="flex items-center gap-1 px-1">
-                    {targets.length === 1 && target.children.length > 0 && (
-                        <button className={cn("p-1.5 rounded transition-all", isResponsiveResize ? "bg-blue-500 text-white" : "text-gray-400 hover:bg-white/5 hover:text-white")} onClick={() => setResponsiveResize(!isResponsiveResize)}>
-                            <Maximize size={14} />
-                        </button>
-                    )}
-                    {canGroup && <button className="p-1.5 hover:bg-white/5 rounded text-gray-400 hover:text-blue-400 transition-all" onClick={handleGroup}><Group size={14} /></button>}
-                    {isGrouped && <button className="p-1.5 hover:bg-white/5 rounded text-gray-400 hover:text-orange-400 transition-all" onClick={handleUngroup}><Ungroup size={14} /></button>}
-                    <button className="p-1.5 hover:bg-red-500/20 rounded text-gray-400 hover:text-red-400 transition-all" onClick={() => { targets.forEach(el => el.remove()); onUpdate(); }}><Trash2 size={14} /></button>
+                    {canGroup && <button className="p-1.5 hover:bg-white/5 rounded text-gray-400 hover:text-blue-400 transition-all" onClick={handleGroup} title="Group"><Group size={14} /></button>}
+                    {isGrouped && <button className="p-1.5 hover:bg-white/5 rounded text-gray-400 hover:text-orange-400 transition-all" onClick={handleUngroup} title="Ungroup"><Ungroup size={14} /></button>}
+                    <button className="p-1.5 hover:bg-red-500/20 rounded text-gray-400 hover:text-red-400 transition-all" onClick={() => { targets.forEach(el => el.remove()); onUpdate(); }} title="Delete"><Trash2 size={14} /></button>
                 </div>
             </div>
         </div>
