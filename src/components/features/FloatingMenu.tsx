@@ -39,6 +39,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
     const [showCropPicker, setShowCropPicker] = useState(false);
     const [showColorPalette, setShowColorPalette] = useState(false);
     const [showBorderPalette, setShowBorderPalette] = useState(false);
+    const [showSizeDropdown, setShowSizeDropdown] = useState(false);
     const { imageFiles, imageUrls } = useAssets();
     const { isResponsiveResize, setResponsiveResize } = useEditorStore();
     const menuRef = useRef<HTMLDivElement>(null);
@@ -241,7 +242,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
                                 onChange={(e) => applyStyle('fontFamily', e.target.value)}
                             >
                                 {EDITOR_FONTS.map(f => (
-                                    <option key={f.value} value={f.value} className="bg-[#1a1a1a] text-white">{f.label}</option>
+                                    <option key={f.value} value={f.value} className="bg-[#1a1a1a] text-white text-[10px]">{f.label}</option>
                                 ))}
                             </select>
                             <div className="relative flex items-center bg-white/5 rounded border border-white/10 hover:border-white/20 ml-1 group">
@@ -254,19 +255,29 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
                                         if (val) applyStyle('fontSize', `${val}px`);
                                     }}
                                 />
-                                <div className="relative h-6 flex items-center border-l border-white/10 px-0.5 cursor-pointer">
-                                    <ChevronDown size={10} className="text-gray-500 group-hover:text-white" />
-                                    <select
-                                        className="absolute inset-0 opacity-0 cursor-pointer w-full"
-                                        onChange={(e) => {
-                                            if (e.target.value) applyStyle('fontSize', `${e.target.value}px`);
-                                        }}
-                                    >
-                                        <option value="" className="bg-[#1a1a1a] text-white text-[8px]">-</option>
-                                        {PRESET_FONT_SIZES.map(s => (
-                                            <option key={s} value={s} className="bg-[#1a1a1a] text-white text-[8px]">{s}px</option>
-                                        ))}
-                                    </select>
+                                <div
+                                    className="relative h-6 flex items-center border-l border-white/10 px-0.5 cursor-pointer hover:bg-white/5 transition-colors"
+                                    onClick={() => setShowSizeDropdown(!showSizeDropdown)}
+                                >
+                                    <ChevronDown size={10} className={cn("text-gray-500 transition-transform", showSizeDropdown && "rotate-180")} />
+
+                                    {showSizeDropdown && (
+                                        <div className="absolute top-full right-0 mt-1 bg-[#1a1a1a] border border-white/10 rounded-md shadow-xl py-1 z-[110] min-w-[60px] max-h-48 overflow-y-auto CustomScrollbar">
+                                            {PRESET_FONT_SIZES.map(s => (
+                                                <div
+                                                    key={s}
+                                                    className="px-3 py-1 text-[10px] text-white hover:bg-blue-500 cursor-pointer transition-colors"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation(); // 親の onClick (閉じる) を防ぐ
+                                                        applyStyle('fontSize', `${s}px`);
+                                                        // 自動で閉じないようにするため setShowSizeDropdown(false) は呼ばない
+                                                    }}
+                                                >
+                                                    {s}px
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -282,7 +293,13 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
                             <button
                                 className="w-6 h-6 rounded border border-white/20 hover:border-white transition-all relative"
                                 style={{ backgroundColor: window.getComputedStyle(target).color }}
-                                onClick={() => { setShowColorPalette(!showColorPalette); setShowBorderPalette(false); setShowCropPicker(false); setShowImagePicker(false); }}
+                                onClick={() => {
+                                    setShowColorPalette(!showColorPalette);
+                                    setShowBorderPalette(false);
+                                    setShowCropPicker(false);
+                                    setShowImagePicker(false);
+                                    setShowSizeDropdown(false);
+                                }}
                             >
                                 {showColorPalette && <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-blue-500 rounded-full" />}
                             </button>
@@ -307,7 +324,13 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
                         <button
                             className="w-6 h-6 rounded border border-white/20 hover:border-white transition-all relative"
                             style={{ backgroundColor: window.getComputedStyle(target).borderColor }}
-                            onClick={() => { setShowBorderPalette(!showBorderPalette); setShowColorPalette(false); setShowCropPicker(false); setShowImagePicker(false); }}
+                            onClick={() => {
+                                setShowBorderPalette(!showBorderPalette);
+                                setShowColorPalette(false);
+                                setShowCropPicker(false);
+                                setShowImagePicker(false);
+                                setShowSizeDropdown(false);
+                            }}
                         >
                             {showBorderPalette && <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-blue-500 rounded-full" />}
                         </button>
@@ -326,13 +349,25 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
                         </button>
                         <button
                             className={cn("p-1.5 rounded transition-all", showCropPicker ? "bg-blue-500 text-white" : "text-gray-400 hover:bg-white/5 hover:text-white")}
-                            onClick={() => { setShowCropPicker(!showCropPicker); setShowImagePicker(false); setShowColorPalette(false); setShowBorderPalette(false); }}
+                            onClick={() => {
+                                setShowCropPicker(!showCropPicker);
+                                setShowImagePicker(false);
+                                setShowColorPalette(false);
+                                setShowBorderPalette(false);
+                                setShowSizeDropdown(false);
+                            }}
                         >
                             <Scissors size={14} />
                         </button>
                         <button
                             className={cn("p-1.5 rounded transition-all", showImagePicker ? "bg-blue-500 text-white" : "text-gray-400 hover:bg-white/5 hover:text-white")}
-                            onClick={() => { setShowImagePicker(!showImagePicker); setShowCropPicker(false); setShowColorPalette(false); setShowBorderPalette(false); }}
+                            onClick={() => {
+                                setShowImagePicker(!showImagePicker);
+                                setShowCropPicker(false);
+                                setShowColorPalette(false);
+                                setShowBorderPalette(false);
+                                setShowSizeDropdown(false);
+                            }}
                         >
                             <ImagePlus size={14} />
                         </button>

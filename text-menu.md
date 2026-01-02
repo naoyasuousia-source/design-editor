@@ -28,34 +28,51 @@
 ## 1. 未解決要件（移動許可がNGの要件は絶対に移動・編集しないこと）（勝手に移動許可をOKに書き換えないこと）
 
 <requirement>
-<content>- 現在カラーメニューがフォントメニューの下に展開され、テキストを覆い隠してしまうので、フォントメニューの上に展開するようにする。
-- また、カラーメニューは、現在カラーをクリックするまで開かないようにする。</content>
+<content>
+-テキストボックスではない図形要素のメニューは内部カラー、枠線onoff、枠線カラー、かどの丸み、子要素レスポンシブonoff（青くすると子要素もレスポンシブで拡大縮小できる機能）、deleteのみとする。
+- ほかのメニューは消すこと！
+（トリミング、画像差し替えは、画像のメニューのみに表示）</content>
 <current-situation></current-situation>
 <remarks></remarks>
 <permission-to-move>NG</permission-to-move>
 </requirement>
 
 <requirement>
-<content>フォントサイズ変更ドロップダウンが、現在白背景に白文字で、数字が見えないので修正する。</content>
+<content></content>
 <current-situation></current-situation>
 <remarks></remarks>
 <permission-to-move>NG</permission-to-move>
 </requirement>
 
+<requirement>
+<content>- 現在カラーメニューがフォントメニューの下に展開され、テキストを覆い隠してしまうので、フォントメニューの上に展開するようにする。
+- また、カラーメニューは、現在カラーをクリックするまで開かないようにする。</content>
+<current-situation></current-situation>
+<remarks></remarks>
+<permission-to-move>OK</permission-to-move>
+</requirement>
+
+<requirement>
+<content>フォントサイズ変更ドロップダウンが、現在白背景に白文字で、数字が見えないので修正する。</content>
+<current-situation></current-situation>
+<remarks></remarks>
+<permission-to-move>OK</permission-to-move>
+</requirement>
+
 
 ## 2. 未解決要件に関するコード変更履歴（目的、変更内容、変更日時）
-- 2026-01-03: `FloatingMenu.tsx` の UI 配置改善と詳細調整
+- 2026-01-03: `FloatingMenu.tsx` の UI 配置改善とドロップダウンの完全カスタム化
     - メニューを要素の上方向に展開するように変更（`bottom` アンカーを使用）。
     - カラーパレット等のサブパネルをメインメニューより上に配置し、操作対象を覆い隠さないように改善。
-    - フォントサイズ/フォントファミリーのドロップダウンの背景色と文字色を修正し、視認性を向上。
-    - フォントサイズドロップダウン内の数字のフォントサイズを縮小（0.8倍相当）。
-    - 連続変更時もメニューが閉じないように各種イベントハンドラを最適化。
+    - ネイティブの `select` を廃止し、クリック後も閉じないカスタムドロップダウン（UL/LI）を実装。
+    - フォントサイズ/フォントファミリーのドロップダウンの文字サイズを 10px に統一。
+    - 連続変更時もメニューおよびドロップダウンが閉じないようにイベント管理を強化。
 
 
 ## 3. 分析中に気づいた重要ポイント（試してだめだったこと、仮設、制約条件等...）
 - メニューの `top` を固定すると高さが増した時に下方向に伸びて要素を隠してしまうため、`bottom` を固定することで上方向に伸びるように変更した。
-- `select` 要素の `option` タグはブラウザのネイティブ実装に依存するため、インラインスタイルや Tailwind だけでなく、OS/ブラウザの規定に従いやすい明示的な背景色指定が必要。
-- フォントサイズの変更イベント `onChange` において、`applyStyle` を呼び出した後の状態遷移を抑制することで連続変更を可能にした。
+- ネイティブの `select` 要素は選択後に必ず閉じてしまう仕様であるため、`div` 等を組み合わせたカスタムドロップダウンを構築し、ステート制御で「勝手に閉じない」挙動を実現。
+- フォントサイズの変更イベントにおいて、バブリングを停止 (`e.stopPropagation()`) させることで、親要素へのイベント伝播による意図しないクローズを防いだ。
 - メニューの ID 再同期（`useMoveable.ts`）により、要素の置換後も座標計算が継続されるようになった。
 
 
