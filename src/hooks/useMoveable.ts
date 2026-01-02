@@ -141,13 +141,14 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
             return;
         }
 
-        // DesignSurface の直接の子要素を探す
+        // DesignSurface 内の要素を探す（クリックした要素自体を選択対象とする）
         let el: HTMLElement | null = target;
-        while (el && el.parentElement && !el.parentElement.classList.contains('DesignSurface')) {
-            el = el.parentElement;
+        const surface = el.closest('.DesignSurface');
+        if (!surface || el === surface) {
+            return;
         }
 
-        if (el && el.parentElement?.classList.contains('DesignSurface')) {
+        if (el) {
             const groupId = el.getAttribute('data-group-id');
             const groupElements = groupId
                 ? Array.from(canvasRef.current?.querySelectorAll(`[data-group-id="${groupId}"]`) || []) as HTMLElement[]
