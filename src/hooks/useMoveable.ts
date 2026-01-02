@@ -13,7 +13,7 @@ import { useEditorStore } from '@/store/useEditorStore';
 export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
     const [targets, setTargets] = useState<HTMLElement[]>([]);
     const [keepRatio, setKeepRatio] = useState(false);
-    const { setContent, isLocked } = useEditorStore();
+    const { setContent, isLocked, zoom } = useEditorStore();
     const editingElementRef = useRef<HTMLElement | null>(null);
     const isEditingRef = useRef<boolean>(false);
 
@@ -68,10 +68,10 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
         if (!canvasRect) return undefined;
 
         return {
-            left: (parentRect.left - canvasRect.left),
-            top: (parentRect.top - canvasRect.top),
-            right: (parentRect.right - canvasRect.left),
-            bottom: (parentRect.bottom - canvasRect.top),
+            left: (parentRect.left - canvasRect.left) / zoom,
+            top: (parentRect.top - canvasRect.top) / zoom,
+            right: (parentRect.right - canvasRect.left) / zoom,
+            bottom: (parentRect.bottom - canvasRect.top) / zoom,
         };
     }, [targets, canvasRef]);
 
