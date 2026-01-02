@@ -23,10 +23,38 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
         });
     }, []);
     const [keepRatio, setKeepRatio] = useState(false);
-    const { setContent, isLocked, zoom, isResponsiveResize } = useEditorStore();
+    const { content, setContent, isLocked, zoom, isResponsiveResize } = useEditorStore();
     const editingElementRef = useRef<HTMLElement | null>(null);
     const [isEditing, setIsEditing] = useState<boolean>(false);
     const isEditingRef = useRef<boolean>(false);
+
+    // デザインの更新に合わせて DOM 要素を再取得する
+    useEffect(() => {
+        if (targets.length === 0) return;
+
+        const surface = canvasRef.current?.querySelector('.DesignSurface');
+        if (!surface) return;
+
+        const nextTargets: HTMLElement[] = [];
+        let hasChanged = false;
+
+        targets.forEach(target => {
+            if (document.body.contains(target)) {
+                nextTargets.push(target);
+            } else if (target.id) {
+                // セレクタに ID を使う。特殊文字が含まれる可能性を考慮して [id="..."] を使用
+                const refreshed = surface.querySelector(`[id="${target.id}"]`);
+                if (refreshed instanceof HTMLElement) {
+                    nextTargets.push(refreshed);
+                    hasChanged = true;
+                }
+            }
+        });
+
+        if (hasChanged) {
+            setTargets(nextTargets);
+        }
+    }, [content, canvasRef, targets.length]); // targets.length を依存に含める
 
     /**
      * 要素がテキストボックスかどうかを判定する
