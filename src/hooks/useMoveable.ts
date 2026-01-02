@@ -12,6 +12,7 @@ import { useEditorStore } from '@/store/useEditorStore';
  */
 export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
     const [targets, setTargets] = useState<HTMLElement[]>([]);
+    const [keepRatio, setKeepRatio] = useState(false);
     const { setContent, isLocked } = useEditorStore();
     const editingElementRef = useRef<HTMLElement | null>(null);
     const isEditingRef = useRef<boolean>(false);
@@ -40,6 +41,39 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
             console.log('finishEditing: 編集を確定しました');
         }
     }, [updateContentFromDOM]);
+
+    // リサイズ開始時の挙動制御
+    const handleResizeStart = useCallback((e: any) => {
+        // e.direction [h, v] : 0 以外が2つあれば角
+        const [h, v] = e.direction;
+        const isCorner = h !== 0 && v !== 0;
+        setKeepRatio(isCorner);
+
+        // 元のサイズを記録
+        e.target.setAttribute('data-last-width', e.target.offsetWidth.toString());
+        e.target.setAttribute('data-last-height', e.target.offsetHeight.toString());
+    }, []);
+
+    // 親要素の範囲内でのみ移動・リサイズを許可
+    const getBounds = useCallback(() => {
+        if (targets.length === 0) return undefined;
+        const first = targets[0];
+        const parent = first.parentElement;
+        if (!parent) return undefined;
+
+        // デザイン領域全体か、特定の親要素か
+        const canvasRect = canvasRef.current?.getBoundingClientRect();
+        const parentRect = parent.getBoundingClientRect();
+
+        if (!canvasRect) return undefined;
+
+        return {
+            left: (parentRect.left - canvasRect.left),
+            top: (parentRect.top - canvasRect.top),
+            right: (parentRect.right - canvasRect.left),
+            bottom: (parentRect.bottom - canvasRect.top),
+        };
+    }, [targets, canvasRef]);
 
     // 要素のダブルクリック（テキスト編集）
     const handleDoubleClick = useCallback((e: MouseEvent) => {
@@ -184,6 +218,9 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
     return {
         targets,
         setTargets,
+        keepRatio,
+        handleResizeStart,
+        getBounds,
         handleCanvasClick,
         handleDoubleClick,
         updateContentFromDOM,

@@ -7,8 +7,10 @@ import {
     ImagePlus,
     Hash,
     Scissors,
-    Square
+    Square,
+    Maximize
 } from 'lucide-react';
+import { useEditorStore } from '@/store/useEditorStore';
 import { useAssets } from '@/hooks/useAssets';
 import { cn } from '@/utils/cn';
 import { EDITOR_FONTS } from '@/constants/editor';
@@ -23,6 +25,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
     const [showImagePicker, setShowImagePicker] = useState(false);
     const [showCropPicker, setShowCropPicker] = useState(false);
     const { imageFiles, imageUrls } = useAssets();
+    const { isResponsiveResize, setResponsiveResize } = useEditorStore();
     const menuRef = useRef<HTMLDivElement>(null);
     const target = targets[0]; // 最初の要素を基準にする
 
@@ -190,6 +193,18 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
 
                 {/* 共通操作 */}
                 <div className="flex items-center gap-1 px-1">
+                    {targets.length === 1 && target.children.length > 0 && (
+                        <button
+                            className={cn(
+                                "p-1.5 rounded transition-all",
+                                isResponsiveResize ? "bg-blue-500 text-white" : "text-gray-400 hover:bg-white/5 hover:text-white"
+                            )}
+                            onClick={() => setResponsiveResize(!isResponsiveResize)}
+                            title="Responsive Resize (Scale children proportionally)"
+                        >
+                            <Maximize size={14} />
+                        </button>
+                    )}
                     {canGroup && (
                         <button
                             className="p-1.5 hover:bg-white/5 rounded text-gray-400 hover:text-blue-400 transition-all"

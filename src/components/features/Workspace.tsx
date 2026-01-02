@@ -44,7 +44,15 @@ const DesignContent = React.memo(({
 
 const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
     const canvasRef = useRef<HTMLDivElement>(null);
-    const { pageSize, zoom, content, customWidth, customHeight, expandCanvas } = useEditorStore();
+    const {
+        pageSize,
+        zoom,
+        content,
+        customWidth,
+        customHeight,
+        expandCanvas,
+        isResponsiveResize
+    } = useEditorStore();
     const config = PAGE_SIZES[pageSize];
 
     // 現在の論理サイズ（カスタム値があれば優先）
@@ -54,6 +62,9 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
     // GUI 編集ロジック
     const {
         targets,
+        keepRatio: moveableKeepRatio,
+        handleResizeStart,
+        getBounds,
         handleCanvasClick,
         handleDoubleClick,
         updateContentFromDOM
@@ -160,13 +171,14 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
             {!isLocked && (
                 <Moveable
                     target={targets}
+                    container={canvasRef.current || undefined}
                     draggable={true}
                     resizable={true}
                     rotatable={false}
                     snappable={true}
                     // 拡張を許容するため、bounds を現在のサイズより広く設定、または制限を緩める
                     // ここでは要素が完全に見失われない程度の広い範囲を設定
-                    bounds={{
+                    bounds={getBounds() || {
                         left: -2000,
                         top: -2000,
                         right: currentWidth + 2000,
@@ -177,7 +189,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
                     elementGuidelines={Array.from(canvasRef.current?.querySelectorAll('.DesignSurface > *') || []) as HTMLElement[]}
                     origin={false}
                     edge={false}
-                    keepRatio={targets.some(el => el.tagName.toLowerCase() === 'img')}
+                    keepRatio={moveableKeepRatio || targets.some(el => el.tagName.toLowerCase() === 'img')}
                     throttleDrag={1}
                     throttleResize={1}
                     onDrag={e => {
@@ -215,12 +227,34 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
 
                         // テキストサイズのスケーリング連動
                         const lastWidth = parseFloat(target.getAttribute('data-last-width') || target.style.width);
+                        const lastHeight = parseFloat(target.getAttribute('data-last-height') || target.style.height);
                         if (lastWidth > 0) {
-                            const ratio = width / lastWidth;
+                            const ratioW = width / lastWidth;
+                            const ratioH = lastHeight > 0 ? height / lastHeight : ratioW;
+
+                            // 子要素のレスポンシブスケール
+                            if (isResponsiveResize && target.children.length > 0) {
+                                Array.from(target.children).forEach(child => {
+                                    const el = child as HTMLElement;
+                                    const cW = parseFloat(el.style.width) || el.offsetWidth;
+                                    const cH = parseFloat(el.style.height) || el.offsetHeight;
+                                    const cL = parseFloat(el.style.left) || el.offsetLeft;
+                                    const cT = parseFloat(el.style.top) || el.offsetTop;
+                                    const cFs = parseFloat(window.getComputedStyle(el).fontSize);
+
+                                    el.style.width = `${cW * ratioW}px`;
+                                    el.style.height = `${cH * ratioH}px`;
+                                    el.style.left = `${cL * ratioW}px`;
+                                    el.style.top = `${cT * ratioH}px`;
+                                    el.style.fontSize = `${cFs * (ratioW + ratioH) / 2}px`;
+                                });
+                            }
+
                             const currentFontSize = parseFloat(window.getComputedStyle(target).fontSize);
-                            target.style.fontSize = `${currentFontSize * ratio}px`;
+                            target.style.fontSize = `${currentFontSize * ratioW}px`;
                         }
                         target.setAttribute('data-last-width', width.toString());
+                        target.setAttribute('data-last-height', height.toString());
 
                         // 拡張
                         const rect = target.getBoundingClientRect();
@@ -245,9 +279,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
                             target.setAttribute('data-last-width', width.toString());
                         });
                     }}
-                    onResizeStart={e => {
-                        e.target.setAttribute('data-last-width', (e.target as HTMLElement).offsetWidth.toString());
-                    }}
+                    onResizeStart={handleResizeStart}
                     onResizeGroupStart={e => {
                         e.events.forEach(ev => {
                             (ev.target as HTMLElement).setAttribute('data-last-width', (ev.target as HTMLElement).offsetWidth.toString());

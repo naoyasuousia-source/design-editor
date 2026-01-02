@@ -29,6 +29,7 @@ interface EditorStore extends EditorState {
     setLastSaveTime: (time: number) => void;
     setImageSaveMode: (enabled: boolean) => void;
     setCropAspectRatio: (ratio: number | 'free' | null) => void;
+    setResponsiveResize: (enabled: boolean) => void;
     reset: () => void;
 }
 
@@ -74,6 +75,7 @@ const initialState: EditorState & {
     lastSaveTime: 0,
     isImageSaveMode: false,
     cropAspectRatio: null,
+    isResponsiveResize: false,
 };
 
 export const useEditorStore = create<EditorStore>((set, get) => ({
@@ -221,5 +223,6 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     setLastSaveTime: (lastSaveTime) => set({ lastSaveTime }),
     setImageSaveMode: (isImageSaveMode) => set({ isImageSaveMode, isLocked: isImageSaveMode }),
     setCropAspectRatio: (cropAspectRatio) => set({ cropAspectRatio }),
+    setResponsiveResize: (isResponsiveResize) => set({ isResponsiveResize }),
     reset: () => set(initialState),
 }));

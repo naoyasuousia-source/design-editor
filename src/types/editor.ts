@@ -51,6 +51,7 @@ export type EditorState = {
     // 画像保存ウィザード用
     isImageSaveMode: boolean;
     cropAspectRatio: number | 'free' | null;
+    isResponsiveResize: boolean;
 }
 
 export const _REFRESH_FIX = Date.now();
