@@ -145,6 +145,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
             pendingContent: designContent,
             pendingSnapshot: snapshot,
             metaMessage: meta || get().metaMessage,
+            pageSize: (meta && meta.pageSize) ? meta.pageSize : get().pageSize,
         });
     },
 

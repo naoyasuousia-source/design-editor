@@ -22,6 +22,7 @@ export interface MetaMessage {
         accent: string;
     };
     remarks: string;
+    pageSize?: PageSize;
 }
 
 export type EditorState = {

@@ -19,7 +19,8 @@ export const useFileSystem = () => {
         setDirty,
         setLastSaveTime,
         setMetaMessage,
-        setCustomCss
+        setCustomCss,
+        setPageSize
     } = useEditorStore();
 
     /**
@@ -44,6 +45,7 @@ export const useFileSystem = () => {
             // ストアに保存
             setProjectDirectoryHandle(directoryHandle);
             setProjectFolderName(directoryHandle.name);
+            setPageSize(pageSize);
 
             // ファイル名を入力
             const timestamp = Date.now();
@@ -67,7 +69,12 @@ export const useFileSystem = () => {
             // 新規ファイルを作成
             const template = GET_INITIAL_TEMPLATE(pageSize);
             const { metaMessage, customCss } = useEditorStore.getState();
-            const fullHTML = constructFullHTML(template, customCss, metaMessage);
+
+            // metaMessage に pageSize を含める
+            const updatedMeta = { ...metaMessage, pageSize };
+            setMetaMessage(updatedMeta);
+
+            const fullHTML = constructFullHTML(template, customCss, updatedMeta);
             const fileHandle = await fileSystemService.createNewDesignFile(directoryHandle, fileName, fullHTML);
 
             // ファイルハンドルをストアに保存
@@ -119,7 +126,12 @@ export const useFileSystem = () => {
 
             setContent(designContent, true); // 履歴に積まない
             setCustomCss(customCss);
-            if (meta) setMetaMessage(meta);
+            if (meta) {
+                setMetaMessage(meta);
+                if (meta.pageSize) {
+                    setPageSize(meta.pageSize);
+                }
+            }
             setDirty(false);
 
             console.log('ファイルを開きました:', fileHandle.name);
@@ -156,8 +168,10 @@ export const useFileSystem = () => {
             // 保存開始時刻を記録（同期スキップ用）
             setLastSaveTime(Date.now());
 
-            // HTML を構築
-            const fullHTML = constructFullHTML(content, customCss, metaMessage);
+            // HTML を構築 (pageSize を確実に最新の状態で保存する)
+            const { pageSize } = useEditorStore.getState();
+            const updatedMeta = { ...metaMessage, pageSize };
+            const fullHTML = constructFullHTML(content, customCss, updatedMeta);
             console.log('fullHTML constructed, length:', fullHTML.length);
 
             // 上書き保存

@@ -1,4 +1,4 @@
-import type { MetaMessage } from '@/types/editor';
+import { type MetaMessage, PAGE_SIZES } from '@/types/editor';
 
 /**
  * HTML からメタメッセージ（JSON）を抽出する
@@ -112,6 +112,11 @@ export const constructFullHTML = (content: string, customCss: string, meta: Meta
     ### SYSTEM RULES: DESIGN GENERATION
     
     [IMPORTANT] あなたは一流のデザイナーとして、以下のルールを「厳格に」順守してHTMLデザインを生成してください。
+
+    0. CANVAS DIMENSIONS
+    - **Width**: ${PAGE_SIZES[meta.pageSize || 'SQUARE'].width}px
+    - **Height**: ${PAGE_SIZES[meta.pageSize || 'SQUARE'].height}px
+    - **Note**: このサイズに合わせてレイアウトを最適化してください。
 
     1. MISSION
     - **Mission**: ユーザーの要求を完璧に反映したデザインを作成する。
