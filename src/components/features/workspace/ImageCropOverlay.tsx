@@ -197,49 +197,108 @@ const ImageCropOverlay: React.FC = () => {
     const handleApply = () => {
         if (!target) return;
 
-        // トリミング枠の論理座標とサイズ
-        const { x, y, width: cropW, height: cropH } = cropRect;
-        const { width: origW, height: origH } = elementSize;
+        // トリミング枠の論理座標とサイズ (表示上の座標)
+        const x = Math.round(cropRect.x);
+        const y = Math.round(cropRect.y);
+        const cropW = Math.round(cropRect.width);
+        const cropH = Math.round(cropRect.height);
 
-        // 1. 要素のサイズを更新（トリミング枠のサイズに合わせる）
+        // 元の要素（表示中）のサイズ
+        const { width: EW, height: EH } = elementSize;
+        // 画像の元々の解像度
+        const NW = target.naturalWidth;
+        const NH = target.naturalHeight;
+
+        if (!NW || !NH) return; // 画像未読み込み対策
+
+        // 現在の object-position を解析（未設定なら center = 50% 50%）
+        const style = window.getComputedStyle(target);
+        const posStr = style.objectPosition || '50% 50%';
+        const posParts = posStr.split(' ');
+        const parsePos = (p: string, isWidth: boolean) => {
+            if (p.endsWith('%')) return parseFloat(p);
+            if (p === 'left' || p === 'top') return 0;
+            if (p === 'center') return 50;
+            if (p === 'right' || p === 'bottom') return 100;
+            const val = parseFloat(p);
+            return isNaN(val) ? 50 : val;
+        };
+        const curPX = parsePos(posParts[0], true);
+        const curPY = parsePos(posParts[1] || posParts[0], false);
+
+        // --- 1. 現時点での「元画像上の可視領域」を逆算 ---
+        // object-fit: cover のスケール s = max(EW/NW, EH/NH)
+        const s = Math.max(EW / NW, EH / NH);
+        const SW = NW * s; // スケーリング後の画像幅
+        const SH = NH * s; // スケーリング後の画像高
+
+        // オフセット（element左上から見た画像左上の位置）
+        // offset = (EW - SW) * (curPX / 100)
+        const curOffX = (EW - SW) * (curPX / 100);
+        const curOffY = (EH - SH) * (curPY / 100);
+
+        // elementの左上 (0,0) は、元画像上の座標:
+        // sourceX = -curOffX / s
+        // sourceY = -curOffY / s
+        const sourceX = -curOffX / s;
+        const sourceY = -curOffY / s;
+
+        // --- 2. 新しく選択された範囲の「元画像上の絶対座標」 ---
+        // ユーザーがクリックした座標 (x, y) は element 上の座標なので、s で割って元座標に足す
+        const newSourceX = sourceX + (x / s);
+        const newSourceY = sourceY + (y / s);
+        const newSourceW = cropW / s;
+        const newSourceH = cropH / s;
+
+        // --- 3. 新しい表示サイズ (cropW, cropH) に合わせた object-position の算出 ---
+        // 新しいスケール s' = max(cropW/NW, cropH/NH)
+        // ※ newSourceをぴったり表示したいが、object-fit:coverなため s' を使う必要がある
+        const ns = Math.max(cropW / NW, cropH / NH);
+        const nSW = NW * ns;
+        const nSH = NH * ns;
+
+        // 求めたいオフセット: newOffsetX = -newSourceX * ns
+        // ※ ただし object-fit: cover により画像全体が ns でスケールされている
+        const nOffX = -newSourceX * ns;
+        const nOffY = -newSourceY * ns;
+
+        // nOffX = (cropW - nSW) * (newPX / 100) => newPX = (nOffX / (cropW - nSW)) * 100
+        const denX = cropW - nSW;
+        const denY = cropH - nSH;
+        const newPX = Math.abs(denX) < 0.1 ? 50 : (nOffX / denX) * 100;
+        const newPY = Math.abs(denY) < 0.1 ? 50 : (nOffY / denY) * 100;
+
+        // 適用処理
+        target.style.opacity = '0';
         target.style.width = `${cropW}px`;
         target.style.height = `${cropH}px`;
 
-        // 2. 要素の位置（transform）を更新
-        const currentTransform = target.style.transform || 'translate(0px, 0px)';
-        const translateMatch = currentTransform.match(/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/);
-        if (translateMatch) {
-            const currentX = parseFloat(translateMatch[1]);
-            const currentY = parseFloat(translateMatch[2]);
-            const newX = currentX + x;
-            const newY = currentY + y;
-            target.style.transform = currentTransform.replace(/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/, `translate(${newX}px, ${newY}px)`);
+        // 位置の更新 (既存の transform を壊さず translate を更新)
+        const currentStyle = target.getAttribute('style') || '';
+        const transformMatch = currentStyle.match(/transform:\s*([^;]+)/);
+        let transStr = transformMatch ? transformMatch[1] : (target.style.transform || '');
+        const tRegex = /translate\(([-\d.]+)px,\s*([-\d.]+)px\)/;
+        const tMatch = transStr.match(tRegex);
+
+        if (tMatch) {
+            const bx = parseFloat(tMatch[1]);
+            const by = parseFloat(tMatch[2]);
+            transStr = transStr.replace(tRegex, `translate(${Math.round(bx + x)}px, ${Math.round(by + y)}px)`);
         } else {
-            target.style.transform = `${currentTransform} translate(${x}px, ${y}px)`.trim();
+            transStr = `${transStr} translate(${x}px, ${y}px)`.trim();
         }
+        target.style.transform = transStr;
 
-        // 3. 画像の調整
-        // object-position の % 指定は、(画像サイズ - コンテナサイズ) * % がオフセットになる。
-        // ここではズーム（拡大）は行わず、あくまで「枠のサイズ」に合わせてアスペクト比を維持しつつカバーする。
         target.style.objectFit = 'cover';
-
-        // 正確な position 計算 (x / (原寸W - 枠W))
-        // 分母が0になる（原寸と枠が同じ）場合は 50% にしておく
-        const pctX = (origW - cropW) === 0 ? 50 : (x / (origW - cropW)) * 100;
-        const pctY = (origH - cropH) === 0 ? 50 : (y / (origH - cropH)) * 100;
-
-        target.style.objectPosition = `${pctX}% ${pctY}%`;
-
-        // 強制的に style 属性を更新（これを行わないと cloneNode で消える場合がある）
+        target.style.objectPosition = `${newPX.toFixed(8)}% ${newPY.toFixed(8)}%`;
         target.setAttribute('style', target.style.cssText);
 
-        // 重要: 適用直後にストア更新を確実にトリガーする
-        window.dispatchEvent(new CustomEvent('canvas-update'));
+        setImageCropMode(false, null);
 
-        // ストア更新処理が完了する時間を確保してからモードを終了する
-        setTimeout(() => {
-            setImageCropMode(false, null);
-        }, 300); // 余裕を持って 300ms 待機
+        requestAnimationFrame(() => {
+            target.style.opacity = '1';
+            window.dispatchEvent(new CustomEvent('canvas-update'));
+        });
     };
 
     const handleCancel = () => {

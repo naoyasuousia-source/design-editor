@@ -206,7 +206,7 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
     }, [autoSelectId, canvasRef, setTargets, setSelectionMode, setActiveSubTarget, setAutoSelectId]);
 
     return {
-        targets,
+        targets: isLocked || useEditorStore.getState().isImageCropMode ? [] : targets,
         setTargets,
         selectionMode,
         activeSubTarget,

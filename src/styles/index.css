@@ -116,6 +116,17 @@
         color: #000000;
     }
 
+    /* 画像のトリミングやサイズ変更時の品質と制約の調整 */
+    .DesignSurface img {
+        max-width: none !important;
+        /* Tailwindの max-width: 100% を無効化 */
+        image-rendering: -webkit-optimize-contrast;
+        /* 境界をくっきりさせ、画質の低下感を軽減 */
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+    }
+
+
     /* Remove default focus border during text editing, but keep our custom outline if needed */
     /* However, for text editing, a clean look is usually better, but let's see if the user wants the blue frame even during edit. */
     /* The requirement said "stay editor mode" with blue frame + points. */

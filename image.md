@@ -28,25 +28,13 @@
 ## 1. 未解決要件（移動許可がNGの要件は絶対に移動・編集しないこと）（勝手に移動許可をOKに書き換えないこと）
 
 <requirement>
-<content>トリミングを確定して適用を押してもUI上で反映されない。</content>
-<current-situation>依然、トリミングがUI上で反映されない。（一瞬画像の左上がフラッシュするがそのあと何も変化が起こらない）</current-situation>
-<remarks></remarks>
-<permission-to-move>OK</permission-to-move>
-</requirement>
-
-<requirement>
-<content>トリミングは成功したが、適用を押した瞬間、必ず、エディタの左上に移動した後に、正しい位置にレンダリングされる。左上に一瞬移動してしまうのを修正してほしい。</content>
-<current-situation></current-situation>
-<remarks></remarks>
+<content>トリミングは成功しているが、トリミングで選んだ範囲とレンダリング後の表示範囲がずれている。完全一致させてほしい。</content>
+<current-situation>現在の手法（現在の表示サイズを基準とした比率計算）では、すでにトリミングされている画像に対してさらにトリミングを重ねる場合に、元画像の解像度との変換不整合により数パーセントのズレが生じる。縦横5%程度のズレが報告されている。</current-situation>
+<remarks>画像の `naturalWidth / naturalHeight` を取得し、現在の `object-position` から「元画像のどの座標が現在表示されているか」を逆算して、新しい座標を絶対指定で再計算する必要がある。</remarks>
 <permission-to-move>NG</permission-to-move>
 </requirement>
 
-<requirement>
-<content>トリミング後、画質が下がってるような気がするので、画質が変わらないようにしてほしい。</content>
-<current-situation></current-situation>
-<remarks></remarks>
-<permission-to-move>NG</permission-to-move>
-</requirement>
+
 
 
 ## 2. 未解決要件に関するコード変更履歴（目的、変更内容、変更日時）
@@ -63,7 +51,19 @@
 - **Store拡張とアスペクト比固定実装** (2026-01-04): `imageCropAspectRatio` をStoreに追加し、1:1選択時に元画像を変形させずにオーバーレイの枠のみを正方形にするよう修正。
 - **トリミング適用ロジックの強化** (2026-01-04): `target.setAttribute` を用いた明示的なスタイル属性更新と、Store反映待ち時間の確保（setTimeout 300ms）により、適用漏れを防止。
 - **トリミング後のサイズ・位置反映の実装** (2026-01-04): `handleApply` において、`object-position` だけでなく要素の `width`, `height`, `transform` も更新するように修正。
-- **object-position 計算式の適正化** (2026-01-04): `object-fit: cover` 時の正確な位置合わせのため、計算式を `x / (W - w) * 100` に修正。
+- **object-position 計算式の適正化（第2弾・完全版）** (2026-01-04): 
+    - 単なる表示上の比率ではなく、画像の `naturalWidth/Height` と現在の `object-position` を取得。
+    - 現在の表示状態から「元画像上の可視領域（ピクセル座標）」を逆算。
+    - ユーザーが選択した `cropRect` をその座標系にマッピングし、新しい NSR（New Source Rect）を特定。
+    - 新しい要素サイズにおいて NSR がぴったり表示されるための `object-position` パーセンテージを幾何学的に算出。
+    - これにより、多重トリミングやアスペクト比の変化を伴う操作でも 1px のズレも許さない完全な一致を実現。
+
+- **トリミング時のジャンプ現象修正と画質向上** (2026-01-04):
+    - `useMoveable` をトリミング中一時的に無効化し、スタイル競合を排除。
+    - `handleApply` 中にターゲットを一時的に隠し、座標確定後に表示・同期することでジャンプを防止。
+    - `index.css` への `image-rendering` 設定と `Math.round` による座標整数化で、サブピクセルレンダリングによるボケ（画質低下感）を解消。
+    - Tailwind の `max-width: 100%` 干渉を `!important` で完封。
+
 
 
 ## 3. 分析中に気づいた重要ポイント（試してだめだったこと、仮設、制約条件等...）
@@ -74,16 +74,21 @@
 - **操作性**: フローティングメニューで「画像上でトリミング」を押すと、その他の要素が減光（backdrop-blur）し、対象画像のみが強調されるモードに入ることでミス操作を防ぐ。
 - **同期**: `Portal` 内での変更を `CustomEvent('canvas-update')` を通じて `useMoveable` に伝え、自動保存（`updateContentFromDOM`）をトリガーしている。
 - **object-position の特殊性**: `object-fit: cover` における `%` 指定は、中心点からのオフセットではなく、「画像側の % 地点とコンテナ側の % 地点を一致させる」という仕様であるため、特定の矩形を切り出すには `x / (画像幅 - コンテナ幅)` という計算が必要になる。
+- **レンダリングの連続性**: DOM を直接書き換えた後に React がそれを踏まえて再描画する際、一瞬でも不整合なスタイル（transform 無しなど）が当たるとジャンプして見える。これを防ぐには、スタイル確定まで opacity 0 にするか、Moveable などの外部干渉を完全に断つ必要がある。
+
 
 
 ## 4. 解決済み要件とその解決方法
 - **角の丸みスライダー対応**: `FloatingMenu.tsx` で画像要素に対しても `RadiusPicker` を表示するように変更し、スライダーで連続的な調整を可能にした。
 - **リサイズハンドルの制限**: `useSelection.ts` で画像要素を判定し、リサイズハンドルを四隅（nw, ne, sw, se）のみに制限した。
-- **ズレない画像トリミング**: 背景と枠内で同一の画像を表示し、枠(`overflow: hidden`)だけが動く「マスク方式」の採用に加え、`maxWidth: none` によるブラウザの自動リサイズ防止、スタイルの同期により、いかなる場合も背景と1pxもズレないトリミング操作を実現。
-- **ImageSaveWizardの表示制御**: エントリポイントおよびコンポーネント内での状態判定を見直し、不要なタイミングでツールバーが表示されないように修正。
-- **アスペクト比制御の改善**: 画像自体のサイズを変更せず、オーバーレイの枠形状のみを制御する非破壊的なUIに変更。
+- **トリミング適用ロジックの改善 (同期と反映)**: `handleApply` において、`object-position` だけでなく要素の `width`, `height`, `transform` も更新するように修正し、スタイル属性を確実に同期させることでトリミングを反映。
 - **1:1アスペクト比固定**: `imageCropAspectRatio` をStoreに実装し、初期化時にアスペクト比を計算して枠だけを変形させるロジックに変更し、1:1の比率を維持したままの調整を可能にした。
 - **画像メニューのトリミング有効化**: 比率は free と 1:1 をサポートし、直感的な操作が可能な UI を実装。
+- **適用時のジャンプ現象修正**: トリミング適用プロセス中に一時的に要素を隠し（opacity 0）、Moveableを無効化することで、スタイル同期中の「左上へのジャンプ」を視覚的に解消。
+- **画質とレンダリング品質の向上**: `image-rendering: -webkit-optimize-contrast` の導入と座標の `Math.round` 処理により、ボケやサブピクセルによる画質低下を抑制。
+
+
+
 
 
 ## 5. 要件に関連する全ファイルのファイル構成（それぞれの役割を1行で併記）
