@@ -28,15 +28,24 @@
 ## 1. 未解決要件（移動許可がNGの要件は絶対に移動・編集しないこと）（勝手に移動許可をOKに書き換えないこと）
 
 <requirement>
-<content>
-- テキストボックス挿入時、デフォルトのフォントカラーは黒にする。
-</content>
-<current-situation>挿入テキストボックスの初期フォントカラーがやはり黒になっていない。</current-situation>
+<content></content>
+<current-situation></current-situation>
 <remarks></remarks>
 <permission-to-move>OK</permission-to-move>
 </requirement>
 
+
 ## 2. 未解決要件に関するコード変更履歴（目的、変更内容、変更日時）
+
+- **FloatingMenu のコンソールエラー修正**
+    - 目的: `useAssets is not defined` エラーによりエディタがクラッシュする問題を解決するため。
+    - 内容: リファクタリング時に誤って削除した `useAssets` フックと `lucide-react` のアイコンインポートを復元。
+    - 日時: 2026-01-04 00:25
+
+- **DesignArea への text-black 適用による文字色問題の解決**
+    - 目的: `body` の `text-white` が継承され、初期テキストが白くなってしまう問題を確実に防ぐため。
+    - 内容: `DesignArea.tsx` のコンテナに `text-black` クラスを追加。これにより、インラインスタイルや専用 CSS がない場合でも、エディタ上では黒文字がデフォルトとなる。
+    - 日時: 2026-01-04 00:27
 
 - **DesignSurfaceへのデフォルトテキストカラー設定**
     - 目的: `body` の `text-white` が継承されてテキストが白くなる問題を解決するため。
@@ -210,6 +219,10 @@
 
 
 ## 4. 解決済み要件とその解決方法
+
+- **テキストボックス挿入時のデフォルト文字色（黒）の保証**
+    - 要件: テキストボックス挿入時、デフォルトのフォントカラーを黒にする。
+    - 解決方法: `index.css` に `.DesignSurface { color: #000000; }` を追加したのに加え、`DesignArea.tsx` に `text-black` を適用。さらに `useElementInsertion.ts` での挿入時にも `color: #000000` を明示的に指定することで、継承問題を完全に解消した。
 
 - **新規作成時のデフォルトデザインのフラット化**
     - 要件: 新規作成時のデフォルトデザインを新仕様に合わせ、すべてフラットな要素とする。

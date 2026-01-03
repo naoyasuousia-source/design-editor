@@ -1,4 +1,12 @@
 import React, { useRef } from 'react';
+import {
+    Circle,
+    Trash2,
+    ImagePlus,
+    Square,
+    Scissors,
+} from 'lucide-react';
+import { useAssets } from '@/hooks/useAssets';
 import { cn } from '@/utils/cn';
 import { useFloatingMenu } from '@/hooks/useFloatingMenu';
 import ColorPalette from './floating-menu/ColorPalette';

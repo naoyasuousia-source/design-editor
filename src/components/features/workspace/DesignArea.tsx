@@ -61,7 +61,7 @@ const DesignArea: React.FC<DesignAreaProps> = ({
         <div
             ref={canvasRef}
             className={cn(
-                "w-full h-full bg-white relative",
+                "w-full h-full bg-white text-black relative",
                 isLocked && "brightness-75 grayscale-[0.2]"
             )}
             onMouseDown={handleCanvasClick}
