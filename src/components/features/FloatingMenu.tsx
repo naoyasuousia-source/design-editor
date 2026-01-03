@@ -59,9 +59,6 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectio
 
     if (!rect || !target) return null;
 
-    // グループ選択モードの場合は、グループ専用メニューを表示
-    const isGroupMode = selectionMode === 'group';
-
     // 個別選択モードの場合は、activeSubTarget を使用
     const displayTarget = selectionMode === 'individual' && activeSubTarget ? activeSubTarget : target;
 
@@ -85,11 +82,14 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectio
         firstGroupId !== null &&
         targets.every(el => el.getAttribute('data-group-id') === firstGroupId);
 
-    // 複数選択で、まだグループ化されていない（同じグループIDを持っていない）場合
+    // 複数選択で、まだグループ化されていない（または異なるグループが混在している）場合
     const canGroup = targets.length > 1 && !isGrouped;
 
+    // モード判定の整理
+    const isExistingGroupMode = selectionMode === 'group' && isGrouped;
+
     // グループIDを取得
-    const groupId = isGrouped ? targets[0]?.getAttribute('data-group-id') : null;
+    const groupId = isGrouped ? firstGroupId : null;
 
     const handleCopyId = () => {
         if (!displayTarget.id) return;
@@ -115,8 +115,8 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectio
                 transform: 'translateX(-50%)',
             }}
         >
-            {/* グループ選択モードの場合のヘッダー */}
-            {isGroupMode && groupId ? (
+            {/* ヘッダーの描画 */}
+            {isExistingGroupMode ? (
                 <div className="flex items-center justify-between px-2 py-1.5 border-b border-orange-500/30 bg-orange-500/10 rounded-t-md">
                     <div className="flex items-center gap-1.5 overflow-hidden">
                         <Group size={12} className="text-orange-400" />
@@ -133,12 +133,11 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectio
                     </button>
                 </div>
             ) : canGroup ? (
-                // 複数選択（まだグループ化されていない）の場合のヘッダー
                 <div className="flex items-center justify-between px-2 py-1.5 border-b border-blue-500/30 bg-blue-500/10 rounded-t-md">
                     <div className="flex items-center gap-1.5 overflow-hidden">
                         <Group size={12} className="text-blue-400" />
-                        <span className="text-[10px] font-mono text-blue-300 truncate">
-                            {targets.length}個の要素を選択中
+                        <span className="text-[10px] font-bold text-blue-300 truncate">
+                            複数要素選択中
                         </span>
                     </div>
                 </div>
@@ -147,7 +146,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectio
                     <div className="flex items-center gap-1.5 overflow-hidden">
                         <Hash size={10} className="text-gray-500" />
                         <span className="text-[10px] font-mono text-gray-400 truncate">
-                            {targets.length > 1 && !isGroupMode ? `${targets.length} elements selected` : displayTarget.id || 'no-id'}
+                            {displayTarget.id || 'no-id'}
                         </span>
                     </div>
                     {displayTarget.id && (
@@ -158,16 +157,16 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectio
                 </div>
             )}
 
-            {/* 複数選択（まだグループ化されていない）の場合のメニュー */}
+            {/* メニュー内容の描画 */}
             {canGroup ? (
                 <div className="flex items-center gap-1 p-1">
                     <button
                         className="p-1.5 hover:bg-blue-500/20 rounded text-blue-400 hover:text-blue-300 transition-all flex items-center gap-1"
                         onClick={handleGroup}
-                        title="Group"
+                        title="Group All"
                     >
                         <Group size={14} />
-                        <span className="text-xs">グループ化</span>
+                        <span className="text-xs font-bold">グループ化</span>
                     </button>
                     <button
                         className="p-1.5 hover:bg-red-500/20 rounded text-red-400 hover:text-red-300 transition-all flex items-center gap-1"
@@ -175,11 +174,10 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectio
                         title="Delete All"
                     >
                         <Trash2 size={14} />
-                        <span className="text-xs">削除</span>
+                        <span className="text-xs font-bold">削除</span>
                     </button>
                 </div>
-            ) : isGroupMode ? (
-                // グループ選択モードの場合はグループ専用メニューのみ表示
+            ) : isExistingGroupMode ? (
                 <div className="flex items-center gap-1 p-1">
                     <button
                         className="p-1.5 hover:bg-orange-500/20 rounded text-orange-400 hover:text-orange-300 transition-all flex items-center gap-1"
@@ -187,7 +185,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectio
                         title="Ungroup"
                     >
                         <Ungroup size={14} />
-                        <span className="text-xs">解除</span>
+                        <span className="text-xs font-bold">解除</span>
                     </button>
                     <button
                         className="p-1.5 hover:bg-red-500/20 rounded text-red-400 hover:text-red-300 transition-all flex items-center gap-1"
@@ -195,7 +193,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectio
                         title="Delete Group"
                     >
                         <Trash2 size={14} />
-                        <span className="text-xs">削除</span>
+                        <span className="text-xs font-bold">全削除</span>
                     </button>
                 </div>
             ) : (
@@ -431,8 +429,6 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectio
                         )}
 
                         <div className="flex items-center gap-1 px-1">
-                            {canGroup && <button className="p-1.5 hover:bg-white/5 rounded text-gray-400 hover:text-blue-400 transition-all" onClick={handleGroup} title="Group"><Group size={14} /></button>}
-                            {isGrouped && <button className="p-1.5 hover:bg-white/5 rounded text-gray-400 hover:text-orange-400 transition-all" onClick={handleUngroup} title="Ungroup"><Ungroup size={14} /></button>}
                             <button className="p-1.5 hover:bg-red-500/20 rounded text-gray-400 hover:text-red-400 transition-all" onClick={() => { targets.forEach(el => el.remove()); onUpdate(); }} title="Delete"><Trash2 size={14} /></button>
                         </div>
                     </div>

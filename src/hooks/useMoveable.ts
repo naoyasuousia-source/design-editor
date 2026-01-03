@@ -82,16 +82,23 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
                 : [el];
 
             if (isShift) {
-                // シフト押下時は従来通り
-                setTargets(prev => {
-                    const alreadySelected = groupElements.every(item => prev.includes(item));
-                    if (alreadySelected) {
-                        return prev.filter(item => !groupElements.includes(item));
-                    } else {
-                        return [...prev, ...groupElements];
-                    }
-                });
-                setSelectionMode('group');
+                // シフト押下時：要素の重複を排除しながら追加/削除
+                const hasAll = groupElements.every(el => targets.includes(el));
+                const nextTargets = hasAll
+                    ? targets.filter(el => !groupElements.includes(el))
+                    : Array.from(new Set([...targets, ...groupElements]));
+
+                setTargets(nextTargets);
+
+                // モード判定：すべて同じグループIDを持つなら group、そうでなければ individual (複数選択状態)
+                const firstGid = nextTargets[0]?.getAttribute('data-group-id');
+                const isSameGroup = nextTargets.length > 1 &&
+                    firstGid !== null &&
+                    nextTargets.every(t => t.getAttribute('data-group-id') === firstGid);
+
+                setSelectionMode(isSameGroup ? 'group' : 'individual');
+                // 複数選択時は個別選択ターゲットをクリア（青枠を出さず、グループメニューを優先するため）
+                setActiveSubTarget(null);
             } else {
                 // 通常クリック：2段階選択ロジック
                 if (groupId) {

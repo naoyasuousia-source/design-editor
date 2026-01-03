@@ -121,6 +121,7 @@ const MoveableManager: React.FC<MoveableManagerProps> = ({
             const bounds = calculateGroupBounds(targets, canvasRef.current);
             if (bounds) {
                 overlay.style.display = 'block';
+                overlay.style.pointerEvents = 'none'; // 戻す
                 overlay.style.left = `${bounds.left}px`;
                 overlay.style.top = `${bounds.top}px`;
                 overlay.style.width = `${bounds.width}px`;
@@ -128,6 +129,7 @@ const MoveableManager: React.FC<MoveableManagerProps> = ({
             }
         } else {
             overlay.style.display = 'none';
+            overlay.style.pointerEvents = 'none';
         }
 
         // Moveableが正しくターゲットを認識できるように強制更新
@@ -149,7 +151,7 @@ const MoveableManager: React.FC<MoveableManagerProps> = ({
 
     // オーバーレイの位置を更新するヘルパー
     const updateOverlayBounds = useCallback(() => {
-        if (!groupOverlay || !hasGroupId || !canvasRef.current) return;
+        if (!groupOverlay || !canvasRef.current) return;
         const bounds = calculateGroupBounds(targets, canvasRef.current);
         if (bounds) {
             groupOverlay.style.left = `${bounds.left}px`;
@@ -157,19 +159,25 @@ const MoveableManager: React.FC<MoveableManagerProps> = ({
             groupOverlay.style.width = `${bounds.width}px`;
             groupOverlay.style.height = `${bounds.height}px`;
         }
-    }, [groupOverlay, hasGroupId, targets, canvasRef]);
+    }, [groupOverlay, targets, canvasRef]);
 
     // オーバーレイが存在し、表示されているかどうか
     const showGroupMoveable = groupOverlay &&
-        hasGroupId &&
+        (targets.length > 1 || hasGroupId) &&
         (selectionMode === 'group' || selectionMode === 'individual') &&
         groupOverlay.style.display !== 'none';
+
+    // 選択状態を表す一意のキー（Moveableの再生成をトリガー）
+    const selectionKey = useMemo(() => {
+        return `${selectionMode}-${targets.map(t => t.id).join(',')}`;
+    }, [selectionMode, targets]);
 
     return (
         <>
             {/* グループ選択用のオレンジ枠（オーバーレイ要素を対象） */}
             {showGroupMoveable && (
                 <Moveable
+                    key={selectionKey}
                     target={groupOverlay}
                     container={canvasRef.current || undefined}
                     draggable={selectionMode === 'group'}
@@ -187,6 +195,7 @@ const MoveableManager: React.FC<MoveableManagerProps> = ({
                     throttleDrag={1}
                     throttleResize={1}
                     zoom={1 / zoom}
+                    hideChildMoveableControls={false}
                     className="moveable-group-selection"
                     onDrag={e => {
                         // オーバーレイを移動

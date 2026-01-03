@@ -21,19 +21,45 @@ export const useFloatingMenu = (targets: HTMLElement[], onUpdate: () => void) =>
     const target = targets[0];
 
     useEffect(() => {
-        if (!target) return;
-        const updateRect = () => setRect(target.getBoundingClientRect());
+        if (targets.length === 0) return;
+
+        const updateRect = () => {
+            if (targets.length === 1) {
+                setRect(targets[0].getBoundingClientRect());
+            } else {
+                // 複数要素の最小/最大座標を計算してバウンディングボックスを作成
+                let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+                targets.forEach(el => {
+                    const r = el.getBoundingClientRect();
+                    minX = Math.min(minX, r.left);
+                    minY = Math.min(minY, r.top);
+                    maxX = Math.max(maxX, r.right);
+                    maxY = Math.max(maxY, r.bottom);
+                });
+
+                if (minX !== Infinity) {
+                    setRect(new DOMRect(minX, minY, maxX - minX, maxY - minY));
+                }
+            }
+        };
+
         updateRect();
         window.addEventListener('scroll', updateRect, true);
         window.addEventListener('resize', updateRect);
-        const observer = new MutationObserver(updateRect);
-        observer.observe(target, { attributes: true, subtree: true });
+
+        // 全要素を監視
+        const observers = targets.map(el => {
+            const obs = new MutationObserver(updateRect);
+            obs.observe(el, { attributes: true, subtree: true, characterData: true });
+            return obs;
+        });
+
         return () => {
             window.removeEventListener('scroll', updateRect, true);
             window.removeEventListener('resize', updateRect);
-            observer.disconnect();
+            observers.forEach(obs => obs.disconnect());
         };
-    }, [target]);
+    }, [targets]);
 
     const applyStyle = useCallback((property: keyof CSSStyleDeclaration, value: string, shouldUpdateStore = true) => {
         targets.forEach(el => {
