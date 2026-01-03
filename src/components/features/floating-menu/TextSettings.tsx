@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bold, ChevronDown } from 'lucide-react';
+import { Bold, ChevronDown, AlignJustify, Sparkles } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { EDITOR_FONTS } from '@/constants/editor';
 
@@ -13,6 +13,10 @@ interface TextSettingsProps {
     setShowColorPalette: (show: boolean) => void;
     onApply: (property: keyof CSSStyleDeclaration, value: string) => void;
     onToggleBold: () => void;
+    showParagraphSettings: boolean;
+    setShowParagraphSettings: (show: boolean) => void;
+    showEffectSettings: boolean;
+    setShowEffectSettings: (show: boolean) => void;
 }
 
 const TextSettings: React.FC<TextSettingsProps> = ({
@@ -22,7 +26,11 @@ const TextSettings: React.FC<TextSettingsProps> = ({
     showColorPalette,
     setShowColorPalette,
     onApply,
-    onToggleBold
+    onToggleBold,
+    showParagraphSettings,
+    setShowParagraphSettings,
+    showEffectSettings,
+    setShowEffectSettings
 }) => {
     const currentFontSize = Math.round(parseFloat(window.getComputedStyle(target).fontSize) || 16);
     const fontWeight = window.getComputedStyle(target).fontWeight;
@@ -94,6 +102,28 @@ const TextSettings: React.FC<TextSettingsProps> = ({
                     onClick={() => setShowColorPalette(!showColorPalette)}
                 >
                     {showColorPalette && <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-blue-500 rounded-full" />}
+                </button>
+            </div>
+            <div className="flex items-center gap-1 px-1 border-r border-white/5">
+                <button
+                    className={cn(
+                        "p-1.5 rounded transition-all",
+                        showParagraphSettings ? "bg-blue-500 text-white" : "text-gray-400 hover:bg-white/5 hover:text-white"
+                    )}
+                    onClick={() => setShowParagraphSettings(!showParagraphSettings)}
+                    title="Paragraph Styles"
+                >
+                    <AlignJustify size={14} />
+                </button>
+                <button
+                    className={cn(
+                        "p-1.5 rounded transition-all",
+                        showEffectSettings ? "bg-blue-500 text-white" : "text-gray-400 hover:bg-white/5 hover:text-white"
+                    )}
+                    onClick={() => setShowEffectSettings(!showEffectSettings)}
+                    title="Effects"
+                >
+                    <Sparkles size={14} />
                 </button>
             </div>
         </>

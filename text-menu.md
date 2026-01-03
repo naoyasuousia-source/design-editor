@@ -27,17 +27,39 @@
 
 ## 1. 未解決要件（移動許可がNGの要件は絶対に移動・編集しないこと）（勝手に移動許可をOKに書き換えないこと）
 
-（現在、未解決の要件はありません）
+<requirement>
+<content>
 
-
-
+## テキストメニュー拡張
+テキストメニューに以下を追加する。
+**テキストメニューのUIは二つ追加、それぞれ文字カラーメニューのように、UIボタンを押すと、以下のように展開する。**
+- 段落スタイル（以下展開サブメニュー）
+    - 文字揃え（左揃え、右揃え、中央揃え）
+    - 縦書き横書き可変トグル
+    - 文字間隔・行間隔可変スライダー
+- エフェクト（以下展開サブメニュー）
+    - 影（影の色、オフセット/向き/透明度スライダー）
+    - 背景（背景の色、スプレッド/角の丸み/透明度スライダー）
+    - 袋文字（袋文字の色、太さスライダー）
+</content>
+<current-situation>
+- `ParagraphSettings` および `EffectSettings` パネルの実装が完了。
+- 各パネルを開くためのアイコン（AlignJustify, Sparkles）を `TextSettings` に追加。
+- 影、背景色、袋文字色を選択するための個別カラーパレット制御を `FloatingMenu` に実装。
+- `letterSpacing`, `lineHeight`, `writingMode`, `textShadow`, `webkitTextStroke` 等のプロパティ操作に対応。
+</current-situation>
+<remarks></remarks>
+<permission-to-move>NG</permission-to-move>
+</requirement>
 
 
 ## 2. 未解決要件に関するコード変更履歴（目的、変更内容、変更日時）
+- 2026-01-03: テキストメニュー拡張（段落スタイル・エフェクト）の実装
+    - `ParagraphSettings.tsx` を新規作成。文字揃え、縦書き切替、文字間隔・行間隔スライダーを実装。
+    - `EffectSettings.tsx` を新規作成。テキスト影、背景装飾（padding/radius）、袋文字（stroke）の調整機能を実装。
+    - `FloatingMenu.tsx` / `useFloatingMenu.ts` / `TextSettings.tsx` を更新し、サブパネルのステート管理と UI 統合を実施。
+    - 影や袋文字の色を個別に変更できるよう、複数のカラーパレット制御ロジックを追加。
 - 2026-01-03: `FloatingMenu.tsx` の表示位置最適化
-    - 画面上部付近の要素でメニューが画面外に見切れる問題を修正。
-    - 垂直方向の余白を判定し、状況に応じて上展開（bottom固定）と下展開（top固定）を自動的に切り替えるロジックを導入。
-- 2026-01-03: `FloatingMenu.tsx` / `Workspace.tsx` / `useMoveable.ts` の改善
     - 角丸の連続変更スライダーおよびサブパネルを実装。
     - リサイズ開始時の初期状態記録（`data-start-*`）を導入し、累積誤差のない「完全なレスポンシビスケーリング」を実現。
     - 図形要素の判定を `url()` メソッド等で厳密化し、不要なアイコンを徹底排除。
@@ -73,6 +95,9 @@
 
 ## 5. 要件に関連する全ファイルのファイル構成（それぞれの役割を1行で併記）
 - `src/components/features/FloatingMenu.tsx`: 要素選択時に表示される共通編集メニュー。
+- `src/components/features/floating-menu/TextSettings.tsx`: テキスト要素の基本設定（フォント、サイズ、太字、色）。
+- `src/components/features/floating-menu/ParagraphSettings.tsx`: テキストの段落設定（文字揃え、縦書き、間隔）。
+- `src/components/features/floating-menu/EffectSettings.tsx`: テキストの視覚効果（影、背景、袋文字）。
 - `src/components/features/Workspace.tsx`: キャンバス描画と Moveable、FloatingMenu の統合。
 - `src/hooks/useMoveable.ts`: 要素の選択、移動、リサイズ、テキスト編集状態の管理。
 - `src/constants/editor.ts`: フォントリストや定数の定義。
@@ -80,7 +105,8 @@
 ## 6. 要件に関する機能の技術スタックと動作原理（依存関係含む）
 - **UI コンポーネント**: `lucide-react` (アイコン), `Tailwind CSS` (スタイリング)。
 - **操作ツール**: `react-moveable` (要素の GUI 操作)。
-- **カラー選択**: ブラウザ標準の EyeDropper API とカスタムパレット（28色）。
+- **カラー選択**: ブラウザ標準の EyeDropper API とカスタムパレット（28色）。影、背景、袋文字の色も個別に管理可能。
+- **スタイル操作**: `CSSStyleDeclaration` を介したインラインスタイルの直接操作。`writing-mode` や `-webkit-text-stroke` 等の高度なプロパティにも対応。
 - **DOM 追跡**: `useMoveable.ts` 内の `useEffect` による `id` ベースの再同期（コンテンツ更新後のメニュー位置維持のため）。
 - **フォントサイズ UI**: 隠し `select` と `ChevronDown` アイコンを組み合わせたカスタムコンポーネント。
 - **データ管理**: ストアへの同期は `onUpdate` (Workspace 経由で `updateContentFromDOM`) を通じて行われる。

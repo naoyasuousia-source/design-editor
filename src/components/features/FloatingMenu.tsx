@@ -19,6 +19,8 @@ import ImagePositionPanel from './floating-menu/ImagePositionPanel';
 import RadiusPicker from './floating-menu/RadiusPicker';
 import ImageReplacePanel from './floating-menu/ImageReplacePanel';
 import TextSettings from './floating-menu/TextSettings';
+import ParagraphSettings from './floating-menu/ParagraphSettings';
+import EffectSettings from './floating-menu/EffectSettings';
 
 interface FloatingMenuProps {
     targets: HTMLElement[];
@@ -40,6 +42,11 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
         showRadiusPicker, setShowRadiusPicker,
         localRadius, setLocalRadius,
         showSizeDropdown, setShowSizeDropdown,
+        showParagraphSettings, setShowParagraphSettings,
+        showEffectSettings, setShowEffectSettings,
+        showShadowPalette, setShowShadowPalette,
+        showTextBgPalette, setShowTextBgPalette,
+        showStrokePalette, setShowStrokePalette,
         isResponsiveResize, setResponsiveResize,
         applyStyle,
         handleGroup,
@@ -100,6 +107,56 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
             {showColorPalette && <ColorPalette type="color" onPick={openEyeDropper} onApply={applyStyle} />}
             {showBgPalette && <ColorPalette type="backgroundColor" onPick={openEyeDropper} onApply={applyStyle} />}
             {showBorderPalette && <ColorPalette type="borderColor" onPick={openEyeDropper} onApply={applyStyle} />}
+            {showShadowPalette && (
+                <ColorPalette
+                    type="none"
+                    onPick={() => openEyeDropper('color')}
+                    onApply={(p, v) => {
+                        const style = window.getComputedStyle(target);
+                        const current = target.style.textShadow || style.textShadow;
+                        const parts = current.split(' ');
+                        const nums = parts.filter(p => p.includes('px'));
+                        applyStyle('textShadow' as any, `${nums.join(' ')} ${v}`);
+                    }}
+                />
+            )}
+            {showTextBgPalette && (
+                <ColorPalette
+                    type="backgroundColor"
+                    onPick={() => openEyeDropper('backgroundColor')}
+                    onApply={(p, v) => applyStyle('backgroundColor', v)}
+                />
+            )}
+            {showStrokePalette && (
+                <ColorPalette
+                    type="none"
+                    onPick={() => openEyeDropper('color')}
+                    onApply={(p, v) => applyStyle('webkitTextStrokeColor' as any, v)}
+                />
+            )}
+
+            {showParagraphSettings && isText && (
+                <ParagraphSettings
+                    target={target}
+                    onApply={applyStyle}
+                    onUpdate={onUpdate}
+                />
+            )}
+
+            {showEffectSettings && isText && (
+                <EffectSettings
+                    target={target}
+                    showShadowPalette={showShadowPalette}
+                    setShowShadowPalette={setShowShadowPalette}
+                    showTextBgPalette={showTextBgPalette}
+                    setShowTextBgPalette={setShowTextBgPalette}
+                    showStrokePalette={showStrokePalette}
+                    setShowStrokePalette={setShowStrokePalette}
+                    onApply={applyStyle}
+                    onUpdate={onUpdate}
+                    closeAllPanels={closeAllPanels}
+                />
+            )}
 
             {showCropPicker && isImage && <ImagePositionPanel target={target} onUpdate={onUpdate} />}
 
@@ -136,6 +193,16 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
                         }}
                         onApply={applyStyle}
                         onToggleBold={toggleBold}
+                        showParagraphSettings={showParagraphSettings}
+                        setShowParagraphSettings={(show) => {
+                            closeAllPanels();
+                            setShowParagraphSettings(show);
+                        }}
+                        showEffectSettings={showEffectSettings}
+                        setShowEffectSettings={(show) => {
+                            closeAllPanels();
+                            setShowEffectSettings(show);
+                        }}
                     />
                 )}
 

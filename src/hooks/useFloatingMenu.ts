@@ -11,6 +11,11 @@ export const useFloatingMenu = (targets: HTMLElement[], onUpdate: () => void) =>
     const [showRadiusPicker, setShowRadiusPicker] = useState(false);
     const [localRadius, setLocalRadius] = useState<number | null>(null);
     const [showSizeDropdown, setShowSizeDropdown] = useState(false);
+    const [showParagraphSettings, setShowParagraphSettings] = useState(false);
+    const [showEffectSettings, setShowEffectSettings] = useState(false);
+    const [showShadowPalette, setShowShadowPalette] = useState(false);
+    const [showTextBgPalette, setShowTextBgPalette] = useState(false);
+    const [showStrokePalette, setShowStrokePalette] = useState(false);
 
     const { isResponsiveResize, setResponsiveResize } = useEditorStore();
     const target = targets[0];
@@ -79,6 +84,11 @@ export const useFloatingMenu = (targets: HTMLElement[], onUpdate: () => void) =>
         setShowCropPicker(false);
         setShowImagePicker(false);
         setShowSizeDropdown(false);
+        setShowParagraphSettings(false);
+        setShowEffectSettings(false);
+        setShowShadowPalette(false);
+        setShowTextBgPalette(false);
+        setShowStrokePalette(false);
     }, []);
 
     return {
@@ -100,6 +110,16 @@ export const useFloatingMenu = (targets: HTMLElement[], onUpdate: () => void) =>
         setLocalRadius,
         showSizeDropdown,
         setShowSizeDropdown,
+        showParagraphSettings,
+        setShowParagraphSettings,
+        showEffectSettings,
+        setShowEffectSettings,
+        showShadowPalette,
+        setShowShadowPalette,
+        showTextBgPalette,
+        setShowTextBgPalette,
+        showStrokePalette,
+        setShowStrokePalette,
         isResponsiveResize,
         setResponsiveResize,
         applyStyle,
