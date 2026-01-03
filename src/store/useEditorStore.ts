@@ -22,7 +22,8 @@ interface EditorStore extends EditorState {
     pushHistory: (content: string) => void;
     // 承認フロー用
     setLocked: (isLocked: boolean) => void;
-    detectExternalUpdate: (newContent: string, snapshot: string | null) => void;
+    detectExternalUpdate: (newFullContent: string, snapshot: string | null) => void;
+    setApplyingUpdate: (isApplying: boolean) => void;
     approveUpdate: () => Promise<void>;
     discardUpdate: () => Promise<void>;
     setMetaMessage: (meta: Partial<import('@/types/editor').MetaMessage>) => void;
@@ -60,8 +61,10 @@ const initialState: EditorState & {
         future: [],
     },
     isLocked: false,
+    isApplyingUpdate: false,
     hasPendingChanges: false,
     pendingContent: '',
+    prePendingContent: '',
     pendingSnapshot: null,
     metaMessage: {
         requirements: [],
@@ -123,56 +126,65 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     setLocked: (isLocked) => set({ isLocked }),
 
     detectExternalUpdate: (newFullContent, snapshot) => {
+        const { content } = get();
         const meta = parseMetaMessage(newFullContent);
         const designContent = extractDesignContent(newFullContent);
 
         set({
             hasPendingChanges: true,
             isLocked: true,
+            isApplyingUpdate: true, // ロード中表示ON
+            prePendingContent: content, // 元のデータを退避
+            content: designContent, // 先に反映させておく
             pendingContent: designContent,
             pendingSnapshot: snapshot,
-            // 外部更新時もメタデータを更新（承認待ち状態だが、比較用に保持）
             metaMessage: meta || get().metaMessage,
         });
     },
 
+    setApplyingUpdate: (isApplyingUpdate) => set({ isApplyingUpdate }),
+
     approveUpdate: async () => {
-        const { pendingContent, folderHandle, fileName, metaMessage } = get();
+        const { content, currentFileHandle, metaMessage } = get();
 
-        // 履歴を積んでから更新
-        get().setContent(pendingContent);
-
-        // 承認した場合は、上書き保存後、ロック解除。
-        if (folderHandle && fileName) {
+        // 承認した場合は、すでに反映されている content をファイルに保存する
+        if (currentFileHandle) {
             const { fileSystemService } = await import('@/services/fileSystem');
-            const fullHtml = constructFullHTML(pendingContent, metaMessage);
-            await fileSystemService.saveFile(folderHandle, fileName, fullHtml);
+            const fullHtml = constructFullHTML(content, metaMessage);
+            await fileSystemService.saveToCurrentFile(currentFileHandle, fullHtml);
         }
 
         set({
             hasPendingChanges: false,
             isLocked: false,
+            isApplyingUpdate: false,
             pendingContent: '',
+            prePendingContent: '',
             pendingSnapshot: null,
             isDirty: false,
+            lastSaveTime: Date.now(),
         });
     },
 
     discardUpdate: async () => {
-        const { content, folderHandle, fileName, metaMessage } = get();
+        const { prePendingContent, currentFileHandle, metaMessage } = get();
 
-        // 破棄した場合は、AIの変更を破棄し、元のデザインに戻して上書き保存。
-        if (folderHandle && fileName) {
+        // 破棄した場合は、退避しておいた prePendingContent に戻して上書き保存。
+        if (currentFileHandle) {
             const { fileSystemService } = await import('@/services/fileSystem');
-            const fullHtml = constructFullHTML(content, metaMessage);
-            await fileSystemService.saveFile(folderHandle, fileName, fullHtml);
+            const fullHtml = constructFullHTML(prePendingContent, metaMessage);
+            await fileSystemService.saveToCurrentFile(currentFileHandle, fullHtml);
         }
 
         set({
+            content: prePendingContent,
             hasPendingChanges: false,
             isLocked: false,
+            isApplyingUpdate: false,
             pendingContent: '',
+            prePendingContent: '',
             pendingSnapshot: null,
+            lastSaveTime: Date.now(),
         });
     },
 

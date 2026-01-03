@@ -43,8 +43,10 @@ export type EditorState = {
     };
     // 承認フロー用
     isLocked: boolean;
+    isApplyingUpdate: boolean;
     hasPendingChanges: boolean;
     pendingContent: string;
+    prePendingContent: string;
     pendingSnapshot: string | null; // Base64
     metaMessage: MetaMessage;
     lastSaveTime: number;

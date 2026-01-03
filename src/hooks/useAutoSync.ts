@@ -48,9 +48,9 @@ export const useAutoSync = () => {
                 if (currentModified > lastModifiedRef.current) {
                     console.log(`File change detected: ${currentFileHandle.name} (Modified: ${currentModified})`);
 
-                    // 自己保存直後の場合は無視する（2秒以内のバッファ）
-                    // lastSaveTime は保存完了時に Date.now() で更新される
-                    if (Date.now() - useEditorStore.getState().lastSaveTime < 2000) {
+                    // 自己保存直後の場合は無視する（3秒以内のバッファ）
+                    // lastSaveTime は保存開始時および完了時に更新される
+                    if (Date.now() - useEditorStore.getState().lastSaveTime < 3000) {
                         console.log('Ignoring self-save update (within buffer)');
                         lastModifiedRef.current = currentModified;
                         return;
@@ -78,6 +78,11 @@ export const useAutoSync = () => {
                     // 以前に snapshot が null であっても、ここでは実行を継続する
                     detectExternalUpdate(newContent, snapshot);
 
+                    // レンダリング時間を考慮して、少し待ってから「適用中」表示を消す
+                    setTimeout(() => {
+                        useEditorStore.getState().setApplyingUpdate(false);
+                    }, 600);
+
                     // 最後に検知した時刻を更新
                     lastModifiedRef.current = currentModified;
                 }
@@ -98,18 +103,23 @@ export const useAutoSync = () => {
         if (import.meta.hot) {
             // @ts-ignore
             const unlisten = import.meta.hot.on('design-update', async (data: { fileName: string }) => {
-                const { currentFileHandle, isLocked, hasPendingChanges } = useEditorStore.getState();
+                const { currentFileHandle, isLocked, hasPendingChanges, lastSaveTime } = useEditorStore.getState();
 
                 if (isLocked || hasPendingChanges) return;
 
+                // 自己保存直後の場合は無視する（3秒以内のバッファ）
+                if (Date.now() - lastSaveTime < 3000) {
+                    return;
+                }
+
                 if (currentFileHandle && currentFileHandle.name === data.fileName) {
-                    // HMR シグナルが届いた場合、即座にチェックを実行
-                    console.log('HMR signal received, checking file immediately...');
-                    // インターバルとは別にチェックを走らせる
-                    // lastModified チェックにより重複検知は防がれる
+                    console.log('HMR signal received. File sync will be handled by polling or immediate manual check.');
+                    // note: 現在は polling が 1.5s おきに動いているため、ここではログのみ。
+                    // 確実に即時実行したい場合は checkFile を副作用外に出して共有する必要があるが、
+                    // polling + lastSaveTime 制御で十分安定する。
                 }
             });
             return unlisten;
         }
-    }, [detectExternalUpdate]);
+    }, []);
 };

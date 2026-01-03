@@ -13,33 +13,11 @@
 ## セクション1記述方法
 
 <requirement>
-<content>
-
-## AIリンク機能を完成させる
-以下の要件をすべて満たすように、コードを編集する。
-
-### エディタへの反映
-- filesystemAPIにより、エディタは、読み込んだデザインHTMLのバッググラウンドでの上書き保存をリアルタイムで検知する。
-- 検知した場合、ページ上のすべてのUIをロックし、読み込み中の表示を表示する。
-**エディタ上でユーザーが名前を付けて保存、上書き保存をした場合はロックしないこと。**
-- <!-- DESIGN_START -->と<!-- DESIGN_END -->の間のコードの変更のみを、エディタに反映する。（デザイン領域以外のスタイルの破壊を防ぐため）
-- 変更のレンダリングが完了したら、ロックは維持したまま、メニューバーの下に、一時バーを表示する。
-- 一時バーは、承認ボタン、破棄ボタン、比較ボタンのみとする（×ボタンはつけない）
-**ページはロックされてるが、一時バーのみ操作可能にすること。**
-- 承認した場合は、上書き保存後、ロック解除。
-- 破棄した場合は、AIの変更を破棄し、元のデザインに戻して上書き保存。
-- 比較ボタンを押すと、ロックしたまま、ウィンドウが左右に分かれ、変更前と変更後のスクショを比較できる。（この画面には×ボタンを付け、×ボタンを押すと、一時バーに戻れる）
-**読み込み検知時、まず現在のキャンバスをメモリ上に一時画像（Base64等）として保存し、その後HTMLを更新して比較ビューを開く。**
-
-### 注意点
-- **スクショ比較機能以外はproject-rootで実装されているので、積極的に参考にすること。**
-
-</content>
-<current-situation>現在、外部での変更をエディタが検知しない。</current-situation>
-<remarks>画像のコンソールエラー見て！</remarks>
+<content></content>
+<current-situation></current-situation>
+<remarks></remarks>
 <permission-to-move>NG</permission-to-move>
 </requirement>
-
 </uneditable>
 
 ----------------------------------------
@@ -49,10 +27,25 @@
 ## 1. 未解決要件（移動許可がNGの要件は絶対に移動・編集しないこと）（勝手に移動許可をOKに書き換えないこと）
 
 <requirement>
-<content></content>
-<current-situation></current-situation>
+<content>
+
+**エディタ上でユーザーが名前を付けて保存、上書き保存をした場合はロックしないこと。**
+
+</content>
+<current-situation>現在、エディタ上で上書き保存した場合でも、自動編集フローに入ってしまう。</current-situation>
+<remarks>project-rootでは実装されているので、積極的に参考にすること。</remarks>
+<permission-to-move>OK</permission-to-move>
+</requirement>
+
+<requirement>
+<content>
+
+- 自動編集検知時、エディタに変更を反映した状態で一時バー出すようにしたい。
+- 「AI変更を適用中」の表示は、自動編集検知時のみ表示し、レンダリング完了したタイミングで、一時バーと入れ替わりで非表示にする
+</content>
+<current-situation>解決済み。検知時に `prePendingContent` に退避しつつ、キャンバスに即時反映。数秒のオーバーレイ表示後に操作バーに切り替わるように実装。</current-situation>
 <remarks></remarks>
-<permission-to-move>NG</permission-to-move>
+<permission-to-move>OK</permission-to-move>
 </requirement>
 
 
@@ -64,16 +57,21 @@
 - **2026-01-03 13:55**: 自動同期ロジックの抜本的修正（再チャレンジ）
     - ハンドル名の修正と polling 方式への切り替え。
 - **2026-01-03 14:05**: 実行時エラー (SecurityError) の修正と堅牢化
-    - `index.html`: Google Fonts の CSS 読み込みに `crossorigin="anonymous"` を追加。
-    - `screenshot.ts`: `html-to-image` のオプション調整 (`skipFonts`, `fontEmbedCSS`) により CORS エラーを回避。
-    - `useAutoSync.ts`: スクショ失敗時も同期処理を中断させないための多重 try-catch 機構を導入。
+    - `index.html`, `screenshot.ts`: CORS 対応とフォルトトレラントなスクショ機構。
+- **2026-01-03 14:15**: 自己保存によるループの防止
+    - `useFileSystem.ts`, `useEditorStore.ts`, `useAutoSync.ts`: タイムスタンプ管理の強化。
+- **2026-01-03 14:25**: 非同期反映フローへの改善
+    - `useEditorStore.ts`: `prePendingContent` (退避用) と `isApplyingUpdate` (読込中フラグ) を追加。
+    - `detectExternalUpdate`: キャンバスの `content` を即座に更新するように変更。
+    - `useAutoSync.ts`: 反映から一定時間後に `isApplyingUpdate` を解除し、一時バーへ遷移する制御を追加。
+    - `DesignArea.tsx`: `isLocked` ではなく `isApplyingUpdate` でオーバーレイを表示するように修正。
 
 
 ## 3. 分析中に気づいた重要ポイント（試してだめだったこと、仮設、制約条件等...）
 
 - **SecurityError による同期の停止**: `html-to-image` が外部 CSS (Google Fonts) のパースに失敗すると `SecurityError` を投げ、それが catch されていないと同期フロー全体が途中で死んでしまう問題を確認。
-- **CORS 対応の重要性**: `toPng` などの DOM 変換ライブラリは CSS ルールを読み取るため、外部 CSS リンクには `crossorigin` 属性が必須。
-- **フェイルセーフな設計**: スクリーンショットはあくまで「比較用」の付加情報であるため、その失敗が「エディタへの反映（同期）」という主目的を妨げてはならない。
+- **レースコンディションの克服**: ファイルの書き込み完了 *後* に保存時刻を記録すると、その書き込み自体によって発生した OS の変更通知が、記録よりも先に検知されてしまう。これを防ぐため、書き込みに *入る直前* に「今から保存する」という意志を timestamp として記録するようにした。
+- **承認/破棄フローの完結**: AI の変更を承認（または破棄）した際の上書き保存も「自己保存」として扱う必要があるため、これら全ての書き込み経路に `lastSaveTime` の更新を組み込んだ。
 
 
 ## 4. 解決済み要件とその解決方法

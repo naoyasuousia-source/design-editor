@@ -1,5 +1,6 @@
 import React from 'react';
 import { cn } from '@/utils/cn';
+import { useEditorStore } from '@/store/useEditorStore';
 
 interface DesignAreaProps {
     content: string;
@@ -43,6 +44,8 @@ const DesignArea: React.FC<DesignAreaProps> = ({
     handleCanvasClick,
     updateContentFromDOM
 }) => {
+    const isApplyingUpdate = useEditorStore(state => state.isApplyingUpdate);
+
     return (
         <div
             ref={canvasRef}
@@ -97,7 +100,7 @@ const DesignArea: React.FC<DesignAreaProps> = ({
                 </div>
             )}
 
-            {isLocked && (
+            {isApplyingUpdate && (
                 <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/5 backdrop-blur-[2px] pointer-events-none animate-in fade-in duration-500">
                     <div className="flex flex-col items-center gap-4 p-8 rounded-3xl bg-white/40 shadow-2xl border border-white/20 backdrop-blur-md">
                         <div className="relative">

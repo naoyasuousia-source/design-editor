@@ -149,6 +149,9 @@ export const useFileSystem = () => {
         }
 
         try {
+            // 保存開始時刻を記録（同期スキップ用）
+            setLastSaveTime(Date.now());
+
             // HTML を構築
             const fullHTML = constructFullHTML(content, metaMessage);
             console.log('fullHTML constructed, length:', fullHTML.length);
