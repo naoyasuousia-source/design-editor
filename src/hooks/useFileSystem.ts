@@ -133,6 +133,7 @@ export const useFileSystem = () => {
                 }
             }
             setDirty(false);
+            setLastSaveTime(Date.now());
 
             console.log('ファイルを開きました:', fileHandle.name);
         } catch (error) {

@@ -25,17 +25,6 @@ export const useAutoSync = () => {
     useEffect(() => {
         if (!currentFileHandle) return;
 
-        // 初期化時に現在の最終更新時刻を取得
-        const init = async () => {
-            try {
-                const file = await currentFileHandle.getFile();
-                lastModifiedRef.current = file.lastModified;
-            } catch (e) {
-                console.error('Failed to initialize auto-sync polling:', e);
-            }
-        };
-        init();
-
         const checkFile = async () => {
             // 他の承認フローが実行中の場合はチェックをスキップ
             if (isLockedRef.current) return;
@@ -49,36 +38,31 @@ export const useAutoSync = () => {
                     console.log(`File change detected: ${currentFileHandle.name} (Modified: ${currentModified})`);
 
                     // 自己保存直後の場合は無視する（3秒以内のバッファ）
-                    // lastSaveTime は保存開始時および完了時に更新される
                     if (Date.now() - useEditorStore.getState().lastSaveTime < 3000) {
                         console.log('Ignoring self-save update (within buffer)');
                         lastModifiedRef.current = currentModified;
                         return;
                     }
 
-                    // 1. まず現在のキャンバスをスクショ（変更前の状態を保持するため）
+                    // 1. まず現在のキャンバスをスクショ
                     const canvasElement = document.querySelector('.DesignSurface') as HTMLElement;
                     let snapshot = null;
                     if (canvasElement) {
                         try {
                             const { captureCanvas } = await import('@/utils/screenshot');
                             snapshot = await captureCanvas(canvasElement);
-                            if (snapshot) {
-                                console.log('Snapshot taken for comparison.');
-                            }
                         } catch (captureErr) {
-                            console.warn('Snapshot capture failed, but sync will continue:', captureErr);
+                            console.warn('Snapshot capture failed:', captureErr);
                         }
                     }
 
                     // 2. 新しい内容を読み込む
                     const newContent = await file.text();
 
-                    // 3. ストアに通知（ここでロック & 一時バー表示）
-                    // 以前に snapshot が null であっても、ここでは実行を継続する
+                    // 3. ストアに通知
                     detectExternalUpdate(newContent, snapshot);
 
-                    // レンダリング時間を考慮して、少し待ってから「適用中」表示を消す
+                    // レンダリング時間を考慮して適用中表示を消す
                     setTimeout(() => {
                         useEditorStore.getState().setApplyingUpdate(false);
                     }, 600);
@@ -87,14 +71,36 @@ export const useAutoSync = () => {
                     lastModifiedRef.current = currentModified;
                 }
             } catch (err) {
-                // ファイルハンドルが無効になった場合などのエラー。ログのみ。
                 console.warn('AutoSync polling error:', err);
             }
         };
 
-        const interval = window.setInterval(checkFile, 1500); // 1.5秒おきにチェック
+        // 初期化時に現在の最終更新時刻を取得
+        const initAndStart = async () => {
+            try {
+                const file = await currentFileHandle.getFile();
+                lastModifiedRef.current = file.lastModified;
+                console.log(`AutoSync initialized for ${currentFileHandle.name} (Modified: ${lastModifiedRef.current})`);
 
-        return () => window.clearInterval(interval);
+                // 初期化が終わってからチェックを開始する
+                const interval = window.setInterval(checkFile, 1500);
+                return interval;
+            } catch (e) {
+                console.error('Failed to initialize auto-sync polling:', e);
+                return null;
+            }
+        };
+
+        let activeInterval: number | null = null;
+        initAndStart().then(interval => {
+            activeInterval = interval;
+        });
+
+        return () => {
+            if (activeInterval !== null) {
+                window.clearInterval(activeInterval);
+            }
+        };
     }, [currentFileHandle, detectExternalUpdate]);
 
     // HMR 経由の検知もフォールバックとして残しておく

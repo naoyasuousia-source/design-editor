@@ -6,17 +6,26 @@ import { type MetaMessage, PAGE_SIZES } from '@/types/editor';
  */
 export const parseMetaMessage = (html: string): MetaMessage | null => {
     try {
-        // 1. <!-- USER_REQUIREMENT_START --> からの抽出を試行
-        const commentMatch = html.match(/<!-- USER_REQUIREMENT_START -->([\s\S]*?)<!-- USER_REQUIREMENT_END -->/);
-        if (commentMatch && commentMatch[1]) {
-            return JSON.parse(commentMatch[1].trim());
+        // AI_METADATA_START ブロックを無視するために、まずそれを取り除くか、
+        // 後方のマッチを優先する
+        const matches = Array.from(html.matchAll(/<!-- USER_REQUIREMENT_START -->([\s\S]*?)<!-- USER_REQUIREMENT_END -->/g));
+
+        // 複数ある場合は最後の方（実際のデータ領域）から試行する
+        for (let i = matches.length - 1; i >= 0; i--) {
+            const content = matches[i][1].trim();
+            try {
+                return JSON.parse(content);
+            } catch (e) {
+                // 指示文などの非JSONはスキップして次（前）を探す
+                continue;
+            }
         }
 
-        // 2. 従来の script タグからの抽出を試行
+        // 2. 従来の script タグからの抽出を試行（念のため）
         const scriptMatch = html.match(/<script id="ai-link-metadata" type="application\/json">([\s\S]*?)<\/script>/);
         if (scriptMatch && scriptMatch[1]) {
-            // script タグ内にコメントが含まれている可能性を考慮してクリーンアップ
             let jsonText = scriptMatch[1].trim();
+            // コメントタグが残っている可能性を除去
             jsonText = jsonText.replace(/<!-- USER_REQUIREMENT_START -->/g, '');
             jsonText = jsonText.replace(/<!-- USER_REQUIREMENT_END -->/g, '');
             return JSON.parse(jsonText.trim());
@@ -29,30 +38,50 @@ export const parseMetaMessage = (html: string): MetaMessage | null => {
 
 /**
  * デザイン領域の HTML を抽出する
- * DesignSurface ラッパーを除外し、純粋なコンテンツのみを返す
  */
 export const extractDesignContent = (html: string): string => {
-    // <!-- DESIGN_START --> と <!-- DESIGN_END --> の間を抽出
-    const designMatch = html.match(/<!-- DESIGN_START -->([\s\S]*?)<!-- DESIGN_END -->/);
-    let content = designMatch && designMatch[1] ? designMatch[1].trim() : html;
+    // 1. デザインタグの間を優先的に取得
+    // 指示文に含まれるタグとの混同を避けるため、matchAll で最後の方から有効なものを探す
+    const matches = Array.from(html.matchAll(/<!-- DESIGN_START -->([\s\S]*?)<!-- DESIGN_END -->/g));
 
-    // DOM パーサーを使用して DesignSurface の中身を抽出
-    try {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(`<div id="__root__">${content}</div>`, 'text/html');
-        const surface = doc.querySelector('.DesignSurface');
-
-        if (surface) {
-            // DesignSurface の中身のみを返す
-            return surface.innerHTML.trim();
-        }
-    } catch (e) {
-        console.warn('DOM parsing failed, falling back to regex:', e);
+    let content = html;
+    if (matches.length > 0) {
+        // 最後のマッチ（通常は後ろの方にある実際のデザイン領域）を採用
+        content = matches[matches.length - 1][1].trim();
     }
 
-    // フォールバック: 正規表現での抽出
-    const surfaceMatch = content.match(/<div[^>]*class="[^"]*DesignSurface[^"]*"[^>]*>([\s\S]*)<\/div>\s*$/);
-    if (surfaceMatch && surfaceMatch[1]) {
+    if (!content) return "";
+
+    // 2. もし HTML 全体っぽければ body の中身だけにする
+    if (matches.length === 0 && (content.toLowerCase().includes('<body') || content.toLowerCase().includes('<html'))) {
+        const bodyMatch = content.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+        if (bodyMatch) {
+            content = bodyMatch[1].trim();
+        }
+    }
+
+    // 3. .DesignSurface ラッパーを剥がす
+    // DOMParser を使って安全に判定
+    try {
+        const parser = new DOMParser();
+        // フラグメントとしてパースするためにダミーの親で包む（重要）
+        const doc = parser.parseFromString(`<div id="__root__">${content}</div>`, 'text/html');
+        // __root__ 直下の最初の要素が .DesignSurface かチェック
+        const root = doc.getElementById('__root__');
+        if (root) {
+            const surface = root.querySelector('.DesignSurface');
+            if (surface) {
+                // DesignSurface の中身を返す
+                return surface.innerHTML.trim();
+            }
+        }
+    } catch (e) {
+        console.warn('extractDesignContent: DOMParser failed, using fallback', e);
+    }
+
+    // fallback: シンプルな正規表現での剥離
+    const surfaceMatch = content.match(/^<div[^>]*class="[^"]*DesignSurface[^"]*"[^>]*>([\s\S]*)<\/div>$/i);
+    if (surfaceMatch) {
         return surfaceMatch[1].trim();
     }
 
@@ -123,10 +152,11 @@ export const constructFullHTML = (content: string, customCss: string, meta: Meta
     - **Static Only**: HTMLとCSSのみを使用し、静的なデザインを生成すること。JSは不要。
 
     2. ALLOWED EDIT AREAS (STRICT)
-    - 以下のタグに囲まれた領域「のみ」を編集し、それ以外は一切変更しないこと。
-        1. <!-- DESIGN_START --> ～ <!-- DESIGN_END -->
-        2. <!-- CUSTOM_CSS_START --> ～ <!-- CUSTOM_CSS_END -->
-        3. <!-- USER_REQUIREMENT_START --> ～ <!-- USER_REQUIREMENT_END -->
+    - 以下の「タグ」に囲まれた領域「のみ」を編集し、それ以外は一切変更しないこと。
+        1. [DESIGN_START] ～ [DESIGN_END]
+        2. [CUSTOM_CSS_START] ～ [CUSTOM_CSS_END]
+        3. [USER_REQUIREMENT_START] ～ [USER_REQUIREMENT_END]
+    - 注意: [ ] は実際の HTML コメントタグ <!-- ... --> に置き換えて認識してください。
 
     3. COMPONENT CONSTRAINTS
     - **Elements**: テキストボックス、画像、図形の3種類のみ使用。

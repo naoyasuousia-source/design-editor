@@ -11,8 +11,8 @@
     [IMPORTANT] あなたは一流のデザイナーとして、以下のルールを「厳格に」順守してHTMLデザインを生成してください。
 
     0. CANVAS DIMENSIONS
-    - **Width**: 630px
-    - **Height**: 1120px
+    - **Width**: 800px
+    - **Height**: 800px
     - **Note**: このサイズに合わせてレイアウトを最適化してください。
 
     1. MISSION
@@ -20,10 +20,11 @@
     - **Static Only**: HTMLとCSSのみを使用し、静的なデザインを生成すること。JSは不要。
 
     2. ALLOWED EDIT AREAS (STRICT)
-    - 以下のタグに囲まれた領域「のみ」を編集し、それ以外は一切変更しないこと。
-        1. <!-- DESIGN_START --> ～ <!-- DESIGN_END -->
-        2. <!-- CUSTOM_CSS_START --> ～ <!-- CUSTOM_CSS_END -->
-        3. <!-- USER_REQUIREMENT_START --> ～ <!-- USER_REQUIREMENT_END -->
+    - 以下の「タグ」に囲まれた領域「のみ」を編集し、それ以外は一切変更しないこと。
+        1. [DESIGN_START] ～ [DESIGN_END]
+        2. [CUSTOM_CSS_START] ～ [CUSTOM_CSS_END]
+        3. [USER_REQUIREMENT_START] ～ [USER_REQUIREMENT_END]
+    - 注意: [ ] は実際の HTML コメントタグ <!-- ... --> に置き換えて認識してください。
 
     3. COMPONENT CONSTRAINTS
     - **Elements**: テキストボックス、画像、図形の3種類のみ使用。
@@ -51,7 +52,7 @@
         .DesignSurface { position: relative; background: white; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); min-width: 400px; min-height: 400px; }
         
         <!-- CUSTOM_CSS_START -->
-        ～
+        
         <!-- CUSTOM_CSS_END -->
     </style>
     <script id="ai-link-metadata" type="application/json">
@@ -66,7 +67,7 @@
     "accent": "#fbbf24"
   },
   "remarks": "",
-  "pageSize": "9:16"
+  "pageSize": "SQUARE"
 }
         <!-- USER_REQUIREMENT_END -->
     </script>
@@ -74,12 +75,9 @@
 <body>
     <!-- DESIGN_START -->
     <div class="DesignSurface" style="position: relative; width: 100%; height: 100%; overflow: hidden;">
-        <div id="el-6op1iiuzt" style="position: absolute; top: 20%; left: 10%; width: 80%;">
-                    <h1 id="el-glxmgz0i0" style="font-family: 'Oswald', sans-serif; font-size: 64px; color: #3b82f6; text-transform: uppercase; line-height: 1;" class="moveable-target-active">Fresh<br>Desi</h1>
-                    <div style="width: 50px; height: 4px; background: #3b82f6; margin: 20px 0;"></div>
-                    <p id="el-c59u6qi9t" style="font-family: 'Inter', sans-serif; font-size: 16px; color: #4b5563;">
-                        Vertical content for mobile or stories.
-                    </p>
+        <div id="el-vt5s9s07l" style="position: absolute; top: 100px; left: 100px; width: 600px; height: 600px; border: 4px solid black; background: white; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;">
+                    <div id="el-vqjgyj14b" style="font-family: 'Playfair Display', serif; font-size: 64px; color: #1a1a1a; margin: 0; padding: 0; text-align: center; width: 80%;">TITLE HERE</div>
+                    <div id="el-kluioyh3t" style="font-family: 'Montserrat', sans-serif; font-size: 24px; color: #666; text-transform: uppercase; letter-spacing: 0.1em; margin: 0; padding: 0; text-align: center; width: 80%;">Description here</div>
                 </div>
     </div>
     <!-- DESIGN_END -->
