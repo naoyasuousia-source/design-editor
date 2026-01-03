@@ -10,7 +10,7 @@ const COLOR_PALETTE = [
 
 interface ColorPaletteProps {
     type: 'color' | 'backgroundColor' | 'borderColor' | 'stroke' | 'shadow';
-    onPick: (type: 'color' | 'backgroundColor' | 'borderColor' | 'stroke' | 'shadow') => void;
+    onPick: () => void;
     onApply: (type: 'color' | 'backgroundColor' | 'borderColor' | 'stroke' | 'shadow', color: string) => void;
 }
 
@@ -32,7 +32,7 @@ const ColorPalette: React.FC<ColorPaletteProps> = ({ type, onPick, onApply }) =>
                 </span>
                 <button
                     className="p-1 hover:bg-white/10 rounded text-gray-400 hover:text-white flex items-center gap-1 text-[10px]"
-                    onClick={() => onPick(type)}
+                    onClick={() => onPick()}
                 >
                     <Pipette size={12} />
                     <span>Pick</span>

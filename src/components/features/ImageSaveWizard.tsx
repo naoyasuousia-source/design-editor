@@ -197,6 +197,8 @@ const ImageSaveWizard: React.FC = () => {
         };
     }, [isImageSaveMode, handleMouseMove, handleMouseUp]);
 
+    if (!isImageSaveMode) return null;
+
     return (
         <div className="fixed inset-0 z-[150] pointer-events-none flex flex-col items-center">
             {/* ウィザードツールバー */}

@@ -1,12 +1,13 @@
 import React from 'react';
 import Moveable from 'react-moveable';
+import type { SelectionMode } from '@/hooks/moveable/useSelection';
 
 interface GroupMoveableProps {
     targets: HTMLElement[];
     canvasRef: React.RefObject<HTMLDivElement | null>;
     groupOverlay: HTMLDivElement | null;
     selectionKey: string;
-    selectionMode: 'group' | 'individual';
+    selectionMode: SelectionMode;
     currentWidth: number;
     currentHeight: number;
     zoom: number;

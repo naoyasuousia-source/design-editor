@@ -34,6 +34,7 @@ interface EditorStore extends EditorState {
     setResponsiveResize: (enabled: boolean) => void;
     setShowSaveToast: (show: boolean) => void;
     setAutoSelectId: (id: string | null) => void;
+    setImageCropMode: (enabled: boolean, elementId: string | null) => void;
     reset: () => void;
 }
 
@@ -86,6 +87,8 @@ const initialState: EditorState & {
     isResponsiveResize: false,
     showSaveToast: false,
     autoSelectId: null,
+    isImageCropMode: false,
+    croppingElementId: null,
 };
 
 export const useEditorStore = create<EditorStore>((set, get) => ({
@@ -255,5 +258,6 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     setResponsiveResize: (isResponsiveResize) => set({ isResponsiveResize }),
     setShowSaveToast: (showSaveToast) => set({ showSaveToast }),
     setAutoSelectId: (autoSelectId) => set({ autoSelectId }),
+    setImageCropMode: (enabled, elementId) => set({ isImageCropMode: enabled, croppingElementId: elementId, isLocked: enabled }),
     reset: () => set(initialState),
 }));

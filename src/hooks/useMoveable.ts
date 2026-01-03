@@ -176,9 +176,16 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
                 selectNone();
             }
         };
+        const handleCanvasUpdate = () => {
+            updateContentFromDOM();
+        };
         window.addEventListener('keydown', handleKeys);
-        return () => window.removeEventListener('keydown', handleKeys);
-    }, [finishEditing, selectNone]);
+        window.addEventListener('canvas-update', handleCanvasUpdate);
+        return () => {
+            window.removeEventListener('keydown', handleKeys);
+            window.removeEventListener('canvas-update', handleCanvasUpdate);
+        };
+    }, [finishEditing, selectNone, updateContentFromDOM]);
 
     // 挿入された要素を自動選択する
     useEffect(() => {

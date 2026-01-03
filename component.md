@@ -28,7 +28,7 @@
 ## 1. 未解決要件（移動許可がNGの要件は絶対に移動・編集しないこと）（勝手に移動許可をOKに書き換えないこと）
 
 <requirement>
-<content></content>
+<content>テキストボックス要素、図形要素、画像要素、グループのすべてのメニューに「複製」ボタンを追加する。複製を選択すると、複製元と少しずらして、同じものをレンダリングする。（コード上は一番最後尾に追加する）（idのみ変える）</content>
 <current-situation></current-situation>
 <remarks></remarks>
 <permission-to-move>OK</permission-to-move>

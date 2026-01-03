@@ -6,6 +6,8 @@ import { useMoveable } from '@/hooks/useMoveable';
 import FloatingMenu from './FloatingMenu';
 import DesignArea from './workspace/DesignArea';
 import MoveableManager from './workspace/MoveableManager';
+import ImageCropOverlay from './workspace/ImageCropOverlay';
+import ImageSaveWizard from './ImageSaveWizard';
 
 interface WorkspaceProps {
     isLocked: boolean;
@@ -106,6 +108,9 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
                     onClearSelection={selectNone}
                 />
             )}
+
+            <ImageCropOverlay />
+            <ImageSaveWizard />
         </div>
     );
 };

@@ -98,9 +98,9 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectio
             ) : (
                 <>
                     {/* Floating Panels */}
-                    {showColorPalette && <ColorPalette type="color" onPick={openEyeDropper} onApply={applyStyle} />}
-                    {showBgPalette && <ColorPalette type="backgroundColor" onPick={openEyeDropper} onApply={applyStyle} />}
-                    {showBorderPalette && <ColorPalette type="borderColor" onPick={openEyeDropper} onApply={applyStyle} />}
+                    {showColorPalette && <ColorPalette type="color" onPick={() => openEyeDropper('color')} onApply={(t, v) => applyStyle(t as keyof CSSStyleDeclaration, v)} />}
+                    {showBgPalette && <ColorPalette type="backgroundColor" onPick={() => openEyeDropper('backgroundColor')} onApply={(t, v) => applyStyle(t as keyof CSSStyleDeclaration, v)} />}
+                    {showBorderPalette && <ColorPalette type="borderColor" onPick={() => openEyeDropper('borderColor')} onApply={(t, v) => applyStyle(t as keyof CSSStyleDeclaration, v)} />}
                     {showShadowPalette && (
                         <ColorPalette
                             type="shadow"
@@ -131,7 +131,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectio
                             onApply={applyStyle} onUpdate={onUpdate} closeAllPanels={closeAllPanels}
                         />
                     )}
-                    {showCropPicker && isImage && <ImagePositionPanel target={displayTarget} onUpdate={onUpdate} />}
+                    {showCropPicker && isImage && <ImagePositionPanel target={displayTarget} onUpdate={onUpdate} onClose={() => setShowCropPicker(false)} />}
                     {showRadiusPicker && <RadiusPicker target={displayTarget} localRadius={localRadius} setLocalRadius={setLocalRadius} onApply={applyStyle} onUpdate={onUpdate} />}
                     {showImagePicker && isImage && <ImageReplacePanel imageFiles={imageFiles} imageUrls={imageUrls} target={displayTarget} onClose={() => setShowImagePicker(false)} onUpdate={onUpdate} />}
 

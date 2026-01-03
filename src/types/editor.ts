@@ -59,6 +59,8 @@ export type EditorState = {
     // UI状態
     showSaveToast: boolean;
     autoSelectId: string | null;
+    isImageCropMode: boolean;
+    croppingElementId: string | null;
 }
 
 export const _REFRESH_FIX = Date.now();
