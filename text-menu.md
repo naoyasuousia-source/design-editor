@@ -29,25 +29,19 @@
 
 <requirement>
 <content>テキストボックスで改行してもテキストボックスとして認識され続けるように改良した副作用で、図形もテキストボックスとして誤認されるようになってしまったので、修正してほしい。</content>
-<current-situation></current-situation>
-<remarks></remarks>
-<permission-to-move>NG</permission-to-move>
-</requirement>
-
-<requirement>
-<content>現在、袋文字はカラー選択はできるようになったが、袋文字が文字の内側に入り込むように反映されてしまう。テキストのアウトラインから外側に縁取りするように仕様変更してほしい。</content>
 <current-situation>
-- `paint-order: stroke fill` を導入し、ストロークを文字の塗りの背後に描画することで「外側への縁取り」を実現。
-- `EffectSettings.tsx` の `updateStroke` ロジックを更新。
+- 要素判定に「子がIDを持っていないこと」というヒューリスティックを導入。
+- これにより、`contenteditable` による自動生成要素（IDなし）と、エディタ上の個別要素（IDあり）を区別。
 </current-situation>
-<remarks></remarks>
-<permission-to-move>OK</permission-to-move>
+<remarks>解決を確認したら移動許可をOKにする</remarks>
+<permission-to-move>NG</permission-to-move>
 </requirement>
 
 
 
 
 ## 2. 未解決要件に関するコード変更履歴（目的、変更内容、変更日時）
+- 2026-01-03: 図形要素がテキストとして誤認される問題の修正。子要素に ID がある場合は「コンテナ/図形」とみなすヒューリスティックを導入。
 - 2026-01-03: 袋文字の外側縁取り（paint-order: stroke fill）の実装。文字の塗りをストロークの上に重ねることで、縁取りが内側に食い込まないように改善。
 - 2026-01-03: 袋文字のカラー選択およびスポイト（EyeDropper）機能の修正。`openEyeDropper` にコールバックを導入し、プロパティ名を動的に解決可能にした。
 - 2026-01-03: `applyStyle` におけるベンダープリフィックス（`webkit-`）の kebab-case 変換バグを修正（先頭ハイフンの追加）。
@@ -76,12 +70,15 @@
 - **袋文字のカラー反映不良**: `ColorPalette` からの `onApply` において、`webkitTextStrokeColor` を指定しているが、`applyStyle` の正規表現による kebab-case 変換の結果、先頭の `-` が欠落して `webkit-text-stroke-color` になっている。CSS では `-webkit-text-stroke-color` である必要がある。（解決済み）
 - **EyeDropper の共通化**: `openEyeDropper` が `applyStyle` を直接呼んでいたため、影や袋文字のように「特定の文字列フォーマットが必要なプロパティ」や「特殊なプロパティ名」にスポイトの結果を反映させることができなかった。`openEyeDropper` を高階関数化（コールバック受容）することで解決。
 - **ベンダープリフィックスの変換ロジック**: `setProperty` を使う際、`webkitTextStroke` を変換すると `webkit-text-stroke` になるが、本来は `-webkit-text-stroke` とする必要がある。`startsWith('webkit-')` を判定して先頭に `-` を付与するように `applyStyle` を修正。
-- **袋文字の外側縁取り**: 標準の `-webkit-text-stroke` はパスの中心に描画されるため、太くすると文字の内側（塗り）を潰してしまう。`paint-order: stroke fill` を指定することで、描画順序を「ストローク -> 塗り」に変更し、塗りがストロークの内半分を覆い隠すことで「外側のみの縁取り」をシミュレートできる。
+- **袋文字の外側縁取り**: 標準の `-webkit-text-stroke` はパスの中心に描画されるため、太くすると文字の内側（塗り）を潰してしまう。`paint-order: stroke fill` を指定することで、描画順序を「ストローク -> 塗り」に変更し、塗りがストロークの内半分を覆い隠すことで「外側のみの縁取り」をシミュレートできる。（解決済み）
+- **テキスト判定の高度化**: 改行（`br`, `div`, `p`）を許可した結果、複数のテキストボックスを内包する「レイアウト用コンテナ」も `textContent` と `children` のタグ名判定をすり抜けて `isText` になってしまう。これを防ぐため、子要素が `id` を持っているか（＝エディタ上の独立した要素か）を確認するロジックを追加。ブラウザが改行用に生成する要素には通常 ID が付与されないため、この差異を利用する。（解決済み）
 - **ブラウザ互換性**: `paint-order` は CSS3 の標準プロパティであり、現代の主要なブラウザ（Chrome, Safari, Edge）でテキストに対して有効。
 
 
 
 ## 4. 解決済み要件とその解決方法
+- **袋文字の外側縁取り**: `paint-order: stroke fill` を適用することで、縁取りを文字の背面へ回し、外側にのみ見えるように調整。
+- **テキスト・図形の判定改善**: `textContent` の有無に加え、子要素に ID が付与された「個別要素」が含まれていないかをチェック。これにより、複数要素を含むコンテナが誤ってテキスト設定メニューを表示することを防止。
 - **袋文字のカラー選択修正**: `applyStyle` 内でのベンダープリフィックス（`-webkit-`）の適切な処理と、`openEyeDropper` へのコールバック導入により、パレットからの色選択およびスポイトによる色取得が袋文字・影に正しく反映されるよう改善。
 - **テキストボックスの改行修正**: `useTextEditing.ts` で Enter キーをトラップし、`insertLineBreak` を実行するように修正。また `isTextBox` 判定を緩和し、`<br>` を含む要素もテキストとして扱うようにした。
 - **袋文字スライダーの修正**: `EffectSettings.tsx` で `targets` 全体に対して直接 `style` 操作を行うようにし、反映の確実性を向上。

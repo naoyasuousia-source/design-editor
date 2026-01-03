@@ -62,10 +62,14 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
     const isImage = tagName === 'img' || (target.style.backgroundImage && target.style.backgroundImage.includes('url'));
 
     // Check if it's likely a text element (has text content and only basic organizational markup)
+    // Heuristic: If children exist, they should not have an ID (which indicates a nested design element)
     const isText = !isImage &&
         target.textContent?.trim() !== '' &&
         (target.children.length === 0 ||
-            Array.from(target.children).every(c => ['br', 'div', 'p', 'span'].includes(c.tagName.toLowerCase())));
+            Array.from(target.children).every(c =>
+                ['br', 'span'].includes(c.tagName.toLowerCase()) ||
+                (['div', 'p'].includes(c.tagName.toLowerCase()) && !c.id)
+            ));
 
     const isShape = !isImage && !isText;
 

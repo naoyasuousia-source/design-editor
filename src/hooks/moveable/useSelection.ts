@@ -46,7 +46,10 @@ export const useSelection = (canvasRef: RefObject<HTMLDivElement | null>, conten
 
         return el.textContent?.trim() !== '' &&
             (el.children.length === 0 ||
-                Array.from(el.children).every(c => ['br', 'div', 'p', 'span'].includes(c.tagName.toLowerCase())));
+                Array.from(el.children).every(c =>
+                    ['br', 'span'].includes(c.tagName.toLowerCase()) ||
+                    (['div', 'p'].includes(c.tagName.toLowerCase()) && !c.id)
+                ));
     }, []);
 
     const getRenderDirections = useCallback(() => {
