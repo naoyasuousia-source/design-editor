@@ -78,7 +78,6 @@ const MoveableManager: React.FC<MoveableManagerProps> = ({
             overlay.style.position = 'absolute';
             overlay.style.pointerEvents = 'none';
             overlay.style.border = '2px solid #f97316';
-            overlay.style.opacity = '0.6';
             overlay.style.display = 'none';
             overlay.style.zIndex = '9998';
             canvasRef.current.appendChild(overlay);

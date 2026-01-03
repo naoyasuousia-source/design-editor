@@ -103,6 +103,8 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
                 <FloatingMenu
                     targets={targets}
                     onUpdate={updateContentFromDOM}
+                    selectionMode={selectionMode}
+                    activeSubTarget={activeSubTarget}
                 />
             )}
         </div>

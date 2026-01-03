@@ -28,11 +28,32 @@
 ## 1. 未解決要件（移動許可がNGの要件は絶対に移動・編集しないこと）（勝手に移動許可をOKに書き換えないこと）
 
 <requirement>
+<content>図形メニューは従来通り、上辺に表示し、グループメニューもグループ外枠の上辺に表示する。</content>
+<current-situation>両メニューとも中央付近に表示されてしまう。</current-situation>
+<remarks></remarks>
+<permission-to-move>NG</permission-to-move>
+</requirement>
+
+<requirement>
+<content>図形メニューUIの、レスポンシブリサイズボタンを廃止する。</content>
+<current-situation></current-situation>
+<remarks></remarks>
+<permission-to-move>NG</permission-to-move>
+</requirement>
+
+<requirement>
+<content>グループ全体の拡大縮小時、右下のポイント以外で操作すると、レスポンシブ拡大縮小はできるが、オレンジ枠と実際のグループ外枠の挙動が途中ずれ、気持ち悪い。→修正してほしい。</content>
+<current-situation></current-situation>
+<remarks></remarks>
+<permission-to-move>NG</permission-to-move>
+</requirement>
+
+<requirement>
 <content>- グループ化されてるすべての要素は、ホバーでは水色枠は非表示とし、代わりにグループ全体のオレンジ枠のみを表示する。
 （個別要素は枠表示しない）</content>
 <current-situation>ほぼOKである。あと、ホバー時も半透明ではなく、クリック選択時と同じオレンジ枠を表示してほしい。</current-situation>
 <remarks></remarks>
-<permission-to-move>NG</permission-to-move>
+<permission-to-move>OK</permission-to-move>
 </requirement>
 
 <requirement>
@@ -42,7 +63,7 @@
 - 現在、一回クリックでグループ選択時、水色ポイントが表示されてしまっているので、グループ選択時は、オレンジ枠とオレンジポイントのみを表示するようにしてほしい。
 - また、グループ特別メニューが実装されていない。</current-situation>
 <remarks></remarks>
-<permission-to-move>NG</permission-to-move>
+<permission-to-move>OK</permission-to-move>
 </requirement>
 
 <requirement>
@@ -50,10 +71,8 @@
 <current-situation>
 水色枠が表示されているときも個別のテキストボックスメニューなどが表示されない状態。</current-situation>
 <remarks></remarks>
-<permission-to-move>NG</permission-to-move>
+<permission-to-move>OK</permission-to-move>
 </requirement>
-
-
 
 ## 2. 未解決要件に関するコード変更履歴（目的、変更内容、変更日時）
 
@@ -98,6 +117,18 @@
             - `showGroupMoveable` 変数を追加し、オーバーレイが存在かつ表示状態の場合のみMoveableをレンダリング。
             - `updateOverlayBounds` ヘルパー関数を追加し、オーバーレイ位置更新を共通化。
     - 日時: 2026-01-03 21:55
+
+- **グループ選択モードと個別選択モードのUI分離**
+    - 目的: グループ選択時はグループ専用メニュー、個別選択時は要素固有メニューを表示するため。
+    - 内容:
+        - `Workspace.tsx`: `FloatingMenu` に `selectionMode` と `activeSubTarget` を渡すように変更。
+        - `FloatingMenu.tsx`: 大幅リファクタリング。
+            - `selectionMode` と `activeSubTarget` を props として受け取り。
+            - `selectionMode === 'group'` の場合はグループ専用メニュー（グループID表示、IDコピー、解除、削除）のみ表示。
+            - `selectionMode === 'individual'` の場合は `activeSubTarget` を使用してテキスト/画像/シェイプメニューを表示。
+            - ヘッダー部分にグループモード用のオレンジ色スタイリングを追加。
+        - `MoveableManager.tsx`: ホバー用オーバーレイの `opacity: 0.6` を削除し、完全に不透明なオレンジ枠に変更。
+    - 日時: 2026-01-03 22:10
 
 
 ## 3. 分析中に気づいた重要ポイント（試してだめだったこと、仮設、制約条件等...）
