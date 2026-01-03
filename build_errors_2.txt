@@ -1,4 +1,0 @@
-src/components/features/floating-menu/EffectSettings.tsx(2,1): error TS6133: 'cn' is declared but its value is never read.
-src/components/features/FloatingMenu.tsx(130,31): error TS6133: 'p' is declared but its value is never read.
-src/components/features/FloatingMenu.tsx(143,31): error TS6133: 'p' is declared but its value is never read.
-src/components/features/FloatingMenu.tsx(150,31): error TS6133: 'p' is declared but its value is never read.
