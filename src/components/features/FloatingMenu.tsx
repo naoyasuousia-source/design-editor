@@ -91,12 +91,12 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
                 growsUpwards ? "flex-col" : "flex-col-reverse"
             )}
             style={growsUpwards ? {
-                bottom: `${window.innerHeight - rect.top + 8}px`,
-                left: `${rect.left + rect.width / 2}px`,
+                bottom: `${window.innerHeight - rect.top + 8} px`,
+                left: `${rect.left + rect.width / 2} px`,
                 transform: 'translateX(-50%)',
             } : {
-                top: `${rect.bottom + 8}px`,
-                left: `${rect.left + rect.width / 2}px`,
+                top: `${rect.bottom + 8} px`,
+                left: `${rect.left + rect.width / 2} px`,
                 transform: 'translateX(-50%)',
             }}
         >
@@ -125,14 +125,14 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
                         const current = target.style.textShadow || style.textShadow;
                         const parts = current.split(' ');
                         const nums = parts.filter(p => p.includes('px'));
-                        applyStyle('textShadow' as any, `${nums.join(' ')} ${v}`);
+                        applyStyle('textShadow' as any, `${nums.join(' ')} ${v} `);
                     })}
-                    onApply={(p, v) => {
+                    onApply={(_, v) => {
                         const style = window.getComputedStyle(target);
                         const current = target.style.textShadow || style.textShadow;
                         const parts = current.split(' ');
                         const nums = parts.filter(p => p.includes('px'));
-                        applyStyle('textShadow' as any, `${nums.join(' ')} ${v}`);
+                        applyStyle('textShadow' as any, `${nums.join(' ')} ${v} `);
                     }}
                 />
             )}
@@ -140,14 +140,14 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
                 <ColorPalette
                     type="backgroundColor"
                     onPick={() => openEyeDropper('backgroundColor')}
-                    onApply={(p, v) => applyStyle('backgroundColor', v)}
+                    onApply={(_, v) => applyStyle('backgroundColor', v)}
                 />
             )}
             {showStrokePalette && (
                 <ColorPalette
                     type="stroke"
                     onPick={() => openEyeDropper((v: string) => applyStyle('webkitTextStrokeColor' as any, v))}
-                    onApply={(p, v) => applyStyle('webkitTextStrokeColor' as any, v)}
+                    onApply={(_, v) => applyStyle('webkitTextStrokeColor' as any, v)}
                 />
             )}
 

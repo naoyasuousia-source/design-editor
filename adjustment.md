@@ -58,6 +58,10 @@
     - `src/hooks/useAutoSync.ts`: 未使用変数 `lastSaveTime` を削除。
     - `src/utils/screenshot.ts`: `fontEmbedCSS` の型エラー（boolean -> string）を修正。
     - `src/components/features/workspace/MoveableManager.tsx` & `src/hooks/moveable/useTransform.ts`: `onResizeStart` のイベント型不一致を修正（`HTMLElement | SVGElement` を許容）。
+ 
+- **2026-01-03: 再度のデプロイ失敗（未使用変数）の修正**
+    - `src/components/features/FloatingMenu.tsx`: `onApply` コールバック内の未使用引数 `p` を `_` に変更。
+    - `src/components/features/floating-menu/EffectSettings.tsx`: 未使用の `cn` インポートを削除。
 
 ## 3. 分析中に気づいた重要ポイント（試してだめだったこと、仮設、制約条件等...）
 

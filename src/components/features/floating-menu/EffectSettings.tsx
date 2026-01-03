@@ -1,5 +1,4 @@
 import React, { useMemo } from 'react';
-import { cn } from '@/utils/cn';
 
 interface EffectSettingsProps {
     target: HTMLElement;
