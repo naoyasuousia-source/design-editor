@@ -60,6 +60,7 @@ export type EditorState = {
     showSaveToast: boolean;
     autoSelectId: string | null;
     isImageCropMode: boolean;
+    imageCropAspectRatio: number | null;
     croppingElementId: string | null;
 }
 

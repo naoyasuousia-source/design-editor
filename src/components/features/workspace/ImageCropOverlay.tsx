@@ -8,6 +8,7 @@ const ImageCropOverlay: React.FC = () => {
         isImageCropMode,
         croppingElementId,
         setImageCropMode,
+        imageCropAspectRatio,
         zoom
     } = useEditorStore();
 
@@ -18,6 +19,8 @@ const ImageCropOverlay: React.FC = () => {
     const [screenPos, setScreenPos] = useState({ top: 0, left: 0 });
     // 元の要素サイズ（論理座標）
     const [elementSize, setElementSize] = useState({ width: 0, height: 0 });
+    // スタイルのコピー用
+    const [copiedStyle, setCopiedStyle] = useState<React.CSSProperties>({});
 
     const isDragging = useRef(false);
     const dragType = useRef<'move' | 'resize' | null>(null);
@@ -37,24 +40,58 @@ const ImageCropOverlay: React.FC = () => {
 
                 setElementSize({ width: logicalWidth, height: logicalHeight });
 
-                // 初回は要素全体をトリミング枠にする
-                setCropRect({
+                // 初期 cropRect の計算
+                let initialRect = {
                     x: 0,
                     y: 0,
                     width: logicalWidth,
                     height: logicalHeight
-                });
+                };
+
+                // アスペクト比指定がある場合（例: 1:1）
+                if (imageCropAspectRatio) {
+                    // 現在の画像領域内で最大のアスペクト比矩形を作成
+                    const currentRatio = logicalWidth / logicalHeight;
+                    if (currentRatio > imageCropAspectRatio) {
+                        // 横長なので幅を縮める
+                        const newWidth = logicalHeight * imageCropAspectRatio;
+                        initialRect.width = newWidth;
+                        initialRect.x = (logicalWidth - newWidth) / 2;
+                    } else {
+                        // 縦長なので高さを縮める
+                        const newHeight = logicalWidth / imageCropAspectRatio;
+                        initialRect.height = newHeight;
+                        initialRect.y = (logicalHeight - newHeight) / 2;
+                    }
+                }
+
+                setCropRect(initialRect);
 
                 // スクリーン上の表示位置
                 setScreenPos({
                     top: rect.top,
                     left: rect.left
                 });
+
+                // スタイルの取得と保存
+                const style = window.getComputedStyle(el);
+                setCopiedStyle({
+                    borderTop: style.borderTop,
+                    borderRight: style.borderRight,
+                    borderBottom: style.borderBottom,
+                    borderLeft: style.borderLeft,
+                    borderRadius: style.borderRadius,
+                    paddingTop: style.paddingTop,
+                    paddingRight: style.paddingRight,
+                    paddingBottom: style.paddingBottom,
+                    paddingLeft: style.paddingLeft,
+                    boxSizing: style.boxSizing as React.CSSProperties['boxSizing'],
+                });
             }
         } else {
             setTarget(null);
         }
-    }, [isImageCropMode, croppingElementId]);
+    }, [isImageCropMode, croppingElementId, imageCropAspectRatio]);
 
     // スクリーン位置の追従
     const updateScreenPos = useCallback(() => {
@@ -100,16 +137,46 @@ const ImageCropOverlay: React.FC = () => {
 
         setCropRect(prev => {
             let next = { ...prev };
+
             if (dragType.current === 'move') {
                 next.x = Math.max(0, Math.min(elementSize.width - prev.width, startRect.x + deltaX));
                 next.y = Math.max(0, Math.min(elementSize.height - prev.height, startRect.y + deltaY));
             } else if (dragType.current === 'resize') {
-                next.width = Math.max(20, Math.min(elementSize.width - startRect.x, startRect.width + deltaX));
-                next.height = Math.max(20, Math.min(elementSize.height - startRect.y, startRect.height + deltaY));
+                let newWidth = startRect.width + deltaX;
+                let newHeight = startRect.height + deltaY;
+
+                // アスペクト比固定の処理
+                if (imageCropAspectRatio) {
+                    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                        // 幅優先
+                        newHeight = newWidth / imageCropAspectRatio;
+                    } else {
+                        // 高さ優先
+                        newWidth = newHeight * imageCropAspectRatio;
+                    }
+                }
+
+                // 最小サイズ制限
+                newWidth = Math.max(20, newWidth);
+                newHeight = Math.max(20, newHeight);
+
+                // 最大サイズ制限（はみ出し防止）
+                // 右下方向のリサイズなので、(x + width) <= elementWidth, (y + height) <= elementHeight
+                if (startRect.x + newWidth > elementSize.width) {
+                    newWidth = elementSize.width - startRect.x;
+                    if (imageCropAspectRatio) newHeight = newWidth / imageCropAspectRatio;
+                }
+                if (startRect.y + newHeight > elementSize.height) {
+                    newHeight = elementSize.height - startRect.y;
+                    if (imageCropAspectRatio) newWidth = newHeight * imageCropAspectRatio;
+                }
+
+                next.width = newWidth;
+                next.height = newHeight;
             }
             return next;
         });
-    }, [target, zoom, elementSize]);
+    }, [target, zoom, elementSize, imageCropAspectRatio]);
 
     const handleMouseUp = useCallback(() => {
         isDragging.current = false;
@@ -130,15 +197,49 @@ const ImageCropOverlay: React.FC = () => {
     const handleApply = () => {
         if (!target) return;
 
-        // トリミング枠の中心を object-position に設定（パーセント）
-        const centerX = ((cropRect.x + cropRect.width / 2) / elementSize.width) * 100;
-        const centerY = ((cropRect.y + cropRect.height / 2) / elementSize.height) * 100;
+        // トリミング枠の論理座標とサイズ
+        const { x, y, width: cropW, height: cropH } = cropRect;
+        const { width: origW, height: origH } = elementSize;
 
+        // 1. 要素のサイズを更新（トリミング枠のサイズに合わせる）
+        target.style.width = `${cropW}px`;
+        target.style.height = `${cropH}px`;
+
+        // 2. 要素の位置（transform）を更新
+        const currentTransform = target.style.transform || 'translate(0px, 0px)';
+        const translateMatch = currentTransform.match(/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/);
+        if (translateMatch) {
+            const currentX = parseFloat(translateMatch[1]);
+            const currentY = parseFloat(translateMatch[2]);
+            const newX = currentX + x;
+            const newY = currentY + y;
+            target.style.transform = currentTransform.replace(/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/, `translate(${newX}px, ${newY}px)`);
+        } else {
+            target.style.transform = `${currentTransform} translate(${x}px, ${y}px)`.trim();
+        }
+
+        // 3. 画像の調整
+        // object-position の % 指定は、(画像サイズ - コンテナサイズ) * % がオフセットになる。
+        // ここではズーム（拡大）は行わず、あくまで「枠のサイズ」に合わせてアスペクト比を維持しつつカバーする。
         target.style.objectFit = 'cover';
-        target.style.objectPosition = `${centerX}% ${centerY}%`;
 
+        // 正確な position 計算 (x / (原寸W - 枠W))
+        // 分母が0になる（原寸と枠が同じ）場合は 50% にしておく
+        const pctX = (origW - cropW) === 0 ? 50 : (x / (origW - cropW)) * 100;
+        const pctY = (origH - cropH) === 0 ? 50 : (y / (origH - cropH)) * 100;
+
+        target.style.objectPosition = `${pctX}% ${pctY}%`;
+
+        // 強制的に style 属性を更新（これを行わないと cloneNode で消える場合がある）
+        target.setAttribute('style', target.style.cssText);
+
+        // 重要: 適用直後にストア更新を確実にトリガーする
         window.dispatchEvent(new CustomEvent('canvas-update'));
-        setImageCropMode(false, null);
+
+        // ストア更新処理が完了する時間を確保してからモードを終了する
+        setTimeout(() => {
+            setImageCropMode(false, null);
+        }, 300); // 余裕を持って 300ms 待機
     };
 
     const handleCancel = () => {
@@ -153,8 +254,8 @@ const ImageCropOverlay: React.FC = () => {
 
     return createPortal(
         <div className="fixed inset-0 z-[200] pointer-events-none">
-            {/* 背景シールド */}
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] pointer-events-auto" onClick={handleCancel} />
+            {/* 背景シールド（クリックでキャンセルできるように透明な板は残す） */}
+            <div className="absolute inset-0 bg-transparent pointer-events-auto" onClick={handleCancel} />
 
             {/* メインコンテナ（スクリーン座標で配置） */}
             <div
@@ -166,17 +267,6 @@ const ImageCropOverlay: React.FC = () => {
                     height: `${screenHeight}px`,
                 }}
             >
-                {/* 1. 背景ガイド画像（元画像と同じ見た目、薄く表示） */}
-                <img
-                    src={target.src}
-                    className="absolute inset-0 w-full h-full grayscale opacity-30 pointer-events-none"
-                    style={{
-                        objectFit: (target.style.objectFit as React.CSSProperties['objectFit']) || 'cover',
-                        objectPosition: target.style.objectPosition || 'center'
-                    }}
-                    alt=""
-                />
-
                 {/* 2. トリミング枠（論理座標 × zoom でスクリーン座標に変換） */}
                 <div
                     className="absolute border-2 border-blue-500 cursor-move pointer-events-auto"
@@ -186,11 +276,11 @@ const ImageCropOverlay: React.FC = () => {
                         width: `${cropRect.width * zoom}px`,
                         height: `${cropRect.height * zoom}px`,
                         overflow: 'hidden',
-                        boxShadow: '0 0 0 9999px rgba(0,0,0,0.4)'
+                        boxShadow: '0 0 0 9999px rgba(0,0,0,0.5)' // 枠外を暗くする
                     }}
                     onMouseDown={(e) => handleMouseDown(e, 'move')}
                 >
-                    {/* 3. 枠内の画像（親コンテナ全体と同じサイズ、位置は枠の負の値） */}
+                    {/* 3. 枠内の画像 */}
                     <img
                         src={target.src}
                         className="absolute pointer-events-none"
@@ -201,6 +291,11 @@ const ImageCropOverlay: React.FC = () => {
                             // 親コンテナ（操作領域全体）と同じサイズ
                             width: `${screenWidth}px`,
                             height: `${screenHeight}px`,
+                            // Tailwindのmax-width: 100%を無効化
+                            maxWidth: 'none',
+                            maxHeight: 'none',
+
+                            ...copiedStyle, // ボーダーなどを適用
                             objectFit: (target.style.objectFit as React.CSSProperties['objectFit']) || 'cover',
                             objectPosition: target.style.objectPosition || 'center'
                         }}
