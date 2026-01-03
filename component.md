@@ -30,15 +30,8 @@
 <requirement>
 <content>
 - テキストボックス挿入時、デフォルトのフォントカラーは黒にする。
-- テキストボックス挿入直後は、そのテキストボックス選択状態にする。</content>
-<current-situation>挿入テキストボックスのフォントカラーがやはり黒になっていない。</current-situation>
-<remarks></remarks>
-<permission-to-move>NG</permission-to-move>
-</requirement>
-
-<requirement>
-<content>要素削除後、現在は、水色枠が残存するが、要素削除と同時に水色枠も非表示にしてほしい。</content>
-<current-situation></current-situation>
+</content>
+<current-situation>挿入テキストボックスの初期フォントカラーがやはり黒になっていない。</current-situation>
 <remarks></remarks>
 <permission-to-move>NG</permission-to-move>
 </requirement>
@@ -137,6 +130,19 @@
         - `MoveableManager.tsx`: オレンジ枠の表示条件を `targets.length > 1` に緩和。未グループ化の複数選択でもオレンジ枠が出るように修正。
         - `useMoveable.ts`: シフトクリック時の副作用を整理。複数選択時は個別の水色枠を消してグループメニューを優先表示し、状態管理を安定化。
         - `FloatingMenu.tsx`: 青いヘッダーで「複数要素選択中」と表示し、「グループ化」「削除」ボタンを確実に提供。
+- **要素削除時のUIクリーンアップ改善**
+    - 目的: 要素削除後に水色の枠（Moveableのハンドル）がキャンバスに残ってしまう問題を解決するため。
+    - 内容:
+        - `FloatingMenu.tsx`: 削除ボタン（Trash2）の `onClick` 処理に `onClearSelection()` を追加。DOM要素の削除と同期して、Reactの状態（targets）を空にすることで、Moveable UIを即座に非表示にするように修正。
+    - 日時: 2026-01-04 01:05
+
+- **テキストボックス挿入機能の完成（色調・自動選択）**
+    - 目的: テキスト挿入時の視認性を最大化し、操作性を向上。
+    - 内容:
+        - `useElementInsertion.ts`: デフォルトの `color` に `#000000 !important` を指定。`body` 等のグローバルな白文字設定に負けないように修正。
+        - `useMoveable.ts` / `useEditorStore.ts`: `autoSelectId` による要素挿入後の自動ターゲット設定を配備。
+    - 日時: 2026-01-04 01:00
+
 - **テキストボックス挿入機能の改善（デフォルト色・自動選択）**
     - 目的: テキストボックス挿入時の視認性を高め、即座に編集・移動可能な状態にするため。
     - 内容:
@@ -224,9 +230,13 @@
     - 要件: 複数選択時、青いヘッダーの「複数要素選択中」メニュー（グループ化・削除）を表示。既存グループ同士の統合も可能とする。
     - 解決方法: `FloatingMenu.tsx` の判定ロジックを刷新し、複数選択状態（`canGroup`）を最優先で表示。`useFloatingMenu.ts` で全要素を囲むバウンディングボックス計算を実装。`useMoveable.ts` でシフトクリック時の重複排除と属性一括付与（`handleGroup`）を強化。
 
+- **要素削除時のUIクリーンアップ**
+    - 要件: 削除ボタン押下時、要素だけでなく水色枠も消す。
+    - 解決方法: `FloatingMenu.tsx` の削除処理に `onClearSelection` を追加し、ステートレベルで選択を解除するように修正。
+
 - **テキストボックス挿入機能の改善**
     - 要件: デフォルト色を黒にし、挿入直後に自動選択状態にする。
-    - 解決方法: `useElementInsertion.ts` で黒色を指定。`autoSelectId` 経由で `useMoveable.ts` が挿入を検知し、自動的に `targets` に追加・選択モードへ移行。
+    - 解決方法: `useElementInsertion.ts` で `color: #000000 !important` を指定（グローバルCSSの継承を回避）。`autoSelectId` 経由で `useMoveable.ts` が挿入を検知し、自動的に `targets` に追加・選択モードへ移行。
 
 - **グループ解除後のUIクリーンアップ**
     - 要件: 解除後に複数選択メニューを出さず、かつ水色枠も消す。

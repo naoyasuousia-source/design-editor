@@ -171,7 +171,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectio
                     </button>
                     <button
                         className="p-1.5 hover:bg-red-500/20 rounded text-red-400 hover:text-red-300 transition-all flex items-center gap-1"
-                        onClick={() => { targets.forEach(el => el.remove()); onUpdate(); }}
+                        onClick={() => { targets.forEach(el => el.remove()); if (onClearSelection) onClearSelection(); onUpdate(); }}
                         title="Delete All"
                     >
                         <Trash2 size={14} />
@@ -190,7 +190,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectio
                     </button>
                     <button
                         className="p-1.5 hover:bg-red-500/20 rounded text-red-400 hover:text-red-300 transition-all flex items-center gap-1"
-                        onClick={() => { targets.forEach(el => el.remove()); onUpdate(); }}
+                        onClick={() => { targets.forEach(el => el.remove()); if (onClearSelection) onClearSelection(); onUpdate(); }}
                         title="Delete Group"
                     >
                         <Trash2 size={14} />
@@ -430,7 +430,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectio
                         )}
 
                         <div className="flex items-center gap-1 px-1">
-                            <button className="p-1.5 hover:bg-red-500/20 rounded text-gray-400 hover:text-red-400 transition-all" onClick={() => { targets.forEach(el => el.remove()); onUpdate(); }} title="Delete"><Trash2 size={14} /></button>
+                            <button className="p-1.5 hover:bg-red-500/20 rounded text-gray-400 hover:text-red-400 transition-all" onClick={() => { targets.forEach(el => el.remove()); if (onClearSelection) onClearSelection(); onUpdate(); }} title="Delete"><Trash2 size={14} /></button>
                         </div>
                     </div>
                 </>

@@ -24,7 +24,7 @@ export const useElementInsertion = () => {
             'padding: 10px',
             'font-family: "Noto Sans JP", sans-serif',
             'font-size: 24px',
-            'color: #000000',
+            'color: #000000 !important',
             'line-height: 1.4',
             'background-color: transparent',
             'word-break: break-word'
