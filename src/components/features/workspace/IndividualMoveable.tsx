@@ -47,7 +47,7 @@ const IndividualMoveable: React.FC<IndividualMoveableProps> = ({
                 right: currentWidth + 2000,
                 bottom: currentHeight + 2000,
             }}
-            keepRatio={moveableKeepRatio || target.tagName.toLowerCase() === 'img'}
+            keepRatio={moveableKeepRatio || target.tagName.toLowerCase() === 'img' || (target.style.backgroundImage && target.style.backgroundImage.includes('url'))}
             throttleDrag={1}
             throttleResize={1}
             zoom={1 / zoom}
