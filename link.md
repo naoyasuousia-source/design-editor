@@ -36,7 +36,7 @@
 
 </content>
 <current-situation>現在、外部での変更をエディタが検知しない。</current-situation>
-<remarks></remarks>
+<remarks>画像のコンソールエラー見て！</remarks>
 <permission-to-move>NG</permission-to-move>
 </requirement>
 
@@ -62,16 +62,18 @@
 - **2026-01-03 13:45**: AIリンク機能の完成（初回試行）
     - UIパーツの整備と比較画面の実装。
 - **2026-01-03 13:55**: 自動同期ロジックの抜本的修正（再チャレンジ）
-    - `useAutoSync.ts`: 使用するハンドルを `folderHandle` から `currentFileHandle` へ修正。
-    - `useAutoSync.ts`: HMR（開発用）だけでなく、FileSystemAPI によるポーリング監視（本番・ツール併用時用）を実装。
-    - `lastModified` を監視することで、外部ツールによるファイル上書きを確実に検知可能にした。
+    - ハンドル名の修正と polling 方式への切り替え。
+- **2026-01-03 14:05**: 実行時エラー (SecurityError) の修正と堅牢化
+    - `index.html`: Google Fonts の CSS 読み込みに `crossorigin="anonymous"` を追加。
+    - `screenshot.ts`: `html-to-image` のオプション調整 (`skipFonts`, `fontEmbedCSS`) により CORS エラーを回避。
+    - `useAutoSync.ts`: スクショ失敗時も同期処理を中断させないための多重 try-catch 機構を導入。
 
 
 ## 3. 分析中に気づいた重要ポイント（試してだめだったこと、仮設、制約条件等...）
 
-- **ハンドルの不整合**: 既存の `useAutoSync.ts` が古いプロパティ名 (`folderHandle`) を参照しており、プロジェクトフォルダ管理システムの導入後に更新漏れが発生していたことが判明。
-- **FileSystemAPI の制限**: `FileSystemHandle` にはイベントリスナー（onChange 等）が標準実装されていないため、リアルタイム検知には `setInterval` によるポーリングが不可欠。
-- **自己保存の除外**: ポーリング検知時、エディタ自身による保存のタイムスタンプとの差分を見ることで、無限ループ（保存→検知→ロック）を防止。
+- **SecurityError による同期の停止**: `html-to-image` が外部 CSS (Google Fonts) のパースに失敗すると `SecurityError` を投げ、それが catch されていないと同期フロー全体が途中で死んでしまう問題を確認。
+- **CORS 対応の重要性**: `toPng` などの DOM 変換ライブラリは CSS ルールを読み取るため、外部 CSS リンクには `crossorigin` 属性が必須。
+- **フェイルセーフな設計**: スクリーンショットはあくまで「比較用」の付加情報であるため、その失敗が「エディタへの反映（同期）」という主目的を妨げてはならない。
 
 
 ## 4. 解決済み要件とその解決方法

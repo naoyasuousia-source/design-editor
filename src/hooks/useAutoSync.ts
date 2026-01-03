@@ -60,15 +60,22 @@ export const useAutoSync = () => {
                     const canvasElement = document.querySelector('.DesignSurface') as HTMLElement;
                     let snapshot = null;
                     if (canvasElement) {
-                        const { captureCanvas } = await import('@/utils/screenshot');
-                        snapshot = await captureCanvas(canvasElement);
-                        console.log('Snapshot taken for comparison.');
+                        try {
+                            const { captureCanvas } = await import('@/utils/screenshot');
+                            snapshot = await captureCanvas(canvasElement);
+                            if (snapshot) {
+                                console.log('Snapshot taken for comparison.');
+                            }
+                        } catch (captureErr) {
+                            console.warn('Snapshot capture failed, but sync will continue:', captureErr);
+                        }
                     }
 
                     // 2. 新しい内容を読み込む
                     const newContent = await file.text();
 
                     // 3. ストアに通知（ここでロック & 一時バー表示）
+                    // 以前に snapshot が null であっても、ここでは実行を継続する
                     detectExternalUpdate(newContent, snapshot);
 
                     // 最後に検知した時刻を更新
