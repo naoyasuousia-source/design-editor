@@ -37,7 +37,10 @@ export const useFloatingMenu = (targets: HTMLElement[], onUpdate: () => void) =>
 
     const applyStyle = useCallback((property: keyof CSSStyleDeclaration, value: string, shouldUpdateStore = true) => {
         targets.forEach(el => {
-            const cssProperty = (property as string).replace(/[A-Z]/g, m => `-${m.toLowerCase()}`);
+            let cssProperty = (property as string).replace(/[A-Z]/g, m => `-${m.toLowerCase()}`);
+            if (cssProperty.startsWith('webkit-')) {
+                cssProperty = `-${cssProperty}`;
+            }
             el.style.setProperty(cssProperty, value);
         });
         if (shouldUpdateStore) onUpdate();
@@ -61,7 +64,7 @@ export const useFloatingMenu = (targets: HTMLElement[], onUpdate: () => void) =>
         applyStyle('fontWeight', isBold ? 'normal' : 'bold');
     }, [target, applyStyle]);
 
-    const openEyeDropper = async (property: 'color' | 'borderColor' | 'backgroundColor' = 'color') => {
+    const openEyeDropper = async (propertyOrCallback: any = 'color') => {
         if (!('EyeDropper' in window)) {
             alert('Your browser does not support the EyeDropper API');
             return;
@@ -70,7 +73,12 @@ export const useFloatingMenu = (targets: HTMLElement[], onUpdate: () => void) =>
             // @ts-ignore
             const eyeDropper = new window.EyeDropper();
             const result = await eyeDropper.open();
-            applyStyle(property, result.sRGBHex);
+
+            if (typeof propertyOrCallback === 'function') {
+                propertyOrCallback(result.sRGBHex);
+            } else {
+                applyStyle(propertyOrCallback, result.sRGBHex);
+            }
         } catch (e) {
             console.error('EyeDropper failed:', e);
         }

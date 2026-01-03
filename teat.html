@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Design Project</title>
+    <!-- AI_METADATA_START -->
+    <!-- 
+    ### SYSTEM RULES: DESIGN GENERATION
+    
+    [IMPORTANT] あなたは一流のデザイナーとして、以下のルールを「厳格に」順守してHTMLデザインを生成してください。
+
+    0. CANVAS DIMENSIONS
+    - **Width**: 800px
+    - **Height**: 800px
+    - **Note**: このサイズに合わせてレイアウトを最適化してください。
+
+    1. MISSION
+    - **Mission**: ユーザーの要求を完璧に反映したデザインを作成する。
+    - **Static Only**: HTMLとCSSのみを使用し、静的なデザインを生成すること。JSは不要。
+
+    2. ALLOWED EDIT AREAS (STRICT)
+    - 以下の「タグ」に囲まれた領域「のみ」を編集し、それ以外は一切変更しないこと。
+        1. [DESIGN_START] ～ [DESIGN_END]
+        2. [CUSTOM_CSS_START] ～ [CUSTOM_CSS_END]
+        3. [USER_REQUIREMENT_START] ～ [USER_REQUIREMENT_END]
+    - 注意: [ ] は実際の HTML コメントタグ <!-- ... --> に置き換えて認識してください。
+
+    3. COMPONENT CONSTRAINTS
+    - **Elements**: テキストボックス、画像、図形の3種類のみ使用。
+    - **IDs**: すべての要素に一意のID（id="el-..."）を付与し、独立した要素として扱うこと。
+    - **No Nesting in Text**: 「テキストボックス内」に子要素（span等）を配置することは厳禁。
+    - **Layering**: 要素を重ねる場合は、親要素内に子要素を記述する構造を使用する。
+    - **Image Paths**: 画像は必ず ./images/ フォルダ内のファイルを参照すること。
+
+    4. DESIGN & STYLING
+    - **Fonts (EXCLUSIVE LIST)**: 以下の15種類からのみ選択すること。
+        Noto Sans JP, Noto Serif JP, 游ゴシック (Yu Gothic), 游明朝 (Yu Mincho), メイリオ (Meiryo), M PLUS 1p, Zen 角ゴシック New, Inter, Montserrat, Roboto, Playfair Display, Oswald, Poppins, JetBrains Mono, Times New Roman
+    - **Layout**: CSS Gridを積極的に活用し、モダンな黄金比を意識すること。
+    - **Colors**: メイン、サブ、アクセントの3色構成を基本とし、一貫性を保つこと。
+    - **Smart CSS**: <!-- CUSTOM_CSS_START --> 内でCSS変数を定義し、保守性の高いスタイルを構築すること。
+
+    5. DATA STRUCTURE
+    - **JSON Metadata**: <!-- USER_REQUIREMENT_START --> 内には、ユーザー要件をJSON形式で正確に記載すること。
+    -<!-- USER_REQUIREMENT_START --> 内は、毎回必ず、すべての項目を最新に更新し、必ず「日本語」で記述すること。
+    -->
+    <!-- AI_METADATA_END -->
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { width: 100%; height: 100%; overflow: auto; }
+        body { background: #1a1a1a; display: flex; align-items: center; justify-content: center; padding: 20px; min-height: 100vh; }
+        .DesignSurface { position: relative; background: white; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); min-width: 400px; min-height: 400px; }
+        
+        <!-- CUSTOM_CSS_START -->
+        
+        <!-- CUSTOM_CSS_END -->
+    </style>
+    <script id="ai-link-metadata" type="application/json">
+        <!-- USER_REQUIREMENT_START -->
+        {
+  "requirements": [],
+  "notes": [],
+  "concept": "",
+  "colors": {
+    "primary": "#3b82f6",
+    "secondary": "#1f2937",
+    "accent": "#fbbf24"
+  },
+  "remarks": "",
+  "pageSize": "SQUARE"
+}
+        <!-- USER_REQUIREMENT_END -->
+    </script>
+</head>
+<body>
+    <!-- DESIGN_START -->
+    <div class="DesignSurface" style="position: relative; width: 100%; height: 100%; overflow: hidden;">
+        <div id="el-ggtzne4i3" style="position: absolute; top: 100px; left: 100px; width: 600px; height: 600px; border: 4px solid black; background: white; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;">
+                    <div id="el-9g0l78vyq" style="font-family: 'Playfair Display', serif; font-size: 64px; color: #1a1a1a; margin: 0; padding: 0; text-align: center; width: 80%;">TITLE HERE</div>
+                    <div id="el-uywcgmafv" style="font-family: 'Montserrat', sans-serif; font-size: 24px; color: #666; text-transform: uppercase; letter-spacing: 0.1em; margin: 0; padding: 0; text-align: center; width: 80%;">Description here</div>
+                </div>
+    </div>
+    <!-- DESIGN_END -->
+</body>
+</html>

@@ -116,7 +116,13 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
             {showShadowPalette && (
                 <ColorPalette
                     type="shadow"
-                    onPick={() => openEyeDropper('color')}
+                    onPick={() => openEyeDropper((v: string) => {
+                        const style = window.getComputedStyle(target);
+                        const current = target.style.textShadow || style.textShadow;
+                        const parts = current.split(' ');
+                        const nums = parts.filter(p => p.includes('px'));
+                        applyStyle('textShadow' as any, `${nums.join(' ')} ${v}`);
+                    })}
                     onApply={(p, v) => {
                         const style = window.getComputedStyle(target);
                         const current = target.style.textShadow || style.textShadow;
@@ -136,7 +142,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
             {showStrokePalette && (
                 <ColorPalette
                     type="stroke"
-                    onPick={() => openEyeDropper('color')}
+                    onPick={() => openEyeDropper((v: string) => applyStyle('webkitTextStrokeColor' as any, v))}
                     onApply={(p, v) => applyStyle('webkitTextStrokeColor' as any, v)}
                 />
             )}

@@ -28,37 +28,20 @@
 ## 1. 未解決要件（移動許可がNGの要件は絶対に移動・編集しないこと）（勝手に移動許可をOKに書き換えないこと）
 
 <requirement>
-<content>袋文字のカラーを選択しても確定されず反映されないので修正してほしい。</content>
+<content>現在、袋文字はカラー選択はできるようになったが、袋文字が文字の内側に入り込むように反映されてしまう。テキストのアウトラインから外側に縁取りするように仕様変更してほしい。</content>
 <current-situation></current-situation>
 <remarks></remarks>
 <permission-to-move>NG</permission-to-move>
-</requirement>
-
-<requirement>
-<content>
-
-- 現在、テキストボックスでエンターのみで改行すると、新行は別のテキストボックスとして認識されてしまう。
-- shift+enterだと、テキストボックス内での改行が可能。
-- エンターのみでも、常にテキストボックス内改行するようにしてほしい。
-- また、テキストボックス内改行すると、現在、図形要素として扱われるようになってしまうので、改行しても引き続き単一のテキストボックスとして扱われるようにしてほしい。</content>
-<current-situation></current-situation>
-<remarks></remarks>
-<permission-to-move>OK</permission-to-move>
-</requirement>
-
-<requirement>
-<content>
-
-- 袋文字のスライダーが機能しないので、機能するようにしてほしい。</content>
-<current-situation></current-situation>
-<remarks></remarks>
-<permission-to-move>OK</permission-to-move>
 </requirement>
 
 
 
 
 ## 2. 未解決要件に関するコード変更履歴（目的、変更内容、変更日時）
+- 2026-01-03: 袋文字のカラー選択およびスポイト（EyeDropper）機能の修正。`openEyeDropper` にコールバックを導入し、プロパティ名を動的に解決可能にした。
+- 2026-01-03: `applyStyle` におけるベンダープリフィックス（`webkit-`）の kebab-case 変換バグを修正（先頭ハイフンの追加）。
+- 2026-01-03: テキストボックス内改行挙動の改善（Enterキーで `<br>` 挿入）および判定ロジックの緩和。
+- 2026-01-03: 袋文字（Stroke）操作の修正。`style` 属性への直接代入による反映の確実化、および色選択の統合。
 - 2026-01-03: テキストメニュー拡張（段落スタイル・エフェクト）の実装
     - `ParagraphSettings.tsx` を新規作成。文字揃え、縦書き切替、文字間隔・行間隔スライダーを実装。
     - `EffectSettings.tsx` を新規作成。テキスト影、背景装飾（padding/radius）、袋文字（stroke）の調整機能を実装。
@@ -77,13 +60,18 @@
 - **メニューの配置と見切れ防止**: 要素が画面上部（`rect.top < 300`）にある場合、上方向に展開するとメニューが画面外にはみ出す。このため、座標に基づいて `top` 基準（下展開）か `bottom` 基準（上展開）かを動的に切り替える必要がある。
 - **レンダリング地獄の分析**: スライダー等の連続的な操作で `applyStyle` -> `onUpdate` (store) を呼ぶと、`dangerouslySetInnerHTML` による DOM 全置換が毎フレーム発生し、メニューの追従処理と競合して「暴れる」挙動になる。
 - **解決策**: スライダー操作中は `onUpdate` をスキップして直接 DOM 操作を行い、操作終了時（`onMouseUp` 等）にのみ store を更新するように最適化する。
-- **テキスト判定の課題**: `children.length === 0` という条件だと、改行（`<br>` や `<div>`）を含むテキストがテキスト要素として判定されず、図形要素（Shape）として扱われてしまう。判定ロジックを「テキストノードのみを持つか、改行要素のみを含むか」に緩和する必要がある。
-- **Enterキーの挙動**: `contenteditable` において、デフォルトの Enter キーはブラウザによって挙動が異なり、多くの場合新しい `<div>` や `<p>` を作成する。これが Workspace 側の DOM 監視において「新しい要素が追加された」と判定され、意図しない分割が発生している可能性がある。Enter をトラップして `<br>` 挿入に統一するか、分離ロジック側を調整する必要がある。
-- **袋文字（Stroke）機能不全**: `webkitTextStrokeWidth` などのベンダープリフィックス付きプロパティが `style.setProperty` で正しく扱われているか、また `getComputedStyle` で正しく取得できているかを確認。また、色が未設定の場合に表示されないことがあるため初期値の設定を検討。
+- **テキスト判定の課題**: `children.length === 0` という条件だと、改行（`<br>` や `<div>`）を含むテキストがテキスト要素として判定されず、図形要素（Shape）として扱われてしまう。判定ロジックを「テキストノードのみを持つか、改行要素のみを含むか」に緩和する必要がある。（解決済み）
+- **Enterキーの挙動**: `contenteditable` において、デフォルトの Enter キーはブラウザによって挙動が異なり、多くの場合新しい `<div>` や `<p>` を作成する。これが Workspace 側の DOM 監視において「新しい要素が追加された」と判定され、意図しない分割が発生している可能性がある。Enter をトラップして `<br>` 挿入に統一。（解決済み）
+- **袋文字のカラー反映不良**: `ColorPalette` からの `onApply` において、`webkitTextStrokeColor` を指定しているが、`applyStyle` の正規表現による kebab-case 変換の結果、先頭の `-` が欠落して `webkit-text-stroke-color` になっている。CSS では `-webkit-text-stroke-color` である必要がある。（解決済み）
+- **EyeDropper の共通化**: `openEyeDropper` が `applyStyle` を直接呼んでいたため、影や袋文字のように「特定の文字列フォーマットが必要なプロパティ」や「特殊なプロパティ名」にスポイトの結果を反映させることができなかった。`openEyeDropper` を高階関数化（コールバック受容）することで解決。
+- **ベンダープリフィックスの変換ロジック**: `setProperty` を使う際、`webkitTextStroke` を変換すると `webkit-text-stroke` になるが、本来は `-webkit-text-stroke` とする必要がある。`startsWith('webkit-')` を判定して先頭に `-` を付与するように `applyStyle` を修正。
 
 
 
 ## 4. 解決済み要件とその解決方法
+- **袋文字のカラー選択修正**: `applyStyle` 内でのベンダープリフィックス（`-webkit-`）の適切な処理と、`openEyeDropper` へのコールバック導入により、パレットからの色選択およびスポイトによる色取得が袋文字・影に正しく反映されるよう改善。
+- **テキストボックスの改行修正**: `useTextEditing.ts` で Enter キーをトラップし、`insertLineBreak` を実行するように修正。また `isTextBox` 判定を緩和し、`<br>` を含む要素もテキストとして扱うようにした。
+- **袋文字スライダーの修正**: `EffectSettings.tsx` で `targets` 全体に対して直接 `style` 操作を行うようにし、反映の確実性を向上。
 - **メニュー表示位置の動的最適化（見切れ防止）**: 要素の Y 座標を監視し、画面上部に十分な余白がない場合（`rect.top < 300`）は、メニューのアンカーを `bottom` から `top` に、コンテナの方向を `flex-col` から `flex-col-reverse` に切り替えるロジックを実装。これにより、メニューが画面外にはみ出すことを防ぎつつ、常に要素に近い位置に操作頻度の高いメインバーがくるように改善。
 - **角丸スライダーの最適化（レンダリング地獄の解消）**: スライダー操作中（`onInput`）はグローバルストアの更新をスキップして直接 DOM 操作を行い、操作終了時（`onMouseUp`）にのみストアを更新するように改善。これにより、毎フレームの DOM 全置換とメニューの再計算が抑制され、スムーズな操作が可能になった。
 - **テキストメニュー拡張（段落・エフェクト）**:
