@@ -5,7 +5,7 @@ import { useEditorStore } from '@/store/useEditorStore';
  * 要素（テキスト・画像）をキャンバスに挿入するためのHook
  */
 export const useElementInsertion = () => {
-    const { content, setContent, zoom } = useEditorStore();
+    const { content, setContent } = useEditorStore();
 
     const insertElement = useCallback((html: string) => {
         // 現在のコンテンツの末尾に追加（常に最前面）

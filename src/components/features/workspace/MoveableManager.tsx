@@ -5,7 +5,6 @@ import type { SelectionMode } from '@/hooks/moveable/useSelection';
 interface MoveableManagerProps {
     targets: HTMLElement[];
     canvasRef: React.RefObject<HTMLDivElement | null>;
-    isEditing: boolean;
     getRenderDirections: () => string[];
     getBounds: () => { left: number; top: number; right: number; bottom: number } | undefined;
     currentWidth: number;
@@ -14,14 +13,23 @@ interface MoveableManagerProps {
     zoom: number;
     expandCanvas: (neededWidth: number, neededHeight: number) => void;
     isTextBox: (el: HTMLElement) => boolean;
-    isResponsiveResize: boolean;
     selectionMode: SelectionMode;
     activeSubTarget: HTMLElement | null;
     handleResizeStart: (e: { target: HTMLElement | SVGElement; direction: number[] }) => void;
     updateContentFromDOM: () => void;
 }
 
-isResponsiveResize,
+const MoveableManager: React.FC<MoveableManagerProps> = ({
+    targets,
+    canvasRef,
+    getRenderDirections,
+    getBounds,
+    currentWidth,
+    currentHeight,
+    moveableKeepRatio,
+    zoom,
+    expandCanvas,
+    isTextBox,
     selectionMode,
     activeSubTarget,
     handleResizeStart,
@@ -29,8 +37,7 @@ isResponsiveResize,
 }) => {
     // グループ全体をレスポンシブにリサイズするヘルパー
     const handleGroupResize = (e: any) => {
-        const { width, height, drag } = e;
-        const groupElements = targets;
+        const { width } = e;
 
         // 基準となる全体のバウンディングボックスの変更比率
         const startW = parseFloat(e.target.getAttribute('data-last-width') || e.target.offsetWidth.toString());
@@ -101,7 +108,7 @@ isResponsiveResize,
                             el.setAttribute('data-start-l', el.offsetLeft.toString());
                             el.setAttribute('data-start-t', el.offsetTop.toString());
                             el.setAttribute('data-start-fs', window.getComputedStyle(el).fontSize);
-                            el.setAttribute('data-last-width', e.width.toString());
+                            el.setAttribute('data-last-width', (e as any).width?.toString() || el.offsetWidth.toString());
                         });
                     }}
                     onResizeGroup={e => {

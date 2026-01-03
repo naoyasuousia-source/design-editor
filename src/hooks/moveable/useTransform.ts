@@ -5,7 +5,6 @@ export const useTransform = (
     canvasRef: RefObject<HTMLDivElement | null>,
     targets: HTMLElement[],
     zoom: number,
-    isResponsiveResize: boolean,
     isTextBox: (el: HTMLElement) => boolean
 ) => {
     const [keepRatio, setKeepRatio] = useState(false);

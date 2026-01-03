@@ -20,7 +20,6 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
         customWidth,
         customHeight,
         expandCanvas,
-        isResponsiveResize
     } = useEditorStore();
     const config = PAGE_SIZES[pageSize];
 
@@ -37,8 +36,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
         isTextBox,
         getRenderDirections,
         selectionMode,
-        activeSubTarget,
-        isEditing
+        activeSubTarget
     } = useMoveable(canvasRef);
 
     useAutoSync();
@@ -78,7 +76,6 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
                         <MoveableManager
                             targets={targets}
                             canvasRef={canvasRef}
-                            isEditing={isEditing}
                             getRenderDirections={getRenderDirections}
                             getBounds={getBounds}
                             currentWidth={currentWidth}
@@ -87,7 +84,6 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
                             zoom={zoom}
                             expandCanvas={expandCanvas}
                             isTextBox={isTextBox}
-                            isResponsiveResize={isResponsiveResize}
                             selectionMode={selectionMode}
                             activeSubTarget={activeSubTarget}
                             handleResizeStart={handleResizeStart}

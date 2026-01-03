@@ -10,7 +10,7 @@ import { useTransform } from './moveable/useTransform';
  */
 export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
     const {
-        content, setContent, isLocked, zoom, isResponsiveResize
+        content, setContent, isLocked, zoom
     } = useEditorStore();
 
     const {
@@ -38,7 +38,7 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
         keepRatio,
         handleResizeStart,
         getBounds
-    } = useTransform(canvasRef, targets, zoom, isResponsiveResize, isTextBox);
+    } = useTransform(canvasRef, targets, zoom, isTextBox);
 
     // クリックによる要素選択
     const handleCanvasClick = useCallback((e: MouseEvent) => {

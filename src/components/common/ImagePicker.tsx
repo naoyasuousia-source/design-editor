@@ -1,7 +1,6 @@
 import React from 'react';
 import { X, ImageIcon, Search, RefreshCw } from 'lucide-react';
 import { useAssets } from '@/hooks/useAssets';
-import { cn } from '@/utils/cn';
 
 interface ImagePickerProps {
     onSelect: (path: string) => void;

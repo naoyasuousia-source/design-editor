@@ -8,6 +8,7 @@ import {
     Redo,
     HelpCircle,
     Link2,
+    ChevronDown,
     Plus,
     Brain,
 } from 'lucide-react';
