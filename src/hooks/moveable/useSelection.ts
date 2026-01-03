@@ -7,6 +7,7 @@ export const useSelection = (canvasRef: RefObject<HTMLDivElement | null>, conten
     const [targets, setTargetsState] = useState<HTMLElement[]>([]);
     const [selectionMode, setSelectionMode] = useState<SelectionMode>('none');
     const [activeSubTarget, setActiveSubTarget] = useState<HTMLElement | null>(null);
+    const [hoverTargets, setHoverTargets] = useState<HTMLElement[]>([]);
 
     const setTargets = useCallback((newTargets: HTMLElement[] | ((prev: HTMLElement[]) => HTMLElement[])) => {
         setTargetsState(prev => {
@@ -85,6 +86,8 @@ export const useSelection = (canvasRef: RefObject<HTMLDivElement | null>, conten
         setSelectionMode,
         activeSubTarget,
         setActiveSubTarget,
+        hoverTargets,
+        setHoverTargets,
         isTextBox,
         getRenderDirections
     };

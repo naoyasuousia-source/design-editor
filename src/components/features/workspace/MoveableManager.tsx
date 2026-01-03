@@ -15,6 +15,7 @@ interface MoveableManagerProps {
     isTextBox: (el: HTMLElement) => boolean;
     selectionMode: SelectionMode;
     activeSubTarget: HTMLElement | null;
+    hoverTargets: HTMLElement[];
     handleResizeStart: (e: { target: HTMLElement | SVGElement; direction: number[] }) => void;
     updateContentFromDOM: () => void;
 }
@@ -32,6 +33,7 @@ const MoveableManager: React.FC<MoveableManagerProps> = ({
     isTextBox,
     selectionMode,
     activeSubTarget,
+    hoverTargets,
     handleResizeStart,
     updateContentFromDOM
 }) => {
@@ -65,7 +67,20 @@ const MoveableManager: React.FC<MoveableManagerProps> = ({
 
     return (
         <>
-            {/* グループ選択用のオレンジ枠 (常に表示) */}
+            {/* ホバー用のオレンジ枠 */}
+            {hoverTargets.length > 0 && (
+                <Moveable
+                    target={hoverTargets}
+                    container={canvasRef.current || undefined}
+                    draggable={false}
+                    resizable={false}
+                    origin={false}
+                    zoom={1 / zoom}
+                    className="moveable-group-hover"
+                />
+            )}
+
+            {/* グループ選択用のオレンジ枠 */}
             {targets.length > 0 && (
                 <Moveable
                     target={targets}

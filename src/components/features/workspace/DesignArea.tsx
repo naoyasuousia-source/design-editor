@@ -8,6 +8,8 @@ interface DesignAreaProps {
     config: { label: string };
     canvasRef: React.RefObject<HTMLDivElement | null>;
     handleCanvasClick: (e: React.MouseEvent) => void;
+    handleMouseMove: (e: React.MouseEvent) => void;
+    handleMouseLeave: () => void;
     updateContentFromDOM: () => void;
 }
 
@@ -15,12 +17,16 @@ export const DesignContent = React.memo(({
     content,
     onMouseDown,
     onPaste,
+    onMouseMove,
+    onMouseLeave,
     onDragOver,
     onDrop
 }: {
     content: string;
     onMouseDown: (e: React.MouseEvent) => void;
     onPaste: (e: React.ClipboardEvent) => void;
+    onMouseMove: (e: React.MouseEvent) => void;
+    onMouseLeave: (e: React.MouseEvent) => void;
     onDragOver: (e: React.DragEvent) => void;
     onDrop: (e: React.DragEvent) => void;
 }) => {
@@ -30,6 +36,8 @@ export const DesignContent = React.memo(({
             dangerouslySetInnerHTML={{ __html: content }}
             onMouseDown={onMouseDown}
             onPaste={onPaste}
+            onMouseMove={onMouseMove}
+            onMouseLeave={onMouseLeave}
             onDragOver={onDragOver}
             onDrop={onDrop}
         />
@@ -42,6 +50,8 @@ const DesignArea: React.FC<DesignAreaProps> = ({
     config,
     canvasRef,
     handleCanvasClick,
+    handleMouseMove,
+    handleMouseLeave,
     updateContentFromDOM
 }) => {
     const isApplyingUpdate = useEditorStore(state => state.isApplyingUpdate);
@@ -61,6 +71,8 @@ const DesignArea: React.FC<DesignAreaProps> = ({
             <DesignContent
                 content={content}
                 onMouseDown={handleCanvasClick}
+                onMouseMove={handleMouseMove}
+                onMouseLeave={handleMouseLeave}
                 onPaste={(e) => {
                     const target = e.target as HTMLElement;
                     if (target.contentEditable === 'true') {

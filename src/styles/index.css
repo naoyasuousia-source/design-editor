@@ -48,13 +48,27 @@
         height: 2px !important;
     }
 
-    .moveable-group-selection .moveable-control {
+    .moveable-group-selection .moveable-control,
+    .moveable-group-hover .moveable-control {
         border: 2.5px solid #f97316 !important;
         width: 12px !important;
         height: 12px !important;
         margin-top: -6px !important;
         margin-left: -6px !important;
         border-radius: 2px !important;
+        box-shadow: 0 0 5px rgba(249, 115, 22, 0.4) !important;
+    }
+
+    /* Orange Group Hover (no points used usually, but we define style) */
+    .moveable-group-hover .moveable-line {
+        background: #f97316 !important;
+        height: 2px !important;
+        opacity: 0.6;
+        /* 少し薄くしてホバー感を出す */
+    }
+
+    .moveable-group-hover .moveable-control {
+        display: none !important;
     }
 
     /* Individual handle (sub-selection) */
@@ -83,12 +97,18 @@
 
     /* 
        1. 選択中の要素は常に枠を表示
-       2. ホバー時は「最も深い（子要素がホバーされていない）」要素のみ枠を表示することで、親子同時の枠表示を防止
+       2. ホバー時は「最も深い（子要素がホバーされていない）」要素のみ枠を表示
+       ※ グループ化されている要素は JS 側でオレンジ枠を出すため、CSS 側では非表示にする
     */
-    .DesignSurface *.moveable-target-active,
-    .DesignSurface *:hover:not(.DesignSurface):not(:has(*:hover)) {
+    .DesignSurface *.moveable-target-active:not([data-group-id]),
+    .DesignSurface *:not([data-group-id]):hover:not(.DesignSurface):not(:has(*:hover)) {
         outline: 1.5px solid #5dade2 !important;
         outline-offset: 1px;
+    }
+
+    /* 2段階選択時（individualモード）で、アクティブなサブ要素のみ青枠を表示 */
+    .DesignSurface *.moveable-target-active[data-group-id] {
+        outline: none !important;
     }
 
     /* Remove default focus border during text editing, but keep our custom outline if needed */

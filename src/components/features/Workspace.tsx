@@ -32,11 +32,14 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
         handleResizeStart,
         getBounds,
         handleCanvasClick,
+        handleMouseMove,
+        handleMouseLeave,
         updateContentFromDOM,
         isTextBox,
         getRenderDirections,
         selectionMode,
-        activeSubTarget
+        activeSubTarget,
+        hoverTargets
     } = useMoveable(canvasRef);
 
     useAutoSync();
@@ -69,6 +72,8 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
                         config={config}
                         canvasRef={canvasRef}
                         handleCanvasClick={handleCanvasClick}
+                        handleMouseMove={handleMouseMove}
+                        handleMouseLeave={handleMouseLeave}
                         updateContentFromDOM={updateContentFromDOM}
                     />
 
@@ -86,6 +91,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
                             isTextBox={isTextBox}
                             selectionMode={selectionMode}
                             activeSubTarget={activeSubTarget}
+                            hoverTargets={hoverTargets}
                             handleResizeStart={handleResizeStart}
                             updateContentFromDOM={updateContentFromDOM}
                         />

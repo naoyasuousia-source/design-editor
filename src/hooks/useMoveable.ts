@@ -21,6 +21,8 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
         setSelectionMode,
         activeSubTarget,
         setActiveSubTarget,
+        hoverTargets,
+        setHoverTargets,
         isTextBox,
         getRenderDirections
     } = useSelection(canvasRef, content);
@@ -116,6 +118,38 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
         }
     }, [isLocked, canvasRef, finishEditing, handleDoubleClick, setTargets, targets, selectNone, setSelectionMode, setActiveSubTarget]);
 
+    // ホバー時の処理（グループハイライト用）
+    const handleMouseMove = useCallback((e: React.MouseEvent) => {
+        if (isLocked || isEditing) return;
+
+        const target = e.target as HTMLElement;
+        const surface = target.closest('.DesignSurface');
+        if (!surface || target === surface) {
+            setHoverTargets([]);
+            return;
+        }
+
+        const groupId = target.getAttribute('data-group-id');
+        if (groupId) {
+            const groupElements = Array.from(surface.querySelectorAll(`[data-group-id="${groupId}"]`)) as HTMLElement[];
+            // すでに選択中のグループなら、ホバー表示は不要（実線があるので）
+            const isAlreadySelected = targets.length === groupElements.length &&
+                groupElements.every(el => targets.includes(el));
+
+            if (isAlreadySelected) {
+                setHoverTargets([]);
+            } else {
+                setHoverTargets(groupElements);
+            }
+        } else {
+            setHoverTargets([]);
+        }
+    }, [isLocked, isEditing, targets, setHoverTargets]);
+
+    const handleMouseLeave = useCallback(() => {
+        setHoverTargets([]);
+    }, [setHoverTargets]);
+
     // キーボードショートカット（Esc で選択解除・編集終了）
     useEffect(() => {
         const handleKeys = (e: KeyboardEvent) => {
@@ -136,12 +170,16 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
         keepRatio,
         handleResizeStart,
         getBounds,
+        getDirections: getRenderDirections,
         handleCanvasClick,
+        handleMouseMove,
+        handleMouseLeave,
         handleDoubleClick,
         updateContentFromDOM,
         finishEditing,
         isTextBox,
         getRenderDirections,
         isEditing,
+        hoverTargets
     };
 };

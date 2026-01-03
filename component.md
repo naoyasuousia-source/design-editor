@@ -30,13 +30,28 @@
 <requirement>
 <content>
 
+- グループ化されてるすべての要素は、ホバーでは水色枠は非表示とし、代わりにグループ全体のオレンジ枠のみを表示する。
+（個別要素は枠表示しない）
+- insert.mdの通り、グループ化されてるすべての要素は、一回クリックすると、グループ選択扱いとなり、水色枠と水色ポイントは表示せず、グループ全体の外枠のオレンジ枠と、オレンジポイントのみを表示する。（グループ全体選択状態では、グループ解除と削除メニューのみを表示。
+- その状態で、もう一度、同じ個別要素をクリックすると、オレンジ枠とオレンジポイントは表示されたまま、水色枠と水色ポイントも表示され、グループ内の要素が個別に選択可能になる。
+
+</content>
+<current-situation>
+- ホバー時、個別要素にはオレンジ枠は表示しないでほしいのに、オレンジ枠がちらつく。
+- ホバー時、グループ全体の外枠にはオレンジ枠を常に表示してほしいのに、オレンジ枠がちらつく。
+- グループ化の個別要素の水色枠、水色ポイントが一切表示されなくなった。
+</current-situation>
+<remarks>**insert.mdの要件に厳密に従うこと。**</remarks>
+<permission-to-move>NG</permission-to-move>
+</requirement>
+
+<requirement>
+<content>
 - 新規作成時のデフォルトデザインを新仕様に合わせ、すべてフラットな要素とする。
 </content>
-<current-situation>現在は親子構造になってしまっている。</current-situation>
-<remarks>
-
-**insert.mdの要件に厳密に従うこと。**</remarks>
-<permission-to-move>NG</permission-to-move>
+<current-situation></current-situation>
+<remarks></remarks>
+<permission-to-move>OK</permission-to-move>
 </requirement>
 
 
@@ -47,6 +62,14 @@
     - 内容: `src/utils/templates.ts` 内の `GET_INITIAL_TEMPLATE` を修正。入れ子構造を廃止し、絶対座標と `data-group-id` を持つフラットな要素群を生成するように変更。
     - 日時: 2026-01-03 21:15
 
+- **グループホバーと2段階選択UIの実装**
+    - 目的: insert.mdのUI要件（グループ単位でのホバー・選択）を満たすため。
+    - 内容: 
+        - `MoveableManager.tsx`: ホバー用の Moveable を追加。グループ選択 Moveable に `renderDirections=["nw", "ne", "sw", "se"]` と `keepRatio` を設定。
+        - `useMoveable.ts` / `useSelection.ts`: `hoverTargets` の管理ロジックを追加し、`handleMouseMove` でグループ判定を実施。
+        - `index.css`: グループ化された要素の CSS アウトラインを抑制し、JSベースのオレンジ枠が際立つように調整。
+    - 日時: 2026-01-03 21:50
+
 
 ## 3. 分析中に気づいた重要ポイント（試してだめだったこと、仮設、制約条件等...）
 
@@ -54,6 +77,8 @@
 - **グループの定義**: 現在は `data-group-id` 属性が一致する要素群を論理的なグループとして扱っている。
 - **座標計算の重要性**: フラット化を行う際、入れ子要素の相対座標を、デザイン領域全体からの絶対座標に正しく計算し直す必要がある。
 - **初期テンプレートの制約**: `display: flex` はフラット化（絶対座標固定）と相性が悪いため、テンプレート内の各要素に具体的な `top`, `left`, `width` を指定して静的なレイアウトを構築する必要がある。
+- **ホバー競合の解消**: CSS で `:hover` を使うと子要素・親要素で多重に枠が出てしまうが、JS (onMouseMove) でグループを特定して Moveable で描画することで、クリーンなグループハイライトを実現した。
+- **ポイントの共存**: 2段階選択時、オレンジ（グループ）と水色（個別）のポイントが両方出るため、視覚的な重なりに注意が必要（現状は両方表示し、操作性を担保）。
 
 
 ## 4. 解決済み要件とその解決方法
