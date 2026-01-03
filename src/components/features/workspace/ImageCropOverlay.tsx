@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Check, X, Maximize2 } from 'lucide-react';
 import { useEditorStore } from '@/store/useEditorStore';
+import { cn } from '@/utils/cn';
 
 const ImageCropOverlay: React.FC = () => {
     const {
@@ -112,7 +113,21 @@ const ImageCropOverlay: React.FC = () => {
                             top: rect.top + (borderT + paddingT + offY) * zoom
                         });
 
-                        setCropRect({ x: 0, y: 0, width: fullW, height: fullH });
+                        // 初期選択枠の決定（比率を考慮）
+                        let finalW = fullW;
+                        let finalH = fullH;
+                        let startX = 0;
+                        let startY = 0;
+                        if (imageCropAspectRatio) {
+                            if (fullW / fullH > imageCropAspectRatio) {
+                                finalW = fullH * imageCropAspectRatio;
+                                startX = (fullW - finalW) / 2;
+                            } else {
+                                finalH = fullW / imageCropAspectRatio;
+                                startY = (fullH - finalH) / 2;
+                            }
+                        }
+                        setCropRect({ x: startX, y: startY, width: finalW, height: finalH });
                         setTargetImageUrl(info.url);
                     }
                 });
@@ -123,7 +138,30 @@ const ImageCropOverlay: React.FC = () => {
             setTarget(null);
             setTargetImageUrl('');
         }
-    }, [isImageCropMode, croppingElementId, imageCropAspectRatio, loadImageInfo, zoom]);
+    }, [isImageCropMode, croppingElementId, loadImageInfo, zoom]);
+
+    // 比率変更時の追従
+    useEffect(() => {
+        if (!isImageCropMode || !elementSize.width) return;
+        setCropRect(prev => {
+            if (!imageCropAspectRatio) return prev;
+            let w = prev.width;
+            let h = prev.height;
+            if (w / h > imageCropAspectRatio) w = h * imageCropAspectRatio;
+            else h = w / imageCropAspectRatio;
+
+            // はみ出し補正
+            if (w > elementSize.width) { w = elementSize.width; h = w / imageCropAspectRatio; }
+            if (h > elementSize.height) { h = elementSize.height; w = h * imageCropAspectRatio; }
+
+            return {
+                x: Math.max(0, Math.min(elementSize.width - w, prev.x)),
+                y: Math.max(0, Math.min(elementSize.height - h, prev.y)),
+                width: w,
+                height: h
+            };
+        });
+    }, [imageCropAspectRatio, isImageCropMode, elementSize]);
 
     const handleMouseMove = useCallback((e: MouseEvent) => {
         if (!isDragging.current || !dragType.current || !target) return;
@@ -255,9 +293,37 @@ const ImageCropOverlay: React.FC = () => {
                 </div>
 
                 {/* ボタンユニット */}
-                <div className="absolute -bottom-24 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-sidebar/95 backdrop-blur-md border border-white/10 p-2 rounded-full shadow-2xl pointer-events-auto">
-                    <button onClick={handleApply} className="flex items-center gap-2 px-8 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-black rounded-full transition-all shadow-lg active:scale-95"><Check size={20} /><span>適用</span></button>
-                    <button onClick={() => setImageCropMode(false, null)} className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition-all"><X size={24} /></button>
+                <div className="absolute -bottom-24 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-sidebar/95 backdrop-blur-md border border-white/10 p-4 rounded-full shadow-2xl pointer-events-auto ring-1 ring-white/10">
+                    <div className="flex items-center gap-1 bg-black/40 rounded-full p-1 mr-2 border border-white/5">
+                        <button
+                            onClick={() => setImageCropMode(true, croppingElementId, null)}
+                            className={cn(
+                                "px-4 py-1.5 rounded-full text-[10px] font-bold uppercase transition-all",
+                                !imageCropAspectRatio ? "bg-blue-600 text-white shadow-lg" : "text-gray-400 hover:text-white hover:bg-white/5"
+                            )}
+                        >
+                            Free
+                        </button>
+                        <button
+                            onClick={() => setImageCropMode(true, croppingElementId, 1)}
+                            className={cn(
+                                "px-4 py-1.5 rounded-full text-[10px] font-bold uppercase transition-all",
+                                imageCropAspectRatio === 1 ? "bg-blue-600 text-white shadow-lg" : "text-gray-400 hover:text-white hover:bg-white/5"
+                            )}
+                        >
+                            1:1
+                        </button>
+                    </div>
+
+                    <div className="w-[1px] h-6 bg-white/10 mx-1" />
+
+                    <button onClick={handleApply} className="flex items-center gap-2 px-8 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-black rounded-full transition-all shadow-lg active:scale-95">
+                        <Check size={20} />
+                        <span>適用</span>
+                    </button>
+                    <button onClick={() => setImageCropMode(false, null)} className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition-all">
+                        <X size={24} />
+                    </button>
                 </div>
             </div>
         </div>,

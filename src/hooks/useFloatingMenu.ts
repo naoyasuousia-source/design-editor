@@ -31,7 +31,7 @@ export const useFloatingMenu = (targets: HTMLElement[], onUpdate: () => void, on
     const [showTextBgPalette, setShowTextBgPalette] = useState(false);
     const [showStrokePalette, setShowStrokePalette] = useState(false);
 
-    const { setResponsiveResize } = useEditorStore();
+    const { setResponsiveResize, setImageCropMode } = useEditorStore();
     const target = targets[0];
 
     useEffect(() => {
@@ -184,6 +184,7 @@ export const useFloatingMenu = (targets: HTMLElement[], onUpdate: () => void, on
         showTextBgPalette, setShowTextBgPalette,
         showStrokePalette, setShowStrokePalette,
         setResponsiveResize,
+        setImageCropMode,
         applyStyle,
         handleGroup,
         handleUngroup,

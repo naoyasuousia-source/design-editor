@@ -10,7 +10,6 @@ import { useAssets } from '@/hooks/useAssets';
 import { cn } from '@/utils/cn';
 import { useFloatingMenu } from '@/hooks/useFloatingMenu';
 import ColorPalette from './floating-menu/ColorPalette';
-import ImagePositionPanel from './floating-menu/ImagePositionPanel';
 import RadiusPicker from './floating-menu/RadiusPicker';
 import ImageReplacePanel from './floating-menu/ImageReplacePanel';
 import TextSettings from './floating-menu/TextSettings';
@@ -131,7 +130,6 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectio
                             onApply={applyStyle} onUpdate={onUpdate} closeAllPanels={closeAllPanels}
                         />
                     )}
-                    {showCropPicker && isImage && <ImagePositionPanel target={displayTarget} onUpdate={onUpdate} onClose={() => setShowCropPicker(false)} />}
                     {showRadiusPicker && <RadiusPicker target={displayTarget} localRadius={localRadius} setLocalRadius={setLocalRadius} onApply={applyStyle} onUpdate={onUpdate} />}
                     {showImagePicker && isImage && <ImageReplacePanel imageFiles={imageFiles} imageUrls={imageUrls} target={displayTarget} onClose={() => setShowImagePicker(false)} onUpdate={onUpdate} />}
 
@@ -221,8 +219,8 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectio
                                     {showRadiusPicker && <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-white rounded-full" />}
                                 </button>
                                 <button
-                                    className={cn("p-1.5 rounded transition-all", showCropPicker ? "bg-blue-500 text-white" : "text-gray-400 hover:bg-white/5 hover:text-white")}
-                                    onClick={() => { const n = !showCropPicker; closeAllPanels(); setShowCropPicker(n); }}
+                                    className="p-1.5 hover:bg-white/5 rounded text-gray-400 hover:text-white transition-all"
+                                    onClick={() => setImageCropMode(true, displayTarget.id)}
                                     title="Crop"
                                 >
                                     <Scissors size={14} />
