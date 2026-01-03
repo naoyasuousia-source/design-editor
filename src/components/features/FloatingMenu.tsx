@@ -46,7 +46,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectio
         showShadowPalette, setShowShadowPalette,
         showTextBgPalette, setShowTextBgPalette,
         showStrokePalette, setShowStrokePalette,
-        applyStyle, handleGroup, handleUngroup, handleDelete, toggleBold, openEyeDropper, closeAllPanels
+        applyStyle, setImageCropMode, handleGroup, handleUngroup, handleDelete, toggleBold, openEyeDropper, closeAllPanels
     } = useFloatingMenu(targets, onUpdate, onClearSelection);
 
     if (!rect || !target) return null;
