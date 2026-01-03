@@ -79,7 +79,13 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectio
 
     const isShape = !isImage && !isText;
 
-    const isGrouped = targets.every(el => el.hasAttribute('data-group-id')) && targets.length > 1;
+    // すべての選択要素が同じグループIDを持っているかどうか
+    const firstGroupId = targets[0]?.getAttribute('data-group-id');
+    const isGrouped = targets.length > 1 &&
+        firstGroupId !== null &&
+        targets.every(el => el.getAttribute('data-group-id') === firstGroupId);
+
+    // 複数選択で、まだグループ化されていない（同じグループIDを持っていない）場合
     const canGroup = targets.length > 1 && !isGrouped;
 
     // グループIDを取得

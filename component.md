@@ -28,33 +28,15 @@
 ## 1. 未解決要件（移動許可がNGの要件は絶対に移動・編集しないこと）（勝手に移動許可をOKに書き換えないこと）
 
 <requirement>
-<content></content>
-<current-situation></current-situation>
-<remarks></remarks>
-<permission-to-move>NG</permission-to-move>
-</requirement>
-
-<requirement>
-<content></content>
-<current-situation></current-situation>
-<remarks></remarks>
-<permission-to-move>NG</permission-to-move>
-</requirement>
-
-<requirement>
-<content>グループ選択時、四隅のポイントが水色になってしまっているので、オレンジに修正してほしい。</content>
-<current-situation></current-situation>
-<remarks></remarks>
-<permission-to-move>OK</permission-to-move>
-</requirement>
-
-<requirement>
 <content>
 - 要素複数選択時もグループメニューを表示。
 - この場合のグループメニューは「グループ化」ボタンと削除ボタンの二つのみとし、idはまだ定義されていないので表示しない。
-- グループ化が選択されたら、新たにそれぞれに共通のグループidを付与する。
+- グループ化が選択されたら、新たにそれぞれに共通のグループidを新たに付与する。
 - 削除ボタンが押されたら、選択されたすべての要素を一気に削除する。</content>
-<current-situation>グループ解除直後はグループ化メニュー出るが、複数要素選択時は既存グループ用メニューが表示されてしまう。</current-situation>
+<current-situation>
+
+**依然解決しない**
+グループ解除直後はグループ化メニュー出るが、複数要素選択時は既存グループ用メニューが表示されてしまう。</current-situation>
 <remarks></remarks>
 <permission-to-move>NG</permission-to-move>
 </requirement>
@@ -137,6 +119,15 @@
             - 既存グループ選択時（`isGroupMode`）と明確に分離。
     - 日時: 2026-01-03 22:50
 
+- **isGrouped判定ロジックの修正**
+    - 目的: 複数要素選択時（シフトキー）にグループ化メニューが表示されない問題を修正。
+    - 内容:
+        - `FloatingMenu.tsx`:
+            - `isGrouped` の判定を「すべての選択要素が `data-group-id` を持っている」から「**すべての選択要素が同じ `data-group-id` を持っている**」に変更。
+            - `firstGroupId` を取得し、すべての要素がこのIDと一致するかをチェック。
+            - 異なるグループの要素を選択した場合は `isGrouped = false` となり、`canGroup = true` になるため、グループ化メニューが表示される。
+    - 日時: 2026-01-03 23:05
+
 
 ## 3. 分析中に気づいた重要ポイント（試してだめだったこと、仮設、制約条件等...）
 
@@ -176,6 +167,10 @@
 - **メニュー上辺表示、レスポンシブリサイズボタン廃止、グループリサイズのずれ修正**
     - 要件: メニューを要素の上辺に表示、レスポンシブリサイズボタン削除、グループリサイズ時のオレンジ枠ずれ修正。
     - 解決方法: `FloatingMenu.tsx` の位置計算を上辺固定に変更。`Maximize`ボタン削除。`MoveableManager.tsx` の `onResize` で `drag.beforeTranslate` を使用し、オーバーレイの `left`/`top` を直接更新。
+
+- **グループポイントのオレンジ化**
+    - 要件: グループ選択時の四隅ポイントを水色からオレンジに変更。
+    - 解決方法: `index.css` で `.moveable-group-selection .moveable-control` のCSSセレクタ詳細度を上げ、背景色 `#fff7ed` を追加。
 
 ## 5. 要件に関連する全ファイルのファイル構成（それぞれの役割を1行で併記）
 
