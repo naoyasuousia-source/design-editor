@@ -3,6 +3,7 @@ import { cn } from '@/utils/cn';
 
 interface EffectSettingsProps {
     target: HTMLElement;
+    targets: HTMLElement[];
     showShadowPalette: boolean;
     setShowShadowPalette: (show: boolean) => void;
     showTextBgPalette: boolean;
@@ -16,6 +17,7 @@ interface EffectSettingsProps {
 
 const EffectSettings: React.FC<EffectSettingsProps> = ({
     target,
+    targets,
     showShadowPalette,
     setShowShadowPalette,
     showTextBgPalette,
@@ -55,10 +57,15 @@ const EffectSettings: React.FC<EffectSettingsProps> = ({
 
     // Stroke parsing
     const strokeValues = useMemo(() => {
-        const width = parseFloat((target.style as any).webkitTextStrokeWidth) || 0;
-        const color = (target.style as any).webkitTextStrokeColor || (style as any).webkitTextStrokeColor || '#000000';
-        return { width, color };
-    }, [(target.style as any).webkitTextStrokeWidth, (target.style as any).webkitTextStrokeColor, (style as any).webkitTextStrokeColor]);
+        // Use computed style if inline style is missing
+        const width = parseFloat((target.style as any).webkitTextStrokeWidth || (style as any).webkitTextStrokeWidth) || 0;
+        const color = (target.style as any).webkitTextStrokeColor || (style as any).webkitTextStrokeColor;
+
+        // Default color to black if width exists but color is missing
+        const finalColor = color && color !== 'rgba(0, 0, 0, 0)' ? color : '#000000';
+
+        return { width, color: finalColor };
+    }, [target.style.webkitTextStrokeWidth, target.style.webkitTextStrokeColor, style]);
 
     const updateShadow = (updates: Partial<typeof shadowValues>, shouldUpdateStore = false) => {
         const v = { ...shadowValues, ...updates };
@@ -78,8 +85,14 @@ const EffectSettings: React.FC<EffectSettingsProps> = ({
 
     const updateStroke = (updates: Partial<typeof strokeValues>, shouldUpdateStore = false) => {
         const v = { ...strokeValues, ...updates };
-        onApply('webkitTextStrokeWidth' as any, `${v.width}px`, false);
-        onApply('webkitTextStrokeColor' as any, v.color, shouldUpdateStore);
+
+        // Directly apply the style for better reliability with vendor prefixes
+        targets.forEach(el => {
+            (el.style as any).webkitTextStrokeWidth = `${v.width}px`;
+            (el.style as any).webkitTextStrokeColor = v.color;
+        });
+
+        if (shouldUpdateStore) onUpdate();
     };
 
     return (

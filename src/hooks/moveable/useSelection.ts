@@ -42,7 +42,11 @@ export const useSelection = (canvasRef: RefObject<HTMLDivElement | null>, conten
 
     const isTextBox = useCallback((el: HTMLElement) => {
         if (el.tagName.toLowerCase() === 'img') return false;
-        return el.children.length === 0;
+        if (el.style.backgroundImage && el.style.backgroundImage.includes('url')) return false;
+
+        return el.textContent?.trim() !== '' &&
+            (el.children.length === 0 ||
+                Array.from(el.children).every(c => ['br', 'div', 'p', 'span'].includes(c.tagName.toLowerCase())));
     }, []);
 
     const getRenderDirections = useCallback(() => {

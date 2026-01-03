@@ -60,7 +60,13 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
 
     const tagName = target.tagName.toLowerCase();
     const isImage = tagName === 'img' || (target.style.backgroundImage && target.style.backgroundImage.includes('url'));
-    const isText = !isImage && target.textContent?.trim() !== '' && target.children.length === 0;
+
+    // Check if it's likely a text element (has text content and only basic organizational markup)
+    const isText = !isImage &&
+        target.textContent?.trim() !== '' &&
+        (target.children.length === 0 ||
+            Array.from(target.children).every(c => ['br', 'div', 'p', 'span'].includes(c.tagName.toLowerCase())));
+
     const isShape = !isImage && !isText;
 
     const isGrouped = targets.every(el => el.hasAttribute('data-group-id')) && targets.length > 1;
@@ -109,7 +115,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
             {showBorderPalette && <ColorPalette type="borderColor" onPick={openEyeDropper} onApply={applyStyle} />}
             {showShadowPalette && (
                 <ColorPalette
-                    type="none"
+                    type="shadow"
                     onPick={() => openEyeDropper('color')}
                     onApply={(p, v) => {
                         const style = window.getComputedStyle(target);
@@ -129,7 +135,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
             )}
             {showStrokePalette && (
                 <ColorPalette
-                    type="none"
+                    type="stroke"
                     onPick={() => openEyeDropper('color')}
                     onApply={(p, v) => applyStyle('webkitTextStrokeColor' as any, v)}
                 />
@@ -146,6 +152,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate }) => {
             {showEffectSettings && isText && (
                 <EffectSettings
                     target={target}
+                    targets={targets}
                     showShadowPalette={showShadowPalette}
                     setShowShadowPalette={setShowShadowPalette}
                     showTextBgPalette={showTextBgPalette}

@@ -23,8 +23,15 @@ export const useTextEditing = (
 
     const finishEditing = useCallback(() => {
         if (editingElementRef.current && isEditingRef.current) {
-            editingElementRef.current.contentEditable = 'false';
-            editingElementRef.current.blur();
+            const target = editingElementRef.current;
+            const onKeyDown = (target as any)._onKeyDown;
+            if (onKeyDown) {
+                target.removeEventListener('keydown', onKeyDown);
+                delete (target as any)._onKeyDown;
+            }
+
+            target.contentEditable = 'false';
+            target.blur();
             updateContentFromDOM();
             editingElementRef.current = null;
             setIsEditing(false);
@@ -49,6 +56,16 @@ export const useTextEditing = (
         editingElementRef.current = target;
         setIsEditing(true);
         isEditingRef.current = true;
+
+        // Enterキーで改行（<br>）を実現し、新規要素作成を防ぐ
+        const onKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                document.execCommand('insertLineBreak');
+            }
+        };
+        target.addEventListener('keydown', onKeyDown);
+        (target as any)._onKeyDown = onKeyDown; // クリーンアップ用
 
         requestAnimationFrame(() => {
             target.focus();

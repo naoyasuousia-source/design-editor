@@ -9,13 +9,20 @@ const COLOR_PALETTE = [
 ];
 
 interface ColorPaletteProps {
-    type: 'color' | 'backgroundColor' | 'borderColor';
-    onPick: (property: 'color' | 'backgroundColor' | 'borderColor') => void;
-    onApply: (property: 'color' | 'backgroundColor' | 'borderColor', color: string) => void;
+    type: 'color' | 'backgroundColor' | 'borderColor' | 'stroke' | 'shadow';
+    onPick: (property: any) => void;
+    onApply: (property: any, color: string) => void;
 }
 
 const ColorPalette: React.FC<ColorPaletteProps> = ({ type, onPick, onApply }) => {
-    const title = type === 'color' ? 'Text Color' : type === 'backgroundColor' ? 'Fill Color' : 'Border Color';
+    const titleMap = {
+        color: 'Text Color',
+        backgroundColor: 'Fill Color',
+        borderColor: 'Border Color',
+        stroke: 'Stroke Color',
+        shadow: 'Shadow Color'
+    };
+    const title = titleMap[type] || 'Color';
 
     return (
         <div className="p-3 border-b border-white/10 flex flex-col gap-3 bg-white/5 animate-in slide-in-from-bottom-1 duration-200">
