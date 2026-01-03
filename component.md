@@ -33,10 +33,17 @@
 </content>
 <current-situation>挿入テキストボックスの初期フォントカラーがやはり黒になっていない。</current-situation>
 <remarks></remarks>
-<permission-to-move>NG</permission-to-move>
+<permission-to-move>OK</permission-to-move>
 </requirement>
 
 ## 2. 未解決要件に関するコード変更履歴（目的、変更内容、変更日時）
+
+- **DesignSurfaceへのデフォルトテキストカラー設定**
+    - 目的: `body` の `text-white` が継承されてテキストが白くなる問題を解決するため。
+    - 内容:
+        - `src/styles/index.css`: `.DesignSurface { color: #000000; }` を追加し、DesignSurface内のデフォルトテキストカラーを黒に設定。
+        - `src/hooks/useElementInsertion.ts`: `color: #000000 !important` の `!important` を削除（HTMLのstyle属性では `!important` が効かないため無意味だった）。
+    - 日時: 2026-01-04 00:10
 
 - **初期テンプレートのフラット化修正**
     - 目的: 新仕様（フラット化＋グループID）に合わせるため。
@@ -197,6 +204,8 @@
 - **Moveableの複数ターゲットの制約**: `react-moveable` の `target` に配列を渡しても、グループ全体を覆う1つの外枠ではなく、各要素に個別の枠が描画される。グループ全体の外枠を表現するには、バウンディングボックスを計算してオーバーレイ要素を作成し、それをMoveableの単一ターゲットとする方式が有効。
 - **オーバーレイと実要素の同期**: オーバーレイをドラッグ/リサイズする際に、実際のグループ要素も連動して更新する処理が必要。`onDragEnd` / `onResizeEnd` で位置を再計算してオーバーレイを更新する。
 - **useRef vs useState**: `useRef` で管理したDOM要素は、作成されても再レンダリングをトリガーしない。Moveableの `target` として使用する場合、要素が存在することをReactに伝えるために `useState` を使用する必要がある。
+- **inline styleの!importantは無効**: HTMLの `style` 属性に `!important` を書いても効果がない。CSSの仕様上の制約であり、`!important` はスタイルシート内でのみ有効。
+- **CSS継承の競合**: `body` に `text-white` が設定されており、DesignSurface内に明示的な `color` を設定しないと白文字が継承されてテキストが見えなくなる。
 
 
 
@@ -236,7 +245,7 @@
 
 - **テキストボックス挿入機能の改善**
     - 要件: デフォルト色を黒にし、挿入直後に自動選択状態にする。
-    - 解決方法: `useElementInsertion.ts` で `color: #000000 !important` を指定（グローバルCSSの継承を回避）。`autoSelectId` 経由で `useMoveable.ts` が挿入を検知し、自動的に `targets` に追加・選択モードへ移行。
+    - 解決方法: `src/styles/index.css` に `.DesignSurface { color: #000000; }` を追加し、CSSレベルでデフォルトテキストカラーを黒に設定。`useElementInsertion.ts` でも `color: #000000` を指定。`autoSelectId` 経由で `useMoveable.ts` が挿入を検知し、自動的に `targets` に追加・選択モードへ移行。
 
 - **グループ解除後のUIクリーンアップ**
     - 要件: 解除後に複数選択メニューを出さず、かつ水色枠も消す。

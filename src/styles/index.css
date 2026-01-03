@@ -111,6 +111,11 @@
         outline: none !important;
     }
 
+    /* DesignSurface内のデフォルトテキストカラーを黒に設定（bodyのtext-whiteを上書き） */
+    .DesignSurface {
+        color: #000000;
+    }
+
     /* Remove default focus border during text editing, but keep our custom outline if needed */
     /* However, for text editing, a clean look is usually better, but let's see if the user wants the blue frame even during edit. */
     /* The requirement said "stay editor mode" with blue frame + points. */
