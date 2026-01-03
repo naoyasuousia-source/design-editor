@@ -36,6 +36,8 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
         updateContentFromDOM,
         isTextBox,
         getRenderDirections,
+        selectionMode,
+        activeSubTarget,
         isEditing
     } = useMoveable(canvasRef);
 
@@ -86,6 +88,8 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
                             expandCanvas={expandCanvas}
                             isTextBox={isTextBox}
                             isResponsiveResize={isResponsiveResize}
+                            selectionMode={selectionMode}
+                            activeSubTarget={activeSubTarget}
                             handleResizeStart={handleResizeStart}
                             updateContentFromDOM={updateContentFromDOM}
                         />

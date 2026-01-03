@@ -23,27 +23,56 @@
 @layer components {
 
     /* Moveable (Selection Tool) Styles */
-    .SelectionTool.moveable-control-box {
-        --moveable-color: #5dade2 !important;
-        /* Light Blue */
+    .moveable-control-box {
+        --moveable-color: #3b82f6 !important;
     }
 
-    .SelectionTool .moveable-line {
-        @apply opacity-100;
-        width: 1px !important;
-        background: #5dade2 !important;
+    .moveable-line {
+        background: #3b82f6 !important;
+        height: 1px !important;
     }
 
-    .SelectionTool .moveable-control {
-        @apply bg-white border-2 border-[#5dade2] rounded-none shadow-sm;
-        width: 8px !important;
-        height: 8px !important;
-        margin-top: -4px !important;
-        margin-left: -4px !important;
+    .moveable-control {
+        border: 2px solid #3b82f6 !important;
+        background: #fff !important;
+        width: 10px !important;
+        height: 10px !important;
+        margin-top: -5px !important;
+        margin-left: -5px !important;
+        border-radius: 50% !important;
+    }
+
+    /* Orange Group Selection */
+    .moveable-group-selection .moveable-line {
+        background: #f97316 !important;
+        height: 2px !important;
+    }
+
+    .moveable-group-selection .moveable-control {
+        border: 2.5px solid #f97316 !important;
+        width: 12px !important;
+        height: 12px !important;
+        margin-top: -6px !important;
+        margin-left: -6px !important;
+        border-radius: 2px !important;
+    }
+
+    /* Individual handle (sub-selection) */
+    .moveable-sub-selection .moveable-line {
+        background: #3b82f6 !important;
+        height: 1px !important;
+    }
+
+    .moveable-sub-selection .moveable-control {
+        border: 1.5px solid #3b82f6 !important;
+        width: 9px !important;
+        height: 9px !important;
+        margin-top: -4.5px !important;
+        margin-left: -4.5px !important;
     }
 
     /* Hide the red origin point */
-    .SelectionTool .moveable-origin {
+    .moveable-origin {
         display: none !important;
     }
 

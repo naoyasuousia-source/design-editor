@@ -8,15 +8,17 @@ import {
     Redo,
     HelpCircle,
     Link2,
-    ChevronDown,
+    Plus,
     Brain,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useEditorStore } from '@/store/useEditorStore';
 import { useFileSystem } from '@/hooks/useFileSystem';
+import { useElementInsertion } from '@/hooks/useElementInsertion';
 import MetaMessageEditor from './MetaMessageEditor';
 import HintDialog from './HintDialog';
 import ZoomControl from './ZoomControl';
+import ImagePicker from './ImagePicker';
 import type { PageSize } from '@/types/editor';
 import { PAGE_SIZES } from '@/types/editor';
 
@@ -48,7 +50,10 @@ const Navbar: React.FC = () => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [showMetaEditor, setShowMetaEditor] = useState(false);
     const [showHint, setShowHint] = useState(false);
+    const [isInsertOpen, setIsInsertOpen] = useState(false);
+    const [showImagePicker, setShowImagePicker] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const insertRef = useRef<HTMLDivElement>(null);
 
     const {
         undo,
@@ -61,6 +66,7 @@ const Navbar: React.FC = () => {
     } = useEditorStore();
 
     const { handleNew, handleOpen, handleOverwrite } = useFileSystem();
+    const { insertText, insertImage } = useElementInsertion();
 
     const handleNewProject = (size: PageSize) => {
         handleNew(size);
@@ -85,6 +91,9 @@ const Navbar: React.FC = () => {
         const handleClickOutside = (event: MouseEvent) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
                 setIsDropdownOpen(false);
+            }
+            if (insertRef.current && !insertRef.current.contains(event.target as Node)) {
+                setIsInsertOpen(false);
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
@@ -147,6 +156,47 @@ const Navbar: React.FC = () => {
                         onClick={handleSave}
                         disabled={isImageSaveMode}
                     />
+
+                    {/* 挿入ドロップダウン */}
+                    <div className="relative" ref={insertRef}>
+                        <button
+                            onClick={() => setIsInsertOpen(!isInsertOpen)}
+                            className={cn(
+                                "flex items-center gap-2 px-3 py-1.5 rounded-md transition-all duration-200",
+                                "text-sm font-medium text-gray-300 hover:text-white hover:bg-white/10",
+                                isInsertOpen && "bg-white/10 text-white"
+                            )}
+                        >
+                            <Plus className="w-4 h-4 text-blue-400" />
+                            <span>挿入</span>
+                            <ChevronDown className={cn("w-3 h-3 transition-transform", isInsertOpen && "rotate-180")} />
+                        </button>
+
+                        {isInsertOpen && (
+                            <div className="absolute top-full left-0 mt-1 w-48 bg-sidebar border border-white/10 rounded-lg shadow-2xl py-2 z-[70] animate-in fade-in slide-in-from-top-2">
+                                <button
+                                    onClick={() => {
+                                        insertText();
+                                        setIsInsertOpen(false);
+                                    }}
+                                    className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-primary hover:text-white transition-colors flex items-center gap-2"
+                                >
+                                    <span className="w-4 h-4 text-xs font-bold border border-current rounded flex items-center justify-center">T</span>
+                                    <span>テキストボックス</span>
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setShowImagePicker(true);
+                                        setIsInsertOpen(false);
+                                    }}
+                                    className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-primary hover:text-white transition-colors flex items-center gap-2"
+                                >
+                                    <ImageIcon className="w-4 h-4" />
+                                    <span>画像</span>
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-1 border-l border-white/10 pl-4">
@@ -198,6 +248,15 @@ const Navbar: React.FC = () => {
             )}
             {showHint && (
                 <HintDialog onClose={() => setShowHint(false)} />
+            )}
+            {showImagePicker && (
+                <ImagePicker
+                    onSelect={(path) => {
+                        insertImage(path);
+                        setShowImagePicker(false);
+                    }}
+                    onClose={() => setShowImagePicker(false)}
+                />
             )}
         </nav>
     );

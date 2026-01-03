@@ -106,10 +106,114 @@ export const cleanHTML = (html: string): string => {
     // spellcheck 属性の除去
     cleaned = cleaned.replace(/\sspellcheck="[^"]*"/g, '');
     // エディタ用の一時的な data 属性を除去 (data-group-id は維持)
-    cleaned = cleaned.replace(/\sdata-(?!group-id)[a-zA-Z0-9-]+="[^"]*"/g, '');
+    cleaned = cleaned.replace(/\sdata-(?!group-id|group-type)[a-zA-Z0-9-]+="[^"]*"/g, '');
     // 空の style 属性の除去
     cleaned = cleaned.replace(/\sstyle=""/g, '');
     return cleaned.trim();
+};
+
+/**
+ * 入れ子構造のHTMLを、絶対座標のフラットな構造に変換する
+ * ルール:
+ * 1. すべての要素を .DesignSurface の直下に配置
+ * 2. 入れ子だった要素は、親のオフセットを加算して absolute 座標に変換
+ * 3. スタイルを持つ親要素は「背面の図形」として維持、持たないコンテナは削除
+ * 4. 元の親子関係を data-group-id で紐付け
+ */
+export const flattenHTML = (nestedHtml: string, customCss?: string): string => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(`
+        <div id="__flatten_root__">
+            <style>${customCss || ''}</style>
+            <div class="DesignSurface" style="position: relative; width: 2000px; height: 2000px;">
+                ${nestedHtml}
+            </div>
+        </div>
+    `, 'text/html');
+
+    const container = doc.getElementById('__flatten_root__');
+    if (!container) return nestedHtml;
+
+    // 実際にレイアウトを計算するために一時的にDOMに追加（隠し要素）
+    const hiddenDiv = document.createElement('div');
+    hiddenDiv.style.position = 'fixed';
+    hiddenDiv.style.top = '-10000px';
+    hiddenDiv.style.left = '-10000px';
+    hiddenDiv.style.visibility = 'hidden';
+    hiddenDiv.innerHTML = container.innerHTML;
+    document.body.appendChild(hiddenDiv);
+
+    const surface = hiddenDiv.querySelector('.DesignSurface') as HTMLElement;
+    const surfaceRect = surface.getBoundingClientRect();
+    const flatElements: HTMLElement[] = [];
+
+    // 元の親子関係を特定するためのIDを発行（なければ）
+    const generateGroupId = () => `group-${Math.random().toString(36).substring(2, 9)}`;
+
+    function collect(el: HTMLElement, parentGroupId?: string) {
+        const children = Array.from(el.children) as HTMLElement[];
+        const rect = el.getBoundingClientRect();
+
+        // 有効な要素（IDがある、またはスタイル/テキストがある）
+        const isDesignSurface = el.classList.contains('DesignSurface');
+        const hasId = !!el.id;
+        const style = window.getComputedStyle(el);
+        const hasVisibleStyle = style.backgroundColor !== 'rgba(0, 0, 0, 0)' ||
+            style.borderWidth !== '0px' ||
+            style.backgroundImage !== 'none';
+        const hasText = el.childNodes.length > 0 && Array.from(el.childNodes).some(n => n.nodeType === 3 && n.textContent?.trim());
+
+        let currentGroupId = parentGroupId;
+
+        if (!isDesignSurface && (hasId || hasVisibleStyle || hasText)) {
+            // クローンを作成し、絶対座標を付与
+            const clone = el.cloneNode(false) as HTMLElement;
+            if (!clone.id) clone.id = `el-${Math.random().toString(36).substring(2, 9)}`;
+
+            // 親が子を持っている場合、自身をグループIDとして子に継承
+            if (children.length > 0 && !currentGroupId) {
+                currentGroupId = generateGroupId();
+            }
+            if (currentGroupId) {
+                clone.setAttribute('data-group-id', currentGroupId);
+            }
+
+            // スタイルの書き換え
+            clone.style.position = 'absolute';
+            clone.style.top = `${rect.top - surfaceRect.top}px`;
+            clone.style.left = `${rect.left - surfaceRect.left}px`;
+            clone.style.width = `${rect.width}px`;
+            clone.style.height = `${rect.height}px`;
+            clone.style.margin = '0';
+
+            // Flex/Grid などのレイアウトプロパティは不要になるのでクリア
+            clone.style.display = (hasText && !hasVisibleStyle) ? 'block' : style.display;
+            clone.style.flexDirection = '';
+            clone.style.justifyContent = '';
+            clone.style.alignItems = '';
+            clone.style.gap = '';
+
+            // テキストノードの同期
+            if (hasText) {
+                // 子要素以外のテキストのみを抽出して追加（簡易的）
+                const textClone = el.cloneNode(true) as HTMLElement;
+                Array.from(textClone.children).forEach(c => c.remove());
+                clone.innerHTML = textClone.innerHTML;
+            }
+
+            flatElements.push(clone);
+        }
+
+        children.forEach(child => collect(child, currentGroupId));
+    }
+
+    collect(surface);
+
+    // 掃除
+    document.body.removeChild(hiddenDiv);
+
+    // フラットなHTMLを組み立て
+    return flatElements.map(el => el.outerHTML).join('\n');
 };
 
 /**

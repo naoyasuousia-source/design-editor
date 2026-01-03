@@ -16,6 +16,11 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
     const {
         targets,
         setTargets,
+        selectNone,
+        selectionMode,
+        setSelectionMode,
+        activeSubTarget,
+        setActiveSubTarget,
         isTextBox,
         getRenderDirections
     } = useSelection(canvasRef, content);
@@ -59,7 +64,7 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
 
         // キャンバス自体（DesignSurface）のクリックなら選択解除
         if (target.classList.contains('DesignSurface')) {
-            if (!isShift) setTargets([]);
+            if (!isShift) selectNone();
             return;
         }
 
@@ -75,6 +80,7 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
                 : [el];
 
             if (isShift) {
+                // シフト押下時は従来通り
                 setTargets(prev => {
                     const alreadySelected = groupElements.every(item => prev.includes(item));
                     if (alreadySelected) {
@@ -83,27 +89,50 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
                         return [...prev, ...groupElements];
                     }
                 });
+                setSelectionMode('group');
             } else {
-                setTargets(groupElements);
+                // 通常クリック：2段階選択ロジック
+                if (groupId) {
+                    const isAlreadyGroupSelected = targets.length === groupElements.length &&
+                        groupElements.every(e => targets.includes(e));
+
+                    if (isAlreadyGroupSelected) {
+                        // 2回目：個別選択モードへ
+                        setSelectionMode('individual');
+                        setActiveSubTarget(el);
+                    } else {
+                        // 1回目：グループ全体を選択
+                        setTargets(groupElements);
+                        setSelectionMode('group');
+                        setActiveSubTarget(null);
+                    }
+                } else {
+                    // グループなし要素、またはグループ解除後
+                    setTargets([el]);
+                    setSelectionMode('individual');
+                    setActiveSubTarget(el);
+                }
             }
         }
-    }, [isLocked, canvasRef, finishEditing, handleDoubleClick, setTargets]);
+    }, [isLocked, canvasRef, finishEditing, handleDoubleClick, setTargets, targets, selectNone, setSelectionMode, setActiveSubTarget]);
 
     // キーボードショートカット（Esc で選択解除・編集終了）
     useEffect(() => {
         const handleKeys = (e: KeyboardEvent) => {
             if (e.key === 'Escape') {
                 finishEditing();
-                setTargets([]);
+                selectNone();
             }
         };
         window.addEventListener('keydown', handleKeys);
         return () => window.removeEventListener('keydown', handleKeys);
-    }, [finishEditing, setTargets]);
+    }, [finishEditing, selectNone]);
 
     return {
         targets,
         setTargets,
+        selectionMode,
+        activeSubTarget,
         keepRatio,
         handleResizeStart,
         getBounds,

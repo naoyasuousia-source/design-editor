@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import Navbar from '@/components/common/Navbar';
 import Workspace from '@/components/features/Workspace';
 import ComparisonView from '@/components/features/ComparisonView';
-import AssetSidebar from '@/components/features/AssetSidebar';
 import TemporaryBar from '@/components/common/TemporaryBar';
 import ImageSaveWizard from '@/components/features/ImageSaveWizard';
 import SaveToast from '@/components/common/SaveToast';
@@ -37,9 +36,6 @@ const App: React.FC = () => {
 
             {/* メインコンテンツ領域 */}
             <main className="flex-1 relative overflow-hidden flex flex-row">
-                {/* サイドバー */}
-                <AssetSidebar />
-
                 <div className="flex-1 relative overflow-hidden">
                     {/* デザイン領域 */}
                     <Workspace isLocked={isLocked || showComparison} />

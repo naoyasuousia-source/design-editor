@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import type { EditorState, PageSize } from '@/types/editor';
 import { PAGE_SIZES } from '@/types/editor';
 import { DEFAULT_PAGE_SIZE } from '@/constants/editor';
-import { parseMetaMessage, extractDesignContent, constructFullHTML, extractCustomCss } from '@/utils/htmlProcessing';
+import { parseMetaMessage, extractDesignContent, constructFullHTML, extractCustomCss, flattenHTML } from '@/utils/htmlProcessing';
 
 interface EditorStore extends EditorState {
     setPageSize: (size: PageSize) => void;
@@ -135,14 +135,17 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
         const designContent = extractDesignContent(newFullContent);
         const newCustomCss = extractCustomCss(newFullContent);
 
+        // フラット化の適用
+        const flattenedContent = flattenHTML(designContent, newCustomCss);
+
         set({
             hasPendingChanges: true,
             isLocked: true,
-            isApplyingUpdate: true, // ロード中表示ON
-            prePendingContent: content, // 元のデータを退避
-            content: designContent, // 先に反映させておく
-            customCss: newCustomCss, // 先に反映させておく
-            pendingContent: designContent,
+            isApplyingUpdate: true,
+            prePendingContent: content,
+            content: flattenedContent,
+            customCss: newCustomCss,
+            pendingContent: flattenedContent,
             pendingSnapshot: snapshot,
             metaMessage: meta || get().metaMessage,
             pageSize: (meta && meta.pageSize) ? meta.pageSize : get().pageSize,

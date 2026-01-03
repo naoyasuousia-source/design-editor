@@ -27,45 +27,7 @@ export const useTransform = (
             const fs = parseFloat(window.getComputedStyle(target).fontSize);
             target.setAttribute('data-start-fs', fs.toString());
         }
-
-        if (target.children.length > 0) {
-            let maxR = 0;
-            let maxB = 0;
-            Array.from(target.children).forEach(child => {
-                const el = child as HTMLElement;
-                const w = el.offsetWidth;
-                const h = el.offsetHeight;
-                const l = el.offsetLeft;
-                const t = el.offsetTop;
-                const fs = parseFloat(window.getComputedStyle(el).fontSize);
-
-                el.setAttribute('data-start-w', w.toString());
-                el.setAttribute('data-start-h', h.toString());
-                el.setAttribute('data-start-l', l.toString());
-                el.setAttribute('data-start-t', t.toString());
-                el.setAttribute('data-start-fs', fs.toString());
-
-                if (!isResponsiveResize) {
-                    el.style.width = `${w}px`;
-                    el.style.height = `${h}px`;
-                    el.style.left = `${l}px`;
-                    el.style.top = `${t}px`;
-                    el.style.fontSize = `${fs}px`;
-                }
-
-                maxR = Math.max(maxR, l + w);
-                maxB = Math.max(maxB, t + h);
-            });
-
-            if (!isResponsiveResize) {
-                target.setAttribute('data-min-w', maxR.toString());
-                target.setAttribute('data-min-h', maxB.toString());
-            } else {
-                target.removeAttribute('data-min-w');
-                target.removeAttribute('data-min-h');
-            }
-        }
-    }, [isResponsiveResize, isTextBox]);
+    }, [isTextBox]);
 
     const getBounds = useCallback(() => {
         if (targets.length === 0) return undefined;

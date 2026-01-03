@@ -1,8 +1,12 @@
 import { useState, useCallback, useEffect } from 'react';
 import type { RefObject } from 'react';
 
+export type SelectionMode = 'none' | 'group' | 'individual';
+
 export const useSelection = (canvasRef: RefObject<HTMLDivElement | null>, content: string) => {
     const [targets, setTargetsState] = useState<HTMLElement[]>([]);
+    const [selectionMode, setSelectionMode] = useState<SelectionMode>('none');
+    const [activeSubTarget, setActiveSubTarget] = useState<HTMLElement | null>(null);
 
     const setTargets = useCallback((newTargets: HTMLElement[] | ((prev: HTMLElement[]) => HTMLElement[])) => {
         setTargetsState(prev => {
@@ -40,8 +44,16 @@ export const useSelection = (canvasRef: RefObject<HTMLDivElement | null>, conten
         }
     }, [content, canvasRef]);
 
+    // 選択解除を含めたセット関数
+    const selectNone = useCallback(() => {
+        setTargets([]);
+        setSelectionMode('none');
+        setActiveSubTarget(null);
+    }, [setTargets]);
+
     const isTextBox = useCallback((el: HTMLElement) => {
         if (el.tagName.toLowerCase() === 'img') return false;
+        // background-imageを持つdivも画像扱い
         if (el.style.backgroundImage && el.style.backgroundImage.includes('url')) return false;
 
         return el.textContent?.trim() !== '' &&
@@ -53,17 +65,26 @@ export const useSelection = (canvasRef: RefObject<HTMLDivElement | null>, conten
     }, []);
 
     const getRenderDirections = useCallback(() => {
+        if (selectionMode === 'group') {
+            return ["nw", "ne", "sw", "se"]; // コーナーのみ
+        }
         if (targets.length === 0) return ["nw", "ne", "sw", "se", "w", "e", "n", "s"];
-        const first = targets[0];
-        if (isTextBox(first)) {
+
+        const mainTarget = activeSubTarget || targets[0];
+        if (isTextBox(mainTarget)) {
             return ["nw", "ne", "sw", "se", "w", "e"];
         }
         return ["nw", "ne", "sw", "se", "w", "e", "n", "s"];
-    }, [targets, isTextBox]);
+    }, [targets, selectionMode, activeSubTarget, isTextBox]);
 
     return {
         targets,
         setTargets,
+        selectNone,
+        selectionMode,
+        setSelectionMode,
+        activeSubTarget,
+        setActiveSubTarget,
         isTextBox,
         getRenderDirections
     };
