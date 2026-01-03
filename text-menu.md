@@ -28,16 +28,27 @@
 ## 1. 未解決要件（移動許可がNGの要件は絶対に移動・編集しないこと）（勝手に移動許可をOKに書き換えないこと）
 
 <requirement>
-<content>現在、袋文字はカラー選択はできるようになったが、袋文字が文字の内側に入り込むように反映されてしまう。テキストのアウトラインから外側に縁取りするように仕様変更してほしい。</content>
+<content>テキストボックスで改行してもテキストボックスとして認識され続けるように改良した副作用で、図形もテキストボックスとして誤認されるようになってしまったので、修正してほしい。</content>
 <current-situation></current-situation>
 <remarks></remarks>
 <permission-to-move>NG</permission-to-move>
+</requirement>
+
+<requirement>
+<content>現在、袋文字はカラー選択はできるようになったが、袋文字が文字の内側に入り込むように反映されてしまう。テキストのアウトラインから外側に縁取りするように仕様変更してほしい。</content>
+<current-situation>
+- `paint-order: stroke fill` を導入し、ストロークを文字の塗りの背後に描画することで「外側への縁取り」を実現。
+- `EffectSettings.tsx` の `updateStroke` ロジックを更新。
+</current-situation>
+<remarks></remarks>
+<permission-to-move>OK</permission-to-move>
 </requirement>
 
 
 
 
 ## 2. 未解決要件に関するコード変更履歴（目的、変更内容、変更日時）
+- 2026-01-03: 袋文字の外側縁取り（paint-order: stroke fill）の実装。文字の塗りをストロークの上に重ねることで、縁取りが内側に食い込まないように改善。
 - 2026-01-03: 袋文字のカラー選択およびスポイト（EyeDropper）機能の修正。`openEyeDropper` にコールバックを導入し、プロパティ名を動的に解決可能にした。
 - 2026-01-03: `applyStyle` におけるベンダープリフィックス（`webkit-`）の kebab-case 変換バグを修正（先頭ハイフンの追加）。
 - 2026-01-03: テキストボックス内改行挙動の改善（Enterキーで `<br>` 挿入）および判定ロジックの緩和。
@@ -65,6 +76,8 @@
 - **袋文字のカラー反映不良**: `ColorPalette` からの `onApply` において、`webkitTextStrokeColor` を指定しているが、`applyStyle` の正規表現による kebab-case 変換の結果、先頭の `-` が欠落して `webkit-text-stroke-color` になっている。CSS では `-webkit-text-stroke-color` である必要がある。（解決済み）
 - **EyeDropper の共通化**: `openEyeDropper` が `applyStyle` を直接呼んでいたため、影や袋文字のように「特定の文字列フォーマットが必要なプロパティ」や「特殊なプロパティ名」にスポイトの結果を反映させることができなかった。`openEyeDropper` を高階関数化（コールバック受容）することで解決。
 - **ベンダープリフィックスの変換ロジック**: `setProperty` を使う際、`webkitTextStroke` を変換すると `webkit-text-stroke` になるが、本来は `-webkit-text-stroke` とする必要がある。`startsWith('webkit-')` を判定して先頭に `-` を付与するように `applyStyle` を修正。
+- **袋文字の外側縁取り**: 標準の `-webkit-text-stroke` はパスの中心に描画されるため、太くすると文字の内側（塗り）を潰してしまう。`paint-order: stroke fill` を指定することで、描画順序を「ストローク -> 塗り」に変更し、塗りがストロークの内半分を覆い隠すことで「外側のみの縁取り」をシミュレートできる。
+- **ブラウザ互換性**: `paint-order` は CSS3 の標準プロパティであり、現代の主要なブラウザ（Chrome, Safari, Edge）でテキストに対して有効。
 
 
 

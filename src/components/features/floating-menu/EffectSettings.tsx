@@ -90,6 +90,13 @@ const EffectSettings: React.FC<EffectSettingsProps> = ({
         targets.forEach(el => {
             (el.style as any).webkitTextStrokeWidth = `${v.width}px`;
             (el.style as any).webkitTextStrokeColor = v.color;
+
+            // paint-order: stroke fill とすることで、縁取りを文字の外側に配置（背後に描画）する
+            if (v.width > 0) {
+                (el.style as any).paintOrder = 'stroke fill';
+            } else {
+                (el.style as any).paintOrder = 'normal';
+            }
         });
 
         if (shouldUpdateStore) onUpdate();
