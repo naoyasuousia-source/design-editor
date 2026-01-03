@@ -11,7 +11,7 @@ export const captureCanvas = async (element: HTMLElement): Promise<string | null
             backgroundColor: '#ffffff',
             // フォントの読み込みやCSSのパースで SecurityError が発生しやすいため、
             // 同期プロセスを優先してこれらをスキップまたは制限する
-            fontEmbedCSS: false,
+            fontEmbedCSS: '',
             skipFonts: true,
         });
         return dataUrl;

@@ -53,6 +53,12 @@
     - `src/hooks/useAutoSync.ts`: リファクタリングミスによる `checkFile` の未定義エラー（ReferenceError）を修正。
     - `src/utils/htmlProcessing.ts`: `extractDesignContent` をさらに堅牢に。`DOMParser` 使用時にダミーのルート要素で包むことで、HTML フラグメントのパース精度を向上させ、正しく `.DesignSurface` を抽出・剥離できるように改善。また、正規表現のフォールバックも強化。
 
+- **2026-01-03: デプロイ失敗（ビルドエラー）の修正**
+    - `src/store/useEditorStore.ts`: `extractCustomCss` のインポート漏れを修正。
+    - `src/hooks/useAutoSync.ts`: 未使用変数 `lastSaveTime` を削除。
+    - `src/utils/screenshot.ts`: `fontEmbedCSS` の型エラー（boolean -> string）を修正。
+    - `src/components/features/workspace/MoveableManager.tsx` & `src/hooks/moveable/useTransform.ts`: `onResizeStart` のイベント型不一致を修正（`HTMLElement | SVGElement` を許容）。
+
 ## 3. 分析中に気づいた重要ポイント（試してだめだったこと、仮設、制約条件等...）
 
 - `extractDesignContent` で `DOMParser` を使用するようにしたが、これが環境や HTML 構造によって空を返している可能性がある。

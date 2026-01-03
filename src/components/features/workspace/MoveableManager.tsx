@@ -14,7 +14,7 @@ interface MoveableManagerProps {
     expandCanvas: (neededWidth: number, neededHeight: number) => void;
     isTextBox: (el: HTMLElement) => boolean;
     isResponsiveResize: boolean;
-    handleResizeStart: (e: { target: HTMLElement; direction: number[] }) => void;
+    handleResizeStart: (e: { target: HTMLElement | SVGElement; direction: number[] }) => void;
     updateContentFromDOM: () => void;
 }
 

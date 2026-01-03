@@ -10,8 +10,8 @@ export const useTransform = (
 ) => {
     const [keepRatio, setKeepRatio] = useState(false);
 
-    const handleResizeStart = useCallback((e: { target: HTMLElement; direction: number[] }) => {
-        const target = e.target;
+    const handleResizeStart = useCallback((e: { target: HTMLElement | SVGElement; direction: number[] }) => {
+        const target = e.target as HTMLElement;
         const [h, v] = e.direction;
         const isCorner = h !== 0 && v !== 0;
         setKeepRatio(isCorner);

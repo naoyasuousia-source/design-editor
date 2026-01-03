@@ -8,7 +8,6 @@ import { useEditorStore } from '@/store/useEditorStore';
 export const useAutoSync = () => {
     const {
         currentFileHandle,
-        lastSaveTime,
         detectExternalUpdate,
         isLocked,
         hasPendingChanges
