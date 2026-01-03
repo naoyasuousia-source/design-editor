@@ -122,6 +122,11 @@ export const constructFullHTML = (content: string, customCss: string, meta: Meta
     - <!-- USER_REQUIREMENT_START -->～<!-- USER_REQUIREMENT_END -->内にユーザーの要件をJSON形式で記載し、その要件を満たすデザインを生成する。
         **すべて毎回更新すること**
         **絶対に日本語で記述すること**
+    - フォントは以下の15種類から選ぶ:
+        Noto Sans JP, Noto Serif JP, 游ゴシック (Yu Gothic), 游明朝 (Yu Mincho), メイリオ (Meiryo), M PLUS 1p, Zen 角ゴシック New, Inter, Montserrat, Roboto, Playfair Display, Oswald, Poppins, JetBrains Mono, Times New Roman
+    - テキストボックス内には子要素は配置できない。
+    - 各テキストボックス、各画像、各デザイン素材は、独立した要素として扱い、必ず一意のIDを付与すること。
+    - 画像は `./ images / ` フォルダ内のファイルをパスで参照すること。
     -->
     <!-- AI_METADATA_END -->
     <style>

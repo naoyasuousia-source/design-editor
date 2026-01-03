@@ -44,10 +44,8 @@ const DesignArea: React.FC<DesignAreaProps> = ({
     handleCanvasClick,
     updateContentFromDOM
 }) => {
-    const { isApplyingUpdate, customCss } = useEditorStore(state => ({
-        isApplyingUpdate: state.isApplyingUpdate,
-        customCss: state.customCss
-    }));
+    const isApplyingUpdate = useEditorStore(state => state.isApplyingUpdate);
+    const customCss = useEditorStore(state => state.customCss);
 
     return (
         <div
