@@ -8,7 +8,6 @@ import {
     Hash,
     Scissors,
     Square,
-    Maximize,
     Copy,
 } from 'lucide-react';
 import { useAssets } from '@/hooks/useAssets';
@@ -50,7 +49,6 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectio
         showShadowPalette, setShowShadowPalette,
         showTextBgPalette, setShowTextBgPalette,
         showStrokePalette, setShowStrokePalette,
-        isResponsiveResize, setResponsiveResize,
         applyStyle,
         handleGroup,
         handleUngroup,
@@ -97,22 +95,17 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectio
         navigator.clipboard.writeText(groupId);
     };
 
-    const growsUpwards = rect.top > 300;
-
+    // メニューは常に要素の上辺に表示
     return (
         <div
             ref={menuRef}
             className={cn(
                 "fixed z-[100] bg-sidebar border border-white/10 rounded-lg shadow-2xl p-1 flex gap-1 animate-in fade-in zoom-in-95 duration-200 min-w-[200px]",
-                growsUpwards ? "flex-col" : "flex-col-reverse"
+                "flex-col"
             )}
-            style={growsUpwards ? {
-                bottom: `${window.innerHeight - rect.top + 8} px`,
-                left: `${rect.left + rect.width / 2} px`,
-                transform: 'translateX(-50%)',
-            } : {
-                top: `${rect.bottom + 8} px`,
-                left: `${rect.left + rect.width / 2} px`,
+            style={{
+                bottom: `${window.innerHeight - rect.top + 8}px`,
+                left: `${rect.left + rect.width / 2}px`,
                 transform: 'translateX(-50%)',
             }}
         >
@@ -133,6 +126,16 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectio
                         <Copy size={10} />
                     </button>
                 </div>
+            ) : canGroup ? (
+                // 複数選択（まだグループ化されていない）の場合のヘッダー
+                <div className="flex items-center justify-between px-2 py-1.5 border-b border-blue-500/30 bg-blue-500/10 rounded-t-md">
+                    <div className="flex items-center gap-1.5 overflow-hidden">
+                        <Group size={12} className="text-blue-400" />
+                        <span className="text-[10px] font-mono text-blue-300 truncate">
+                            {targets.length}個の要素を選択中
+                        </span>
+                    </div>
+                </div>
             ) : (
                 <div className="flex items-center justify-between px-2 py-1 border-b border-white/5 bg-white/5 rounded-t-md">
                     <div className="flex items-center gap-1.5 overflow-hidden">
@@ -149,8 +152,28 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectio
                 </div>
             )}
 
-            {/* グループ選択モードの場合はグループ専用メニューのみ表示 */}
-            {isGroupMode ? (
+            {/* 複数選択（まだグループ化されていない）の場合のメニュー */}
+            {canGroup ? (
+                <div className="flex items-center gap-1 p-1">
+                    <button
+                        className="p-1.5 hover:bg-blue-500/20 rounded text-blue-400 hover:text-blue-300 transition-all flex items-center gap-1"
+                        onClick={handleGroup}
+                        title="Group"
+                    >
+                        <Group size={14} />
+                        <span className="text-xs">グループ化</span>
+                    </button>
+                    <button
+                        className="p-1.5 hover:bg-red-500/20 rounded text-red-400 hover:text-red-300 transition-all flex items-center gap-1"
+                        onClick={() => { targets.forEach(el => el.remove()); onUpdate(); }}
+                        title="Delete All"
+                    >
+                        <Trash2 size={14} />
+                        <span className="text-xs">削除</span>
+                    </button>
+                </div>
+            ) : isGroupMode ? (
+                // グループ選択モードの場合はグループ専用メニューのみ表示
                 <div className="flex items-center gap-1 p-1">
                     <button
                         className="p-1.5 hover:bg-orange-500/20 rounded text-orange-400 hover:text-orange-300 transition-all flex items-center gap-1"
@@ -334,17 +357,6 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectio
                                 >
                                     <Circle size={14} />
                                     {showRadiusPicker && <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-white rounded-full" />}
-                                </button>
-
-                                <button
-                                    className={cn(
-                                        "p-1.5 rounded transition-all",
-                                        isResponsiveResize ? "bg-blue-500 text-white" : "text-gray-400 hover:bg-white/5 hover:text-white"
-                                    )}
-                                    onClick={() => setResponsiveResize(!isResponsiveResize)}
-                                    title="Responsive Resize"
-                                >
-                                    <Maximize size={14} />
                                 </button>
                             </div>
                         )}

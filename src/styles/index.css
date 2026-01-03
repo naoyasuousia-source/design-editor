@@ -48,9 +48,13 @@
         height: 2px !important;
     }
 
+    /* グループ選択用のオレンジポイント（詳細度を上げて確実に適用） */
+    .moveable-group-selection .moveable-control-box .moveable-control,
     .moveable-group-selection .moveable-control,
+    .moveable-group-hover .moveable-control-box .moveable-control,
     .moveable-group-hover .moveable-control {
         border: 2.5px solid #f97316 !important;
+        background: #fff7ed !important;
         width: 12px !important;
         height: 12px !important;
         margin-top: -6px !important;

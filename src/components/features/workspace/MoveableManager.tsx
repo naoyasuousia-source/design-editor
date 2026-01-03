@@ -245,7 +245,15 @@ const MoveableManager: React.FC<MoveableManagerProps> = ({
                         // オーバーレイのサイズ更新
                         overlayTarget.style.width = `${width}px`;
                         overlayTarget.style.height = `${height}px`;
-                        overlayTarget.style.transform = drag.transform;
+
+                        // transformを使わず、直接left/topを更新してずれを防ぐ
+                        const beforeTranslate = drag.beforeTranslate;
+                        const startL = parseFloat(overlayTarget.getAttribute('data-start-l') || '0');
+                        const startT = parseFloat(overlayTarget.getAttribute('data-start-t') || '0');
+                        const newLeft = startL + beforeTranslate[0];
+                        const newTop = startT + beforeTranslate[1];
+                        overlayTarget.style.left = `${newLeft}px`;
+                        overlayTarget.style.top = `${newTop}px`;
 
                         // 比率を計算
                         const startW = parseFloat(overlayTarget.getAttribute('data-start-w') || '1');
@@ -268,8 +276,9 @@ const MoveableManager: React.FC<MoveableManagerProps> = ({
 
                             el.style.width = `${ew * ratio}px`;
                             el.style.height = `${eh * ratio}px`;
-                            el.style.left = `${overlayStartL + relativeL * ratio}px`;
-                            el.style.top = `${overlayStartT + relativeT * ratio}px`;
+                            // オーバーレイの移動量も加味
+                            el.style.left = `${newLeft + relativeL * ratio}px`;
+                            el.style.top = `${newTop + relativeT * ratio}px`;
                             el.style.fontSize = `${efs * ratio}px`;
                         });
 

@@ -28,50 +28,35 @@
 ## 1. 未解決要件（移動許可がNGの要件は絶対に移動・編集しないこと）（勝手に移動許可をOKに書き換えないこと）
 
 <requirement>
-<content>図形メニューは従来通り、上辺に表示し、グループメニューもグループ外枠の上辺に表示する。</content>
-<current-situation>両メニューとも中央付近に表示されてしまう。</current-situation>
-<remarks></remarks>
-<permission-to-move>NG</permission-to-move>
-</requirement>
-
-<requirement>
-<content>図形メニューUIの、レスポンシブリサイズボタンを廃止する。</content>
+<content></content>
 <current-situation></current-situation>
 <remarks></remarks>
 <permission-to-move>NG</permission-to-move>
 </requirement>
 
 <requirement>
-<content>グループ全体の拡大縮小時、右下のポイント以外で操作すると、レスポンシブ拡大縮小はできるが、オレンジ枠と実際のグループ外枠の挙動が途中ずれ、気持ち悪い。→修正してほしい。</content>
+<content></content>
 <current-situation></current-situation>
 <remarks></remarks>
 <permission-to-move>NG</permission-to-move>
 </requirement>
 
 <requirement>
-<content>- グループ化されてるすべての要素は、ホバーでは水色枠は非表示とし、代わりにグループ全体のオレンジ枠のみを表示する。
-（個別要素は枠表示しない）</content>
-<current-situation>ほぼOKである。あと、ホバー時も半透明ではなく、クリック選択時と同じオレンジ枠を表示してほしい。</current-situation>
+<content>グループ選択時、四隅のポイントが水色になってしまっているので、オレンジに修正してほしい。</content>
+<current-situation></current-situation>
 <remarks></remarks>
 <permission-to-move>OK</permission-to-move>
 </requirement>
 
 <requirement>
-<content>- insert.mdの通り、グループ化されてるすべての要素は、一回クリックすると、グループ選択扱いとなり、水色枠と水色ポイントは表示せず、グループ全体の外枠のオレンジ枠と、オレンジポイントのみを表示する。
-- グループ選択時、グループ解除ボタンと削除ボタン、グループidとidコピーボタンを含むグループ特別メニューを表示する。</content>
-<current-situation>
-- 現在、一回クリックでグループ選択時、水色ポイントが表示されてしまっているので、グループ選択時は、オレンジ枠とオレンジポイントのみを表示するようにしてほしい。
-- また、グループ特別メニューが実装されていない。</current-situation>
+<content>
+- 要素複数選択時もグループメニューを表示。
+- この場合のグループメニューは「グループ化」ボタンと削除ボタンの二つのみとし、idはまだ定義されていないので表示しない。
+- グループ化が選択されたら、新たにそれぞれに共通のグループidを付与する。
+- 削除ボタンが押されたら、選択されたすべての要素を一気に削除する。</content>
+<current-situation>グループ解除直後はグループ化メニュー出るが、複数要素選択時は既存グループ用メニューが表示されてしまう。</current-situation>
 <remarks></remarks>
-<permission-to-move>OK</permission-to-move>
-</requirement>
-
-<requirement>
-<content>- その状態で、もう一度、同じ個別要素をクリックすると、オレンジ枠とオレンジポイントは表示されたまま、水色枠と水色ポイントも表示され、グループ内の要素が個別に選択可能になる。</content>
-<current-situation>
-水色枠が表示されているときも個別のテキストボックスメニューなどが表示されない状態。</current-situation>
-<remarks></remarks>
-<permission-to-move>OK</permission-to-move>
+<permission-to-move>NG</permission-to-move>
 </requirement>
 
 ## 2. 未解決要件に関するコード変更履歴（目的、変更内容、変更日時）
@@ -130,6 +115,28 @@
         - `MoveableManager.tsx`: ホバー用オーバーレイの `opacity: 0.6` を削除し、完全に不透明なオレンジ枠に変更。
     - 日時: 2026-01-03 22:10
 
+- **メニュー位置修正、レスポンシブリサイズボタン廃止、グループリサイズのずれ修正**
+    - 目的: メニューを上辺に表示し、不要なボタンを削除、リサイズ時のオレンジ枠ずれを解消するため。
+    - 内容:
+        - `FloatingMenu.tsx`: 
+            - メニュー位置を常に要素の上辺に表示するように変更（CSSの `${...} px` スペースバグも修正）。
+            - 図形メニューからレスポンシブリサイズボタン（`Maximize`）を削除。
+        - `MoveableManager.tsx`:
+            - グループリサイズ時の `onResize` を修正。`drag.transform` ではなく `drag.beforeTranslate` を使用し、オーバーレイの `left`/`top` を直接更新。
+            - これにより、左上/右上/左下ポイントでリサイズしても、オレンジ枠とグループ要素の位置がずれなくなった。
+    - 日時: 2026-01-03 22:37
+
+- **グループポイントのオレンジ化と複数選択メニュー対応**
+    - 目的: グループ選択時のポイントを水色からオレンジに変更。複数選択時（シフトキー）の専用メニューを追加。
+    - 内容:
+        - `index.css`:
+            - `.moveable-group-selection .moveable-control` のCSSセレクタ詳細度を上げ、背景色 `#fff7ed` を追加してオレンジ系に統一。
+        - `FloatingMenu.tsx`:
+            - `canGroup` の場合（複数選択でまだグループ化されていない）の専用メニューを追加。
+            - 青いヘッダーと「グループ化」「削除」ボタンのみを表示。
+            - 既存グループ選択時（`isGroupMode`）と明確に分離。
+    - 日時: 2026-01-03 22:50
+
 
 ## 3. 分析中に気づいた重要ポイント（試してだめだったこと、仮設、制約条件等...）
 
@@ -153,6 +160,22 @@
 - **新規作成時のデフォルトデザインのフラット化**
     - 要件: 新規作成時のデフォルトデザインを新仕様に合わせ、すべてフラットな要素とする。
     - 解決方法: `src/utils/templates.ts` の `GET_INITIAL_TEMPLATE` を修正し、入れ子構造を廃止。各要素に `data-group-id` 属性と絶対座標スタイルを付与し、フラットな構造で生成するように変更。
+
+- **グループホバー時のオレンジ枠表示**
+    - 要件: グループ化された要素にホバー時、水色枠は非表示とし、グループ全体のオレンジ枠のみを不透明で表示する。
+    - 解決方法: `MoveableManager.tsx` でホバー用オーバーレイ要素を作成し、バウンディングボックスを計算してオレンジ枠を描画。`opacity: 0.6` を削除して不透明に変更。
+
+- **グループ選択時のオレンジ枠・ポイントのみ表示**
+    - 要件: グループを1回クリック時、オレンジ枠とオレンジポイントのみを表示し、グループ専用メニュー（解除、削除、ID表示、コピー）を表示する。
+    - 解決方法: `FloatingMenu.tsx` を修正し、`selectionMode === 'group'` の場合はグループ専用メニューのみ表示するように条件分岐を追加。
+
+- **個別選択時のテキスト/画像/シェイプメニュー表示**
+    - 要件: グループ内の個別要素をクリック時、オレンジ枠を維持しつつ水色枠とテキストメニュー等を表示する。
+    - 解決方法: `FloatingMenu.tsx` に `activeSubTarget` を渡し、`selectionMode === 'individual'` の場合は `activeSubTarget` を使用して要素固有メニューを表示。
+
+- **メニュー上辺表示、レスポンシブリサイズボタン廃止、グループリサイズのずれ修正**
+    - 要件: メニューを要素の上辺に表示、レスポンシブリサイズボタン削除、グループリサイズ時のオレンジ枠ずれ修正。
+    - 解決方法: `FloatingMenu.tsx` の位置計算を上辺固定に変更。`Maximize`ボタン削除。`MoveableManager.tsx` の `onResize` で `drag.beforeTranslate` を使用し、オーバーレイの `left`/`top` を直接更新。
 
 ## 5. 要件に関連する全ファイルのファイル構成（それぞれの役割を1行で併記）
 
