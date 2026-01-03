@@ -72,6 +72,15 @@ export const useSelection = (canvasRef: RefObject<HTMLDivElement | null>, conten
         if (targets.length === 0) return ["nw", "ne", "sw", "se", "w", "e", "n", "s"];
 
         const mainTarget = activeSubTarget || targets[0];
+
+        // 画像判定
+        const isImage = mainTarget.tagName.toLowerCase() === 'img' ||
+            (mainTarget.style.backgroundImage && mainTarget.style.backgroundImage.includes('url'));
+
+        if (isImage) {
+            return ["nw", "ne", "sw", "se"]; // 画像はコーナーのみ
+        }
+
         if (isTextBox(mainTarget)) {
             return ["nw", "ne", "sw", "se", "w", "e"];
         }

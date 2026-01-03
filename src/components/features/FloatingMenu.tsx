@@ -213,15 +213,12 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectio
                                     {showBorderPalette && <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-blue-500 rounded-full" />}
                                 </button>
                                 <button
-                                    className="p-1.5 hover:bg-white/5 rounded text-gray-400 hover:text-white transition-all"
-                                    onClick={() => {
-                                        const cur = displayTarget.style.borderRadius || '0px';
-                                        const n = cur === '0px' ? '8px' : cur === '8px' ? '9999px' : '0px';
-                                        applyStyle('borderRadius', n);
-                                    }}
+                                    className={cn("p-1.5 rounded transition-all relative", showRadiusPicker ? "bg-blue-500 text-white" : "text-gray-400 hover:bg-white/5 hover:text-white")}
+                                    onClick={() => { const n = !showRadiusPicker; closeAllPanels(); setShowRadiusPicker(n); }}
                                     title="Corner Radius"
                                 >
                                     <Circle size={14} />
+                                    {showRadiusPicker && <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-white rounded-full" />}
                                 </button>
                                 <button
                                     className={cn("p-1.5 rounded transition-all", showCropPicker ? "bg-blue-500 text-white" : "text-gray-400 hover:bg-white/5 hover:text-white")}
