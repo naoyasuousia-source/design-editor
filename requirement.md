@@ -79,7 +79,7 @@
 
 ### AIによるデザイン作成
 - AntigravityのAIは、ユーザーの要求に基づいて、読み込んだデザインHTMLのコードを編集してデザイン生成する。
-**デザインHTMLに関しては、tailwindは使わず、純粋なHTMLとインラインCSSのみを使用する。**
+**デザインHTMLに関しては、tailwindは使わず、純粋なHTMLとCSSのみを使用する。**
 - フォントは以下の15種類から選ぶ。
     - Noto Sans JP・Noto Serif JP・游ゴシック (Yu Gothic)・游明朝 (Yu Mincho)・メイリオ (Meiryo)・M PLUS 1p・Zen 角ゴシック New・Inter・Montserrat・Roboto・Playfair Display・Oswald・Poppins・JetBrains Mono・Times New Roman
 - 各テキストボックス、各画像、各デザイン素材は必ず独立した要素として扱う。

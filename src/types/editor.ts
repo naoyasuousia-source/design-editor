@@ -31,6 +31,7 @@ export type EditorState = {
     zoom: number;
     isDirty: boolean;
     content: string; // HTML string
+    customCss: string; // CSS within <!-- CUSTOM_CSS_START -->
     fileName: string | null;
     folderHandle: FileSystemDirectoryHandle | null;
     // プロジェクトフォルダ管理システム用

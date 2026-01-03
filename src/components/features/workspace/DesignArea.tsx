@@ -44,7 +44,10 @@ const DesignArea: React.FC<DesignAreaProps> = ({
     handleCanvasClick,
     updateContentFromDOM
 }) => {
-    const isApplyingUpdate = useEditorStore(state => state.isApplyingUpdate);
+    const { isApplyingUpdate, customCss } = useEditorStore(state => ({
+        isApplyingUpdate: state.isApplyingUpdate,
+        customCss: state.customCss
+    }));
 
     return (
         <div
@@ -55,6 +58,8 @@ const DesignArea: React.FC<DesignAreaProps> = ({
             )}
             onMouseDown={handleCanvasClick}
         >
+            {/* カスタムCSSの反映 */}
+            <style>{customCss}</style>
             <DesignContent
                 content={content}
                 onMouseDown={handleCanvasClick}

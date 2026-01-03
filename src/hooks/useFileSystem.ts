@@ -1,7 +1,7 @@
 import { useEditorStore } from '@/store/useEditorStore';
 import { fileSystemService } from '@/services/fileSystem';
 import { useCallback } from 'react';
-import { parseMetaMessage, extractDesignContent, constructFullHTML } from '@/utils/htmlProcessing';
+import { parseMetaMessage, extractDesignContent, constructFullHTML, extractCustomCss } from '@/utils/htmlProcessing';
 import { GET_INITIAL_TEMPLATE } from '@/utils/templates';
 import type { PageSize } from '@/types/editor';
 
@@ -18,7 +18,8 @@ export const useFileSystem = () => {
         setContent,
         setDirty,
         setLastSaveTime,
-        setMetaMessage
+        setMetaMessage,
+        setCustomCss
     } = useEditorStore();
 
     /**
@@ -65,7 +66,8 @@ export const useFileSystem = () => {
 
             // 新規ファイルを作成
             const template = GET_INITIAL_TEMPLATE(pageSize);
-            const fullHTML = constructFullHTML(template, useEditorStore.getState().metaMessage);
+            const { metaMessage, customCss } = useEditorStore.getState();
+            const fullHTML = constructFullHTML(template, customCss, metaMessage);
             const fileHandle = await fileSystemService.createNewDesignFile(directoryHandle, fileName, fullHTML);
 
             // ファイルハンドルをストアに保存
@@ -112,9 +114,11 @@ export const useFileSystem = () => {
 
             // エディタに読み込み
             const designContent = extractDesignContent(htmlContent);
+            const customCss = extractCustomCss(htmlContent);
             const meta = parseMetaMessage(htmlContent);
 
             setContent(designContent, true); // 履歴に積まない
+            setCustomCss(customCss);
             if (meta) setMetaMessage(meta);
             setDirty(false);
 
@@ -136,7 +140,7 @@ export const useFileSystem = () => {
      * @returns 保存成功時は true、失敗時は false
      */
     const handleOverwrite = useCallback(async (): Promise<boolean> => {
-        const { currentFileHandle, content, metaMessage, setShowSaveToast } = useEditorStore.getState();
+        const { currentFileHandle, content, customCss, metaMessage, setShowSaveToast } = useEditorStore.getState();
 
         console.log('handleOverwrite called');
         console.log('currentFileHandle:', currentFileHandle);
@@ -153,7 +157,7 @@ export const useFileSystem = () => {
             setLastSaveTime(Date.now());
 
             // HTML を構築
-            const fullHTML = constructFullHTML(content, metaMessage);
+            const fullHTML = constructFullHTML(content, customCss, metaMessage);
             console.log('fullHTML constructed, length:', fullHTML.length);
 
             // 上書き保存

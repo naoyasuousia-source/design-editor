@@ -11,6 +11,7 @@ interface EditorStore extends EditorState {
     setZoom: (zoom: number) => void;
     setDirty: (isDirty: boolean) => void;
     setContent: (content: string, skipHistory?: boolean) => void;
+    setCustomCss: (css: string) => void;
     setFileName: (name: string | null) => void;
     setFolderHandle: (handle: FileSystemDirectoryHandle | null) => void;
     // プロジェクトフォルダ管理システム用
@@ -50,6 +51,7 @@ const initialState: EditorState & {
     zoom: 1.0,
     isDirty: false,
     content: '',
+    customCss: '',
     fileName: null,
     folderHandle: null,
     // プロジェクトフォルダ管理システム用
@@ -115,6 +117,8 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
         set({ content, isDirty: true });
     },
 
+    setCustomCss: (customCss) => set({ customCss, isDirty: true }),
+
     setFileName: (fileName) => set({ fileName }),
     setFolderHandle: (folderHandle) => set({ folderHandle }),
 
@@ -129,6 +133,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
         const { content } = get();
         const meta = parseMetaMessage(newFullContent);
         const designContent = extractDesignContent(newFullContent);
+        const newCustomCss = extractCustomCss(newFullContent);
 
         set({
             hasPendingChanges: true,
@@ -136,6 +141,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
             isApplyingUpdate: true, // ロード中表示ON
             prePendingContent: content, // 元のデータを退避
             content: designContent, // 先に反映させておく
+            customCss: newCustomCss, // 先に反映させておく
             pendingContent: designContent,
             pendingSnapshot: snapshot,
             metaMessage: meta || get().metaMessage,
@@ -150,7 +156,8 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
         // 承認した場合は、すでに反映されている content をファイルに保存する
         if (currentFileHandle) {
             const { fileSystemService } = await import('@/services/fileSystem');
-            const fullHtml = constructFullHTML(content, metaMessage);
+            const { customCss } = get();
+            const fullHtml = constructFullHTML(content, customCss, metaMessage);
             await fileSystemService.saveToCurrentFile(currentFileHandle, fullHtml);
         }
 
@@ -172,7 +179,8 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
         // 破棄した場合は、退避しておいた prePendingContent に戻して上書き保存。
         if (currentFileHandle) {
             const { fileSystemService } = await import('@/services/fileSystem');
-            const fullHtml = constructFullHTML(prePendingContent, metaMessage);
+            const { customCss } = get();
+            const fullHtml = constructFullHTML(prePendingContent, customCss, metaMessage);
             await fileSystemService.saveToCurrentFile(currentFileHandle, fullHtml);
         }
 
