@@ -39,6 +39,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
         getRenderDirections,
         selectionMode,
         activeSubTarget,
+        selectNone,
         hoverTargets
     } = useMoveable(canvasRef);
 
@@ -105,6 +106,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
                     onUpdate={updateContentFromDOM}
                     selectionMode={selectionMode}
                     activeSubTarget={activeSubTarget}
+                    onClearSelection={selectNone}
                 />
             )}
         </div>

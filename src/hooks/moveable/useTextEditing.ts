@@ -17,6 +17,10 @@ export const useTextEditing = (
             clone.querySelectorAll('[contenteditable]').forEach(el => {
                 el.removeAttribute('contenteditable');
             });
+            // エディタ専用の選択中クラスを除去して保存する
+            clone.querySelectorAll('.moveable-target-active').forEach(el => {
+                el.classList.remove('moveable-target-active');
+            });
             setContent(clone.innerHTML);
         }
     }, [canvasRef, setContent]);

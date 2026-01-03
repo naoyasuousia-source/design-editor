@@ -27,9 +27,10 @@ interface FloatingMenuProps {
     onUpdate: () => void;
     selectionMode: SelectionMode;
     activeSubTarget: HTMLElement | null;
+    onClearSelection?: () => void;
 }
 
-const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectionMode, activeSubTarget }) => {
+const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectionMode, activeSubTarget, onClearSelection }) => {
     const { imageFiles, imageUrls } = useAssets();
     const menuRef = useRef<HTMLDivElement>(null);
 
@@ -55,7 +56,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectio
         toggleBold,
         openEyeDropper,
         closeAllPanels
-    } = useFloatingMenu(targets, onUpdate);
+    } = useFloatingMenu(targets, onUpdate, onClearSelection);
 
     if (!rect || !target) return null;
 

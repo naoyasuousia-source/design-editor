@@ -185,6 +185,7 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
         setTargets,
         selectionMode,
         activeSubTarget,
+        selectNone,
         keepRatio,
         handleResizeStart,
         getBounds,

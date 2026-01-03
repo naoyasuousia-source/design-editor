@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useEditorStore } from '@/store/useEditorStore';
 
-export const useFloatingMenu = (targets: HTMLElement[], onUpdate: () => void) => {
+export const useFloatingMenu = (targets: HTMLElement[], onUpdate: () => void, onClearSelection?: () => void) => {
     const [rect, setRect] = useState<DOMRect | null>(null);
     const [showImagePicker, setShowImagePicker] = useState(false);
     const [showCropPicker, setShowCropPicker] = useState(false);
@@ -80,8 +80,9 @@ export const useFloatingMenu = (targets: HTMLElement[], onUpdate: () => void) =>
 
     const handleUngroup = useCallback(() => {
         targets.forEach(el => el.removeAttribute('data-group-id'));
+        if (onClearSelection) onClearSelection();
         onUpdate();
-    }, [targets, onUpdate]);
+    }, [targets, onUpdate, onClearSelection]);
 
     const toggleBold = useCallback(() => {
         if (!target) return;

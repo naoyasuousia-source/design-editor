@@ -16,7 +16,7 @@
 <content></content>
 <current-situation></current-situation>
 <remarks></remarks>
-<permission-to-move>NG</permission-to-move>
+<permission-to-move>OK</permission-to-move>
 </requirement>
 
 </uneditable>
@@ -28,19 +28,18 @@
 ## 1. 未解決要件（移動許可がNGの要件は絶対に移動・編集しないこと）（勝手に移動許可をOKに書き換えないこと）
 
 <requirement>
-<content>グループ解除直後は、複数要素選択時メニューを出さないようにしてほしい。</content>
-<current-situation></current-situation>
+<content>
+- テキストボックス挿入時、デフォルトのフォントカラーは黒にする。
+- テキストボックス挿入直後は、そのテキストボックス選択状態にする。</content>
+<current-situation>現在、挿入直後水色枠がつかないので、どれが挿入されたか見失いやすい。</current-situation>
 <remarks></remarks>
-<permission-to-move>NG</permission-to-move>
+<permission-to-move>OK</permission-to-move>
 </requirement>
 
 <requirement>
-<content>グループをワンクリックした際、既存グループ用メニューが出るが、同時に四隅ポイントも表示してほしい。
-（ホバー時のオレンジ枠限定表示状態と、四隅ポイントも表示する状態の二種類あるが、ワンクリック時に四隅も表示する状態に遷移してほしい。）</content>
+<content>グループ解除直後は、複数要素選択時メニューを出さないようにしてほしい。</content>
 <current-situation>
-- 現在、ワンクリック後、オレンジ枠が消えてしまい、既存グループ用メニューに近づくと、オレンジ枠と四隅ポイントが表示される。
-- また、副作用として、グループ選択時、に個別要素をクリックした場合、個別メニューが出なくなってしまった。（水色枠も表示されない。）
-</current-situation>
+<content>解除後、複数要素選択時メニューは表示されないようになったが、複数要素選択状態が解除されず、個別要素の水色枠が消えない。解除後、水色枠は出ないようにしてほしい。</current-situation>
 <remarks></remarks>
 <permission-to-move>OK</permission-to-move>
 </requirement>
@@ -139,13 +138,35 @@
         - `MoveableManager.tsx`: オレンジ枠の表示条件を `targets.length > 1` に緩和。未グループ化の複数選択でもオレンジ枠が出るように修正。
         - `useMoveable.ts`: シフトクリック時の副作用を整理。複数選択時は個別の水色枠を消してグループメニューを優先表示し、状態管理を安定化。
         - `FloatingMenu.tsx`: 青いヘッダーで「複数要素選択中」と表示し、「グループ化」「削除」ボタンを確実に提供。
-- **選選択時の枠消失および個別選択不可の修正（退行バグの解消）**
-    - 目的: 前回の修正で発生した、ワンクリックでの枠消失と個別選択ができない不具合を修正するため。
+- **グループ解除後の水色枠（選択中クラス）の残存バグ修正**
+    - 目的: グループ解除直後に、要素が選択されていないにもかかわらず水色の枠（アウトライン）が残ってしまう問題を解決するため。
     - 内容:
-        - `MoveableManager.tsx`: グループ選択用オーバーレイの `pointer-events` を `none` に戻し、デザイン要素へのクリックを妨げないように修正。
-        - `index.css`: グループ選択用ポイント（`.moveable-control`）の可視性を `!important` で強力に保持し、Moveableの描画最適化に依存せず常時表示されるように強化。
-    - 日時: 2026-01-04 00:20
+        - `useTextEditing.ts`: `updateContentFromDOM` を修正。DOMのHTMLをストアに保存する際、一時的な選択中クラス（`.moveable-target-active`）をクリーンアップしてから保存するように変更。これにより、再レンダリング後に「選択されていないのに枠がある」状態を防止。
+    - 日時: 2026-01-04 00:55
 
+- **グループ解除直後の不要なメニュー（複数選択状態）の抑制**
+    - 目的: グループを解除した直後に、残った要素に対して「グループ化」を促すメニューが表示されないようにするため。
+    - 内容:
+        - `useFloatingMenu.ts`: `handleUngroup` に選択をクリアするための `onClearSelection` コールバックを追加。
+        - `FloatingMenu.tsx` / `Workspace.tsx`: グループ解除時に `selectNone` を実行するように配線。
+        - `useMoveable.ts`: `Workspace` で利用できるように `selectNone` を return に追加。
+    - 日時: 2026-01-04 00:45
+
+- **グループ選択時のポイント表示安定化と退行バグ（枠消失）の修正**
+    - 要件: ワンクリックでオレンジポイントを即座に表示させ、かつ個別選択も可能にする。
+    - 解決方法: 
+        - `MoveableManager.tsx`: `key` 導入による再マウント強制と、オーバーレイの `pointer-events: none` 徹底によりクリック貫通を復旧。
+        - `index.css`: `.moveable-control` の可視性を `!important` で強制し、ホバーせずともポイントが表示されるよう調整。
+    - 日時: 2026-01-04 00:30
+
+- **複数選択UIのフィードバック改善とメニューの安定化**
+    - 目的: 複数要素選択時にメニューが表示されない、位置が不安定、または選択されたかどうかが分かりにくい問題を解決するため。
+    - 内容:
+        - `useFloatingMenu.ts`: 複数選択時に全要素を囲むバウンディングボックスを計算するように修正し、メニュー位置を最適化。
+        - `MoveableManager.tsx`: オレンジ枠の表示条件を `targets.length > 1` に緩和。
+        - `useMoveable.ts`: シフトクリック時の副作用を整理。
+        - `FloatingMenu.tsx`: 青いヘッダーで「複数要素選択中」と表示し、「グループ化」「削除」ボタンを表示。
+    - 日時: 2026-01-03 23:55
 
 
 
