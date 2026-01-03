@@ -129,12 +129,23 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
             return;
         }
 
-        const groupId = target.getAttribute('data-group-id');
-        if (groupId) {
-            const groupElements = Array.from(surface.querySelectorAll(`[data-group-id="${groupId}"]`)) as HTMLElement[];
+        // 要素自体または祖先から data-group-id を探す
+        let el: HTMLElement | null = target;
+        let foundGroupId: string | null = null;
+        while (el && el !== surface) {
+            const gid = el.getAttribute('data-group-id');
+            if (gid) {
+                foundGroupId = gid;
+                break;
+            }
+            el = el.parentElement;
+        }
+
+        if (foundGroupId) {
+            const groupElements = Array.from(surface.querySelectorAll(`[data-group-id="${foundGroupId}"]`)) as HTMLElement[];
             // すでに選択中のグループなら、ホバー表示は不要（実線があるので）
             const isAlreadySelected = targets.length === groupElements.length &&
-                groupElements.every(el => targets.includes(el));
+                groupElements.every(elem => targets.includes(elem));
 
             if (isAlreadySelected) {
                 setHoverTargets([]);

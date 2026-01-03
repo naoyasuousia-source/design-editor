@@ -90,15 +90,10 @@
         display: none !important;
     }
 
-    /* Hover and Selection effect for design elements */
-    .DesignSurface * {
-        transition: outline 0.1s ease-in-out;
-    }
-
     /* 
        1. 選択中の要素は常に枠を表示
        2. ホバー時は「最も深い（子要素がホバーされていない）」要素のみ枠を表示
-       ※ グループ化されている要素は JS 側でオレンジ枠を出すため、CSS 側では非表示にする
+       ※ グループ化されている要素は JS 側でオレンジ枠を出すため、CSS 側では水色枠を完全に非表示にする
     */
     .DesignSurface *.moveable-target-active:not([data-group-id]),
     .DesignSurface *:not([data-group-id]):hover:not(.DesignSurface):not(:has(*:hover)) {
@@ -106,8 +101,8 @@
         outline-offset: 1px;
     }
 
-    /* 2段階選択時（individualモード）で、アクティブなサブ要素のみ青枠を表示 */
-    .DesignSurface *.moveable-target-active[data-group-id] {
+    /* グループ化された要素はCSSの outline を完全に無効化（Moveableで制御） */
+    .DesignSurface *[data-group-id] {
         outline: none !important;
     }
 
