@@ -29,14 +29,7 @@
 
 <requirement>
 <content>画像メニューのトリミングを有効化する。（比率はfreeと1:1のみでOK）</content>
-<current-situation>左上は固定されたが、右下をドラッグすると画像がトリミング枠とともに縮小されてしまい、元画像とずれてしまう。トリミング中は画像は絶対に縮小せず、もとのままにする。（トリミング枠だけ縮小し、トリミング枠をずらすことで位置調整する）</current-situation>
-<remarks></remarks>
-<permission-to-move>NG</permission-to-move>
-</requirement>
-
-<requirement>
-<content>「画像として保存」の展開メニューが常に画面に表示されてしまっているので、修正して。</content>
-<current-situation>早期リターンを追加し、保存モード時以外は表示されないよう修正済み。</current-situation>
+<current-situation>縮小されなくなったが、左上が固定されてないので、位置がずれてしまう。</current-situation>
 <remarks></remarks>
 <permission-to-move>OK</permission-to-move>
 </requirement>
@@ -51,6 +44,7 @@
 - **ColorPalette/GroupMoveable型エラー修正** (2026-01-04): ビルドエラーを解消。
 - **ImageSaveWizard常時表示バグ修正** (2026-01-04): `isImageSaveMode` による早期リターンを追加。
 - **ImageCropOverlayのズレと追従性の改善** (2026-01-04): `requestAnimationFrame` による追従、`zoom` 計算の補正、背景ガイド画像の追加。
+- **画像固定マスク方式のトリミング実装** (2026-01-04): 画像が縮小してしまう問題を解決。背景と枠内画像を同期させ、枠だけを動かす方式に変更。
 
 ## 3. 分析中に気づいた重要ポイント（試してだめだったこと、仮設、制約条件等...）
 - **角の丸み**: `RadiusPicker.tsx` ですでにスライダーが実装されているため、`FloatingMenu.tsx` で画像に対してもこのコンポーネントを使用するように変更。
@@ -63,7 +57,7 @@
 ## 4. 解決済み要件とその解決方法
 - **角の丸みスライダー対応**: `FloatingMenu.tsx` で画像要素に対しても `RadiusPicker` を表示するように変更し、スライダーで連続的な調整を可能にした。
 - **リサイズハンドルの制限**: `useSelection.ts` で画像要素を判定し、リサイズハンドルを四隅（nw, ne, sw, se）のみに制限した。
-- **直感的な画像トリミング**: キャンバス上の画像に直接重なる `ImageCropOverlay` を実装。`object-fit: cover` を維持したまま `object-position` を動的に変更することで、非破壊的なトリミングを実現。
+- **ズレない画像トリミング**: 背景と枠内で同一の画像を表示し、枠(`overflow: hidden`)だけが動く「マスク方式」を採用。これにより、リサイズ時に画像が歪んだり縮小したりする問題を完全に解消した。
 - **ImageSaveWizardの表示制御**: エントリポイントおよびコンポーネント内での状態判定を見直し、不要なタイミングでツールバーが表示されないように修正。
 
 ## 5. 要件に関連する全ファイルのファイル構成（それぞれの役割を1行で併記）
