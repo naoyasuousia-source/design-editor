@@ -1,5 +1,19 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useEditorStore } from '@/store/useEditorStore';
+
+export type MenuType = 'text' | 'image' | 'shape';
+
+interface EyeDropper {
+    open: () => Promise<{ sRGBHex: string }>;
+}
+
+declare global {
+    interface Window {
+        EyeDropper: {
+            new(): EyeDropper;
+        };
+    }
+}
 
 export const useFloatingMenu = (targets: HTMLElement[], onUpdate: () => void, onClearSelection?: () => void) => {
     const [rect, setRect] = useState<DOMRect | null>(null);
@@ -17,7 +31,7 @@ export const useFloatingMenu = (targets: HTMLElement[], onUpdate: () => void, on
     const [showTextBgPalette, setShowTextBgPalette] = useState(false);
     const [showStrokePalette, setShowStrokePalette] = useState(false);
 
-    const { isResponsiveResize, setResponsiveResize } = useEditorStore();
+    const { setResponsiveResize } = useEditorStore();
     const target = targets[0];
 
     useEffect(() => {
@@ -27,7 +41,6 @@ export const useFloatingMenu = (targets: HTMLElement[], onUpdate: () => void, on
             if (targets.length === 1) {
                 setRect(targets[0].getBoundingClientRect());
             } else {
-                // 複数要素の最小/最大座標を計算してバウンディングボックスを作成
                 let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
                 targets.forEach(el => {
                     const r = el.getBoundingClientRect();
@@ -47,7 +60,6 @@ export const useFloatingMenu = (targets: HTMLElement[], onUpdate: () => void, on
         window.addEventListener('scroll', updateRect, true);
         window.addEventListener('resize', updateRect);
 
-        // 全要素を監視
         const observers = targets.map(el => {
             const obs = new MutationObserver(updateRect);
             obs.observe(el, { attributes: true, subtree: true, characterData: true });
@@ -61,6 +73,25 @@ export const useFloatingMenu = (targets: HTMLElement[], onUpdate: () => void, on
         };
     }, [targets]);
 
+    const targetType = useMemo((): MenuType => {
+        if (!target) return 'shape';
+        const tagName = target.tagName.toLowerCase();
+        const isImage = tagName === 'img' || (target.style.backgroundImage && target.style.backgroundImage.includes('url'));
+        if (isImage) return 'image';
+
+        const isText = target.textContent?.trim() !== '' &&
+            (target.children.length === 0 ||
+                Array.from(target.children).every(c =>
+                    ['br', 'span'].includes(c.tagName.toLowerCase()) ||
+                    (['div', 'p'].includes(c.tagName.toLowerCase()) && !c.id)
+                ));
+        return isText ? 'text' : 'shape';
+    }, [target]);
+
+    const isGrouped = targets.length > 1 && targets.every(el => el.getAttribute('data-group-id') === targets[0].getAttribute('data-group-id'));
+    const canGroup = targets.length > 1 && !isGrouped;
+    const groupId = isGrouped ? targets[0].getAttribute('data-group-id') : null;
+
     const applyStyle = useCallback((property: keyof CSSStyleDeclaration, value: string, shouldUpdateStore = true) => {
         targets.forEach(el => {
             let cssProperty = (property as string).replace(/[A-Z]/g, m => `-${m.toLowerCase()}`);
@@ -73,13 +104,19 @@ export const useFloatingMenu = (targets: HTMLElement[], onUpdate: () => void, on
     }, [targets, onUpdate]);
 
     const handleGroup = useCallback(() => {
-        const groupId = `group-${Math.random().toString(36).substr(2, 9)}`;
-        targets.forEach(el => el.setAttribute('data-group-id', groupId));
+        const id = `group-${Math.random().toString(36).substr(2, 9)}`;
+        targets.forEach(el => el.setAttribute('data-group-id', id));
         onUpdate();
     }, [targets, onUpdate]);
 
     const handleUngroup = useCallback(() => {
         targets.forEach(el => el.removeAttribute('data-group-id'));
+        if (onClearSelection) onClearSelection();
+        onUpdate();
+    }, [targets, onUpdate, onClearSelection]);
+
+    const handleDelete = useCallback(() => {
+        targets.forEach(el => el.remove());
         if (onClearSelection) onClearSelection();
         onUpdate();
     }, [targets, onUpdate, onClearSelection]);
@@ -91,20 +128,20 @@ export const useFloatingMenu = (targets: HTMLElement[], onUpdate: () => void, on
         applyStyle('fontWeight', isBold ? 'normal' : 'bold');
     }, [target, applyStyle]);
 
-    const openEyeDropper = async (propertyOrCallback: any = 'color') => {
+
+    const openEyeDropper = async (propertyOrCallback: ((color: string) => void) | keyof CSSStyleDeclaration = 'color') => {
         if (!('EyeDropper' in window)) {
             alert('Your browser does not support the EyeDropper API');
             return;
         }
         try {
-            // @ts-ignore
             const eyeDropper = new window.EyeDropper();
             const result = await eyeDropper.open();
 
             if (typeof propertyOrCallback === 'function') {
                 propertyOrCallback(result.sRGBHex);
             } else {
-                applyStyle(propertyOrCallback, result.sRGBHex);
+                applyStyle(propertyOrCallback as keyof CSSStyleDeclaration, result.sRGBHex);
             }
         } catch (e) {
             console.error('EyeDropper failed:', e);
@@ -129,39 +166,31 @@ export const useFloatingMenu = (targets: HTMLElement[], onUpdate: () => void, on
     return {
         rect,
         target,
-        showImagePicker,
-        setShowImagePicker,
-        showCropPicker,
-        setShowCropPicker,
-        showColorPalette,
-        setShowColorPalette,
-        showBorderPalette,
-        setShowBorderPalette,
-        showBgPalette,
-        setShowBgPalette,
-        showRadiusPicker,
-        setShowRadiusPicker,
-        localRadius,
-        setLocalRadius,
-        showSizeDropdown,
-        setShowSizeDropdown,
-        showParagraphSettings,
-        setShowParagraphSettings,
-        showEffectSettings,
-        setShowEffectSettings,
-        showShadowPalette,
-        setShowShadowPalette,
-        showTextBgPalette,
-        setShowTextBgPalette,
-        showStrokePalette,
-        setShowStrokePalette,
-        isResponsiveResize,
+        targetType,
+        isGrouped,
+        canGroup,
+        groupId,
+        showImagePicker, setShowImagePicker,
+        showCropPicker, setShowCropPicker,
+        showColorPalette, setShowColorPalette,
+        showBorderPalette, setShowBorderPalette,
+        showBgPalette, setShowBgPalette,
+        showRadiusPicker, setShowRadiusPicker,
+        localRadius, setLocalRadius,
+        showSizeDropdown, setShowSizeDropdown,
+        showParagraphSettings, setShowParagraphSettings,
+        showEffectSettings, setShowEffectSettings,
+        showShadowPalette, setShowShadowPalette,
+        showTextBgPalette, setShowTextBgPalette,
+        showStrokePalette, setShowStrokePalette,
         setResponsiveResize,
         applyStyle,
         handleGroup,
         handleUngroup,
+        handleDelete,
         toggleBold,
         openEyeDropper,
         closeAllPanels
     };
 };
+

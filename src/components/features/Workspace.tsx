@@ -57,14 +57,11 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
             >
                 {/* スケールコンテナ */}
                 <div
+                    className="absolute top-0 left-0 origin-top-left"
                     style={{
                         width: `${currentWidth}px`,
                         height: `${currentHeight}px`,
                         transform: `scale(${zoom})`,
-                        transformOrigin: 'top left',
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
                     }}
                 >
                     <DesignArea

@@ -1,6 +1,8 @@
 import { useState, useCallback, useRef } from 'react';
 import type { RefObject, MouseEvent } from 'react';
 
+const keyDownListeners = new WeakMap<HTMLElement, (e: KeyboardEvent) => void>();
+
 export const useTextEditing = (
     canvasRef: RefObject<HTMLDivElement | null>,
     isLocked: boolean,
@@ -28,10 +30,10 @@ export const useTextEditing = (
     const finishEditing = useCallback(() => {
         if (editingElementRef.current && isEditingRef.current) {
             const target = editingElementRef.current;
-            const onKeyDown = (target as any)._onKeyDown;
+            const onKeyDown = keyDownListeners.get(target);
             if (onKeyDown) {
                 target.removeEventListener('keydown', onKeyDown);
-                delete (target as any)._onKeyDown;
+                keyDownListeners.delete(target);
             }
 
             target.contentEditable = 'false';
@@ -69,7 +71,7 @@ export const useTextEditing = (
             }
         };
         target.addEventListener('keydown', onKeyDown);
-        (target as any)._onKeyDown = onKeyDown; // クリーンアップ用
+        keyDownListeners.set(target, onKeyDown);
 
         requestAnimationFrame(() => {
             target.focus();

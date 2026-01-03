@@ -10,8 +10,8 @@ const COLOR_PALETTE = [
 
 interface ColorPaletteProps {
     type: 'color' | 'backgroundColor' | 'borderColor' | 'stroke' | 'shadow';
-    onPick: (property: any) => void;
-    onApply: (property: any, color: string) => void;
+    onPick: (type: 'color' | 'backgroundColor' | 'borderColor' | 'stroke' | 'shadow') => void;
+    onApply: (type: 'color' | 'backgroundColor' | 'borderColor' | 'stroke' | 'shadow', color: string) => void;
 }
 
 const ColorPalette: React.FC<ColorPaletteProps> = ({ type, onPick, onApply }) => {

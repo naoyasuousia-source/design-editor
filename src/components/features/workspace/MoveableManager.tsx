@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
-import Moveable from 'react-moveable';
 import type { SelectionMode } from '@/hooks/moveable/useSelection';
+import GroupMoveable from './GroupMoveable';
+import IndividualMoveable from './IndividualMoveable';
 
 interface MoveableManagerProps {
     targets: HTMLElement[];
@@ -20,123 +21,74 @@ interface MoveableManagerProps {
     updateContentFromDOM: () => void;
 }
 
-// グループ要素のバウンディングボックスを計算
 const calculateGroupBounds = (elements: HTMLElement[], container: HTMLElement | null) => {
     if (elements.length === 0 || !container) return null;
-
-    const containerRect = container.getBoundingClientRect();
+    const cr = container.getBoundingClientRect();
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-
     elements.forEach(el => {
-        const rect = el.getBoundingClientRect();
-        minX = Math.min(minX, rect.left - containerRect.left);
-        minY = Math.min(minY, rect.top - containerRect.top);
-        maxX = Math.max(maxX, rect.right - containerRect.left);
-        maxY = Math.max(maxY, rect.bottom - containerRect.top);
+        const r = el.getBoundingClientRect();
+        minX = Math.min(minX, r.left - cr.left);
+        minY = Math.min(minY, r.top - cr.top);
+        maxX = Math.max(maxX, r.right - cr.left);
+        maxY = Math.max(maxY, r.bottom - cr.top);
     });
-
-    return {
-        left: minX,
-        top: minY,
-        width: maxX - minX,
-        height: maxY - minY
-    };
+    return { left: minX, top: minY, width: maxX - minX, height: maxY - minY };
 };
 
-const MoveableManager: React.FC<MoveableManagerProps> = ({
-    targets,
-    canvasRef,
-    getRenderDirections,
-    getBounds,
-    currentWidth,
-    currentHeight,
-    moveableKeepRatio,
-    zoom,
-    expandCanvas,
-    isTextBox,
-    selectionMode,
-    activeSubTarget,
-    hoverTargets,
-    handleResizeStart,
-    updateContentFromDOM
-}) => {
-    // オーバーレイ要素をuseStateで管理し、作成時に再レンダリングをトリガー
+const MoveableManager: React.FC<MoveableManagerProps> = (props) => {
+    const { targets, canvasRef, selectionMode, activeSubTarget, hoverTargets } = props;
     const [hoverOverlay, setHoverOverlay] = useState<HTMLDivElement | null>(null);
     const [groupOverlay, setGroupOverlay] = useState<HTMLDivElement | null>(null);
-
-    // 初期マウント時に強制再レンダリング用
     const [, forceUpdate] = useState({});
 
-    // ホバー用オーバーレイを作成・更新
     useEffect(() => {
         if (!canvasRef.current) return;
-
         let overlay = hoverOverlay;
         if (!overlay) {
             overlay = document.createElement('div');
-            overlay.id = 'group-hover-overlay';
-            overlay.style.position = 'absolute';
-            overlay.style.pointerEvents = 'none';
-            overlay.style.border = '2px solid #f97316';
-            overlay.style.display = 'none';
-            overlay.style.zIndex = '9998';
+            overlay.className = "absolute pointer-events-none border-2 border-orange-500 hidden z-[9998]";
             canvasRef.current.appendChild(overlay);
             setHoverOverlay(overlay);
         }
-
         if (hoverTargets.length > 0) {
-            const bounds = calculateGroupBounds(hoverTargets, canvasRef.current);
-            if (bounds) {
+            const b = calculateGroupBounds(hoverTargets, canvasRef.current);
+            if (b) {
                 overlay.style.display = 'block';
-                overlay.style.left = `${bounds.left}px`;
-                overlay.style.top = `${bounds.top}px`;
-                overlay.style.width = `${bounds.width}px`;
-                overlay.style.height = `${bounds.height}px`;
+                overlay.style.left = `${b.left}px`;
+                overlay.style.top = `${b.top}px`;
+                overlay.style.width = `${b.width}px`;
+                overlay.style.height = `${b.height}px`;
             }
         } else {
             overlay.style.display = 'none';
         }
     }, [hoverTargets, canvasRef, hoverOverlay]);
 
-    // グループ選択用オーバーレイを作成・更新
     useEffect(() => {
         if (!canvasRef.current) return;
-
         let overlay = groupOverlay;
         if (!overlay) {
             overlay = document.createElement('div');
-            overlay.id = 'group-selection-overlay';
-            overlay.style.position = 'absolute';
-            overlay.style.pointerEvents = 'none';
-            overlay.style.display = 'none';
-            overlay.style.zIndex = '9999';
+            overlay.className = "absolute pointer-events-none hidden z-[9999]";
             canvasRef.current.appendChild(overlay);
             setGroupOverlay(overlay);
-            // 状態が更新されたので再レンダリングがトリガーされる
         }
-
-        // グループ選択または個別選択モードで、グループ要素がある場合
         const hasGroup = targets.length > 0 && targets[0]?.getAttribute('data-group-id');
         if ((selectionMode === 'group' || selectionMode === 'individual') && hasGroup) {
-            const bounds = calculateGroupBounds(targets, canvasRef.current);
-            if (bounds) {
+            const b = calculateGroupBounds(targets, canvasRef.current);
+            if (b) {
                 overlay.style.display = 'block';
-                overlay.style.pointerEvents = 'none'; // 戻す
-                overlay.style.left = `${bounds.left}px`;
-                overlay.style.top = `${bounds.top}px`;
-                overlay.style.width = `${bounds.width}px`;
-                overlay.style.height = `${bounds.height}px`;
+                overlay.style.left = `${b.left}px`;
+                overlay.style.top = `${b.top}px`;
+                overlay.style.width = `${b.width}px`;
+                overlay.style.height = `${b.height}px`;
             }
         } else {
             overlay.style.display = 'none';
-            overlay.style.pointerEvents = 'none';
         }
-
-        // Moveableが正しくターゲットを認識できるように強制更新
         forceUpdate({});
     }, [targets, selectionMode, canvasRef, groupOverlay]);
 
-    // クリーンアップ
     useEffect(() => {
         return () => {
             hoverOverlay?.remove();
@@ -144,244 +96,37 @@ const MoveableManager: React.FC<MoveableManagerProps> = ({
         };
     }, [hoverOverlay, groupOverlay]);
 
-    // グループ要素かどうかを判定
-    const hasGroupId = useMemo(() => {
-        return targets.length > 0 && targets[0]?.getAttribute('data-group-id');
-    }, [targets]);
-
-    // オーバーレイの位置を更新するヘルパー
     const updateOverlayBounds = useCallback(() => {
         if (!groupOverlay || !canvasRef.current) return;
-        const bounds = calculateGroupBounds(targets, canvasRef.current);
-        if (bounds) {
-            groupOverlay.style.left = `${bounds.left}px`;
-            groupOverlay.style.top = `${bounds.top}px`;
-            groupOverlay.style.width = `${bounds.width}px`;
-            groupOverlay.style.height = `${bounds.height}px`;
+        const b = calculateGroupBounds(targets, canvasRef.current);
+        if (b) {
+            groupOverlay.style.left = `${b.left}px`;
+            groupOverlay.style.top = `${b.top}px`;
+            groupOverlay.style.width = `${b.width}px`;
+            groupOverlay.style.height = `${b.height}px`;
         }
     }, [groupOverlay, targets, canvasRef]);
 
-    // オーバーレイが存在し、表示されているかどうか
-    const showGroupMoveable = groupOverlay &&
-        (targets.length > 1 || hasGroupId) &&
-        (selectionMode === 'group' || selectionMode === 'individual') &&
-        groupOverlay.style.display !== 'none';
-
-    // 選択状態を表す一意のキー（Moveableの再生成をトリガー）
-    const selectionKey = useMemo(() => {
-        return `${selectionMode}-${targets.map(t => t.id).join(',')}`;
-    }, [selectionMode, targets]);
+    const selectionKey = useMemo(() => `${selectionMode}-${targets.map(t => t.id).join(',')}`, [selectionMode, targets]);
+    const showGroupMoveable = groupOverlay && (targets.length > 1 || (targets.length > 0 && targets[0]?.getAttribute('data-group-id'))) &&
+        (selectionMode === 'group' || selectionMode === 'individual') && groupOverlay.style.display !== 'none';
 
     return (
         <>
-            {/* グループ選択用のオレンジ枠（オーバーレイ要素を対象） */}
             {showGroupMoveable && (
-                <Moveable
-                    key={selectionKey}
-                    target={groupOverlay}
-                    container={canvasRef.current || undefined}
-                    draggable={selectionMode === 'group'}
-                    resizable={selectionMode === 'group'}
-                    renderDirections={["nw", "ne", "sw", "se"]}
-                    origin={false}
-                    snappable={selectionMode === 'group'}
-                    bounds={getBounds() || {
-                        left: -2000,
-                        top: -2000,
-                        right: currentWidth + 2000,
-                        bottom: currentHeight + 2000,
-                    }}
-                    keepRatio={true}
-                    throttleDrag={1}
-                    throttleResize={1}
-                    zoom={1 / zoom}
-                    hideChildMoveableControls={false}
-                    className="moveable-group-selection"
-                    onDrag={e => {
-                        // オーバーレイを移動
-                        e.target.style.transform = e.transform;
-
-                        // グループ内の全要素も同時に移動
-                        const deltaX = e.delta[0];
-                        const deltaY = e.delta[1];
-                        targets.forEach(el => {
-                            const currentLeft = parseFloat(el.style.left) || el.offsetLeft;
-                            const currentTop = parseFloat(el.style.top) || el.offsetTop;
-                            el.style.left = `${currentLeft + deltaX}px`;
-                            el.style.top = `${currentTop + deltaY}px`;
-                        });
-
-                        // キャンバス拡張チェック
-                        let maxR = 0, maxB = 0;
-                        targets.forEach(el => {
-                            const rect = el.getBoundingClientRect();
-                            const canvasRect = canvasRef.current?.getBoundingClientRect();
-                            if (canvasRect) {
-                                maxR = Math.max(maxR, (rect.right - canvasRect.left) / zoom);
-                                maxB = Math.max(maxB, (rect.bottom - canvasRect.top) / zoom);
-                            }
-                        });
-                        if (maxR > 0 || maxB > 0) expandCanvas(maxR, maxB);
-                    }}
-                    onDragEnd={() => {
-                        // transformをリセットして位置を確定
-                        if (groupOverlay) {
-                            groupOverlay.style.transform = '';
-                            updateOverlayBounds();
-                        }
-                        updateContentFromDOM();
-                    }}
-                    onResizeStart={e => {
-                        // グループ内全要素の初期値を保存
-                        targets.forEach(el => {
-                            el.setAttribute('data-start-w', el.offsetWidth.toString());
-                            el.setAttribute('data-start-h', el.offsetHeight.toString());
-                            el.setAttribute('data-start-l', (parseFloat(el.style.left) || el.offsetLeft).toString());
-                            el.setAttribute('data-start-t', (parseFloat(el.style.top) || el.offsetTop).toString());
-                            el.setAttribute('data-start-fs', window.getComputedStyle(el).fontSize);
-                        });
-                        // オーバーレイの初期位置・サイズを保存
-                        const overlayEl = e.target as HTMLElement;
-                        overlayEl.setAttribute('data-start-w', overlayEl.offsetWidth.toString());
-                        overlayEl.setAttribute('data-start-h', overlayEl.offsetHeight.toString());
-                        overlayEl.setAttribute('data-start-l', overlayEl.style.left);
-                        overlayEl.setAttribute('data-start-t', overlayEl.style.top);
-                    }}
-                    onResize={e => {
-                        const overlayTarget = e.target as HTMLElement;
-                        const { width, height, drag } = e;
-
-                        // オーバーレイのサイズ更新
-                        overlayTarget.style.width = `${width}px`;
-                        overlayTarget.style.height = `${height}px`;
-
-                        // transformを使わず、直接left/topを更新してずれを防ぐ
-                        const beforeTranslate = drag.beforeTranslate;
-                        const startL = parseFloat(overlayTarget.getAttribute('data-start-l') || '0');
-                        const startT = parseFloat(overlayTarget.getAttribute('data-start-t') || '0');
-                        const newLeft = startL + beforeTranslate[0];
-                        const newTop = startT + beforeTranslate[1];
-                        overlayTarget.style.left = `${newLeft}px`;
-                        overlayTarget.style.top = `${newTop}px`;
-
-                        // 比率を計算
-                        const startW = parseFloat(overlayTarget.getAttribute('data-start-w') || '1');
-                        const ratio = width / startW;
-
-                        // リサイズ開始時のオーバーレイ位置
-                        const overlayStartL = parseFloat(overlayTarget.getAttribute('data-start-l') || '0');
-                        const overlayStartT = parseFloat(overlayTarget.getAttribute('data-start-t') || '0');
-
-                        targets.forEach(el => {
-                            const ew = parseFloat(el.getAttribute('data-start-w') || '0');
-                            const eh = parseFloat(el.getAttribute('data-start-h') || '0');
-                            const elft = parseFloat(el.getAttribute('data-start-l') || '0');
-                            const et = parseFloat(el.getAttribute('data-start-t') || '0');
-                            const efs = parseFloat(el.getAttribute('data-start-fs') || '16');
-
-                            // オーバーレイ左上からの相対位置を維持しながらリサイズ
-                            const relativeL = elft - overlayStartL;
-                            const relativeT = et - overlayStartT;
-
-                            el.style.width = `${ew * ratio}px`;
-                            el.style.height = `${eh * ratio}px`;
-                            // オーバーレイの移動量も加味
-                            el.style.left = `${newLeft + relativeL * ratio}px`;
-                            el.style.top = `${newTop + relativeT * ratio}px`;
-                            el.style.fontSize = `${efs * ratio}px`;
-                        });
-
-                        // キャンバス拡張チェック
-                        let maxR = 0, maxB = 0;
-                        targets.forEach(el => {
-                            const rect = el.getBoundingClientRect();
-                            const canvasRect = canvasRef.current?.getBoundingClientRect();
-                            if (canvasRect) {
-                                maxR = Math.max(maxR, (rect.right - canvasRect.left) / zoom);
-                                maxB = Math.max(maxB, (rect.bottom - canvasRect.top) / zoom);
-                            }
-                        });
-                        if (maxR > 0 || maxB > 0) expandCanvas(maxR, maxB);
-                    }}
-                    onResizeEnd={() => {
-                        // transformをリセット
-                        if (groupOverlay) {
-                            groupOverlay.style.transform = '';
-                            updateOverlayBounds();
-                        }
-                        updateContentFromDOM();
-                    }}
+                <GroupMoveable
+                    {...props}
+                    groupOverlay={groupOverlay}
+                    selectionKey={selectionKey}
+                    updateOverlayBounds={updateOverlayBounds}
                 />
             )}
 
-            {/* 個別選択用の水色枠 */}
             {selectionMode === 'individual' && activeSubTarget && (
-                <Moveable
+                <IndividualMoveable
+                    {...props}
                     target={activeSubTarget}
-                    container={canvasRef.current || undefined}
-                    draggable={true}
-                    resizable={true}
-                    renderDirections={getRenderDirections()}
-                    origin={false}
-                    snappable={true}
-                    bounds={getBounds() || {
-                        left: -2000,
-                        top: -2000,
-                        right: currentWidth + 2000,
-                        bottom: currentHeight + 2000,
-                    }}
-                    keepRatio={moveableKeepRatio || activeSubTarget.tagName.toLowerCase() === 'img'}
-                    throttleDrag={1}
-                    throttleResize={1}
-                    zoom={1 / zoom}
-                    className="moveable-sub-selection"
-                    onDrag={e => {
-                        e.target.style.transform = e.transform;
-                        const rect = e.target.getBoundingClientRect();
-                        const canvasRect = canvasRef.current?.getBoundingClientRect();
-                        if (canvasRect) {
-                            expandCanvas((rect.right - canvasRect.left) / zoom, (rect.bottom - canvasRect.top) / zoom);
-                        }
-                        // オーバーレイ位置も更新
-                        updateOverlayBounds();
-                    }}
-                    onDragEnd={() => {
-                        updateContentFromDOM();
-                        updateOverlayBounds();
-                    }}
-                    onResize={e => {
-                        const target = e.target as HTMLElement;
-                        const { width, height, drag } = e;
-                        const isText = isTextBox(target);
-
-                        target.style.width = `${width}px`;
-                        target.style.height = isText ? 'auto' : `${height}px`;
-                        target.style.transform = drag.transform;
-
-                        if (isText) {
-                            const startW = parseFloat(target.getAttribute('data-start-w') || '0');
-                            if (startW > 0) {
-                                const ratio = width / startW;
-                                const startFs = parseFloat(target.getAttribute('data-start-fs') || window.getComputedStyle(target).fontSize);
-                                target.style.fontSize = `${startFs * ratio}px`;
-                            }
-                            target.style.height = `${target.scrollHeight}px`;
-                        }
-
-                        const rect = target.getBoundingClientRect();
-                        const canvasRect = canvasRef.current?.getBoundingClientRect();
-                        if (canvasRect) {
-                            expandCanvas((rect.right - canvasRect.left) / zoom, (rect.bottom - canvasRect.top) / zoom);
-                        }
-
-                        // オーバーレイ位置も更新
-                        updateOverlayBounds();
-                    }}
-                    onResizeStart={handleResizeStart}
-                    onResizeEnd={() => {
-                        updateContentFromDOM();
-                        updateOverlayBounds();
-                    }}
+                    updateOverlayBounds={updateOverlayBounds}
                 />
             )}
         </>

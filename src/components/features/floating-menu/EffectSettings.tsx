@@ -56,26 +56,23 @@ const EffectSettings: React.FC<EffectSettingsProps> = ({
 
     // Stroke parsing
     const strokeValues = useMemo(() => {
-        // Use computed style if inline style is missing
-        const width = parseFloat((target.style as any).webkitTextStrokeWidth || (style as any).webkitTextStrokeWidth) || 0;
-        const color = (target.style as any).webkitTextStrokeColor || (style as any).webkitTextStrokeColor;
-
-        // Default color to black if width exists but color is missing
+        const widthStr = target.style.getPropertyValue('-webkit-text-stroke-width') || style.getPropertyValue('-webkit-text-stroke-width') || '0px';
+        const color = target.style.getPropertyValue('-webkit-text-stroke-color') || style.getPropertyValue('-webkit-text-stroke-color');
+        const width = parseFloat(widthStr) || 0;
         const finalColor = color && color !== 'rgba(0, 0, 0, 0)' ? color : '#000000';
 
         return { width, color: finalColor };
-    }, [target.style.webkitTextStrokeWidth, target.style.webkitTextStrokeColor, style]);
+    }, [target.style, style]);
 
     const updateShadow = (updates: Partial<typeof shadowValues>, shouldUpdateStore = false) => {
         const v = { ...shadowValues, ...updates };
-        onApply('textShadow' as any, `${v.x}px ${v.y}px ${v.blur}px ${v.color}`, shouldUpdateStore);
+        onApply('textShadow', `${v.x}px ${v.y}px ${v.blur}px ${v.color}`, shouldUpdateStore);
     };
 
     const updateBackground = (updates: Partial<typeof bgValues>, shouldUpdateStore = false) => {
         const v = { ...bgValues, ...updates };
-        // Ensure inline-block for padding to work
         if (v.padding > 0 && style.display !== 'inline-block') {
-            onApply('display' as any, 'inline-block', false);
+            onApply('display' as keyof CSSStyleDeclaration, 'inline-block', false);
         }
         if (updates.padding !== undefined) onApply('padding', `${v.padding}px`, shouldUpdateStore);
         if (updates.radius !== undefined) onApply('borderRadius', `${v.radius}px`, shouldUpdateStore);
@@ -85,16 +82,13 @@ const EffectSettings: React.FC<EffectSettingsProps> = ({
     const updateStroke = (updates: Partial<typeof strokeValues>, shouldUpdateStore = false) => {
         const v = { ...strokeValues, ...updates };
 
-        // Directly apply the style for better reliability with vendor prefixes
         targets.forEach(el => {
-            (el.style as any).webkitTextStrokeWidth = `${v.width}px`;
-            (el.style as any).webkitTextStrokeColor = v.color;
-
-            // paint-order: stroke fill とすることで、縁取りを文字の外側に配置（背後に描画）する
+            el.style.setProperty('-webkit-text-stroke-width', `${v.width}px`);
+            el.style.setProperty('-webkit-text-stroke-color', v.color);
             if (v.width > 0) {
-                (el.style as any).paintOrder = 'stroke fill';
+                el.style.setProperty('paint-order', 'stroke fill');
             } else {
-                (el.style as any).paintOrder = 'normal';
+                el.style.setProperty('paint-order', 'normal');
             }
         });
 
