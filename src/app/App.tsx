@@ -31,7 +31,7 @@ const App: React.FC = () => {
     useBeforeUnload();
 
     return (
-        <div className="flex flex-col h-screen w-screen bg-background overflow-hidden">
+        <div className="flex flex-col h-screen w-screen bg-background overflow-hidden relative">
             {/* メニューバー */}
             <Navbar />
 
@@ -55,9 +55,6 @@ const App: React.FC = () => {
                 </div>
             </main>
 
-            {/* 画像保存ウィザード */}
-            {isImageSaveMode && <ImageSaveWizard />}
-
             {/* 一時バー（AI更新検知時のみ表示） */}
             {hasPendingChanges && !showComparison && (
                 <TemporaryBar
@@ -66,6 +63,16 @@ const App: React.FC = () => {
                     onCompare={() => setShowComparison(true)}
                 />
             )}
+
+            {/* グローバルロックオーバーレイ (UIを触れなくする) */}
+            {isLocked && !isImageSaveMode && !showComparison && (
+                <div className="fixed inset-0 z-[80] bg-black/10 cursor-wait">
+                    {/* 非表示だが、イベントをキャプチャして背後へのクリックを防ぐ */}
+                </div>
+            )}
+
+            {/* 画像保存ウィザード */}
+            {isImageSaveMode && <ImageSaveWizard />}
 
             {/* 保存成功トースト */}
             {showSaveToast && (

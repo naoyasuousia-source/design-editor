@@ -98,8 +98,17 @@ const DesignArea: React.FC<DesignAreaProps> = ({
             )}
 
             {isLocked && (
-                <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/5 backdrop-blur-[1px] pointer-events-none">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+                <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/5 backdrop-blur-[2px] pointer-events-none animate-in fade-in duration-500">
+                    <div className="flex flex-col items-center gap-4 p-8 rounded-3xl bg-white/40 shadow-2xl border border-white/20 backdrop-blur-md">
+                        <div className="relative">
+                            <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping" />
+                            <div className="relative animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-primary shadow-inner" />
+                        </div>
+                        <div className="flex flex-col items-center">
+                            <span className="text-sm font-bold text-gray-800 tracking-tight">AI 変更を適用中...</span>
+                            <span className="text-[10px] font-medium text-gray-500 uppercase tracking-widest mt-1">Applying smart update</span>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

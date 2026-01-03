@@ -1,5 +1,5 @@
 import React from 'react';
-import { Check, X, SplitSquareVertical } from 'lucide-react';
+import { Check, X, SplitSquareVertical, Sparkles } from 'lucide-react';
 
 interface TemporaryBarProps {
     onApprove: () => void;
@@ -9,35 +9,43 @@ interface TemporaryBarProps {
 
 const TemporaryBar: React.FC<TemporaryBarProps> = ({ onApprove, onDiscard, onCompare }) => {
     return (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] animate-in fade-in slide-in-from-bottom-4 duration-300">
-            <div className="flex items-center gap-2 p-2 bg-sidebar/90 backdrop-blur-md border border-white/10 rounded-full shadow-2xl">
-                <div className="px-4 py-1 border-r border-white/10 mr-2">
-                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">AI Update Found</span>
+        <div className="fixed top-16 left-0 right-0 z-[100] flex justify-center px-4 animate-in slide-in-from-top-4 duration-300 pointer-events-none">
+            <div className="flex items-center gap-2 p-3 bg-sidebar/95 backdrop-blur-xl border border-blue-500/20 rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] pointer-events-auto">
+                {/* 状態表示 */}
+                <div className="flex items-center gap-3 px-4 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-xl mr-2">
+                    <Sparkles className="w-4 h-4 text-blue-400 animate-pulse" />
+                    <div>
+                        <div className="text-[10px] font-bold text-blue-400 uppercase tracking-widest leading-none">AI Update Detected</div>
+                        <div className="text-xs font-medium text-white/90">新しいデザイン変更が届きました</div>
+                    </div>
                 </div>
 
-                <button
-                    onClick={onCompare}
-                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-white/5 hover:bg-white/10 rounded-full transition-colors"
-                >
-                    <SplitSquareVertical className="w-4 h-4 text-blue-400" />
-                    比較表示
-                </button>
+                {/* アクションボタン */}
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={onCompare}
+                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white hover:bg-white/10 border border-white/5 rounded-xl transition-all active:scale-95 group"
+                    >
+                        <SplitSquareVertical className="w-4 h-4 text-blue-400 group-hover:scale-110 transition-transform" />
+                        比較して確認
+                    </button>
 
-                <button
-                    onClick={onDiscard}
-                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white/70 hover:text-white hover:bg-red-500/20 rounded-full transition-all"
-                >
-                    <X className="w-4 h-4 text-red-400" />
-                    破棄
-                </button>
+                    <button
+                        onClick={onDiscard}
+                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white/70 hover:text-white hover:bg-red-500/20 rounded-xl transition-all active:scale-95 group"
+                    >
+                        <X className="w-4 h-4 text-red-400 group-hover:rotate-90 transition-transform" />
+                        変更を破棄
+                    </button>
 
-                <button
-                    onClick={onApprove}
-                    className="flex items-center gap-2 px-6 py-2 text-sm font-bold text-white bg-primary hover:bg-primary-dark rounded-full shadow-lg shadow-primary/20 transition-all active:scale-95"
-                >
-                    <Check className="w-4 h-4" />
-                    変更を承認
-                </button>
+                    <button
+                        onClick={onApprove}
+                        className="flex items-center gap-2 px-6 py-2 text-sm font-bold text-white bg-primary hover:bg-primary-dark rounded-xl shadow-lg shadow-primary/30 transition-all active:scale-95 hover:shadow-primary/50"
+                    >
+                        <Check className="w-4 h-4" />
+                        デザインを反映
+                    </button>
+                </div>
             </div>
         </div>
     );
