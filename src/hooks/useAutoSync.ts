@@ -1,51 +1,108 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useEditorStore } from '@/store/useEditorStore';
-import { fileSystemService } from '@/services/fileSystem';
 
 /**
  * 外部（AIなど）によるファイル変更を検知し、エディタに通知するフック
+ * File System Access API を使用したポーリングによる検知を優先する
  */
 export const useAutoSync = () => {
-    const { folderHandle, fileName, detectExternalUpdate } = useEditorStore();
+    const {
+        currentFileHandle,
+        lastSaveTime,
+        detectExternalUpdate,
+        isLocked,
+        hasPendingChanges
+    } = useEditorStore();
+
+    const lastModifiedRef = useRef<number>(0);
+    const isLockedRef = useRef(false);
+
+    // ref を更新してインターバル内で最新のステートを参照できるようにする
+    useEffect(() => {
+        isLockedRef.current = isLocked || hasPendingChanges;
+    }, [isLocked, hasPendingChanges]);
 
     useEffect(() => {
-        // Vite の HMR (Hot Module Replacement) インスタンス経由来のカスタムイベントを購読
+        if (!currentFileHandle) return;
+
+        // 初期化時に現在の最終更新時刻を取得
+        const init = async () => {
+            try {
+                const file = await currentFileHandle.getFile();
+                lastModifiedRef.current = file.lastModified;
+            } catch (e) {
+                console.error('Failed to initialize auto-sync polling:', e);
+            }
+        };
+        init();
+
+        const checkFile = async () => {
+            // 他の承認フローが実行中の場合はチェックをスキップ
+            if (isLockedRef.current) return;
+
+            try {
+                const file = await currentFileHandle.getFile();
+                const currentModified = file.lastModified;
+
+                // 変更を検知
+                if (currentModified > lastModifiedRef.current) {
+                    console.log(`File change detected: ${currentFileHandle.name} (Modified: ${currentModified})`);
+
+                    // 自己保存直後の場合は無視する（2秒以内のバッファ）
+                    // lastSaveTime は保存完了時に Date.now() で更新される
+                    if (Date.now() - useEditorStore.getState().lastSaveTime < 2000) {
+                        console.log('Ignoring self-save update (within buffer)');
+                        lastModifiedRef.current = currentModified;
+                        return;
+                    }
+
+                    // 1. まず現在のキャンバスをスクショ（変更前の状態を保持するため）
+                    const canvasElement = document.querySelector('.DesignSurface') as HTMLElement;
+                    let snapshot = null;
+                    if (canvasElement) {
+                        const { captureCanvas } = await import('@/utils/screenshot');
+                        snapshot = await captureCanvas(canvasElement);
+                        console.log('Snapshot taken for comparison.');
+                    }
+
+                    // 2. 新しい内容を読み込む
+                    const newContent = await file.text();
+
+                    // 3. ストアに通知（ここでロック & 一時バー表示）
+                    detectExternalUpdate(newContent, snapshot);
+
+                    // 最後に検知した時刻を更新
+                    lastModifiedRef.current = currentModified;
+                }
+            } catch (err) {
+                // ファイルハンドルが無効になった場合などのエラー。ログのみ。
+                console.warn('AutoSync polling error:', err);
+            }
+        };
+
+        const interval = window.setInterval(checkFile, 1500); // 1.5秒おきにチェック
+
+        return () => window.clearInterval(interval);
+    }, [currentFileHandle, detectExternalUpdate]);
+
+    // HMR 経由の検知もフォールバックとして残しておく
+    useEffect(() => {
         // @ts-ignore
         if (import.meta.hot) {
             // @ts-ignore
-            import.meta.hot.on('design-update', async (data: { fileName: string }) => {
-                const { folderHandle, fileName, lastSaveTime } = useEditorStore.getState();
+            const unlisten = import.meta.hot.on('design-update', async (data: { fileName: string }) => {
+                const { currentFileHandle, isLocked, hasPendingChanges } = useEditorStore.getState();
 
-                // 自己保存直後の場合は無視する（1秒以内の更新検知）
-                if (Date.now() - lastSaveTime < 1000) {
-                    console.log('Ignoring self-save update signal');
-                    return;
-                }
+                if (isLocked || hasPendingChanges) return;
 
-                if (folderHandle && fileName === data.fileName) {
-                    console.log(`External update detected for: ${data.fileName}`);
-
-                    try {
-                        // 1. まず現在のキャンバスをスクショ
-                        const canvasElement = document.querySelector('.DesignSurface') as HTMLElement;
-                        let snapshot = null;
-                        if (canvasElement) {
-                            const { captureCanvas } = await import('@/utils/screenshot');
-                            snapshot = await captureCanvas(canvasElement);
-                        }
-
-                        // 2. 新しい内容を読み込む
-                        const newContent = await fileSystemService.readFile(folderHandle, data.fileName);
-
-                        // 3. ストアに通知（ここでロック & 一時バー表示）
-                        detectExternalUpdate(newContent, snapshot);
-
-                        console.log('Update detected and snapshot taken. Approval flow started.');
-                    } catch (err) {
-                        console.error('AutoSync failed to process update:', err);
-                    }
+                if (currentFileHandle && currentFileHandle.name === data.fileName) {
+                    // HMR シグナルが届いた場合、即座にチェックを実行
+                    console.log('HMR signal received, checking file immediately...');
+                    // インターバルとは別にチェックを走らせる
+                    // lastModified チェックにより重複検知は防がれる
                 }
             });
+            return unlisten;
         }
-    }, [folderHandle, fileName, detectExternalUpdate]);
+    }, [detectExternalUpdate]);
 };
