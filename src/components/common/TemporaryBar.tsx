@@ -43,7 +43,7 @@ const TemporaryBar: React.FC<TemporaryBarProps> = ({ onApprove, onDiscard, onCom
                         className="flex items-center gap-2 px-6 py-2 text-sm font-bold text-white bg-primary hover:bg-primary-dark rounded-xl shadow-lg shadow-primary/30 transition-all active:scale-95 hover:shadow-primary/50"
                     >
                         <Check className="w-4 h-4" />
-                        デザインを反映
+                        変更を承認
                     </button>
                 </div>
             </div>
