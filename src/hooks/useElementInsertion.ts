@@ -5,7 +5,7 @@ import { useEditorStore } from '@/store/useEditorStore';
  * 要素（テキスト・画像）をキャンバスに挿入するためのHook
  */
 export const useElementInsertion = () => {
-    const { content, setContent } = useEditorStore();
+    const { content, setContent, setAutoSelectId } = useEditorStore();
 
     const insertElement = useCallback((html: string) => {
         // 現在のコンテンツの末尾に追加（常に最前面）
@@ -24,7 +24,7 @@ export const useElementInsertion = () => {
             'padding: 10px',
             'font-family: "Noto Sans JP", sans-serif',
             'font-size: 24px',
-            'color: #1a1a1a',
+            'color: #000000',
             'line-height: 1.4',
             'background-color: transparent',
             'word-break: break-word'
@@ -32,7 +32,8 @@ export const useElementInsertion = () => {
 
         const html = `<div id="${id}" style="${style}">新しいテキスト</div>`;
         insertElement(html);
-    }, [insertElement]);
+        setAutoSelectId(id);
+    }, [insertElement, setAutoSelectId]);
 
     const insertImage = useCallback((imagePath: string) => {
         const id = `el-${Math.random().toString(36).substring(2, 9)}`;

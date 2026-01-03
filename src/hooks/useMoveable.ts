@@ -10,7 +10,7 @@ import { useTransform } from './moveable/useTransform';
  */
 export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
     const {
-        content, setContent, isLocked, zoom
+        content, setContent, isLocked, zoom, autoSelectId, setAutoSelectId
     } = useEditorStore();
 
     const {
@@ -179,6 +179,24 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
         window.addEventListener('keydown', handleKeys);
         return () => window.removeEventListener('keydown', handleKeys);
     }, [finishEditing, selectNone]);
+
+    // 挿入された要素を自動選択する
+    useEffect(() => {
+        if (!autoSelectId) return;
+
+        // DOMの反映（updateContentFromDOM経由の再レンダリング）を待機
+        const timeout = setTimeout(() => {
+            const el = canvasRef.current?.querySelector(`[id="${autoSelectId}"]`) as HTMLElement;
+            if (el) {
+                setTargets([el]);
+                setSelectionMode('individual');
+                setActiveSubTarget(el);
+                setAutoSelectId(null);
+            }
+        }, 300); // 余裕を持って300ms待機
+
+        return () => clearTimeout(timeout);
+    }, [autoSelectId, canvasRef, setTargets, setSelectionMode, setActiveSubTarget, setAutoSelectId]);
 
     return {
         targets,

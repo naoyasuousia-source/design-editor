@@ -58,6 +58,7 @@ export type EditorState = {
     isResponsiveResize: boolean;
     // UI状態
     showSaveToast: boolean;
+    autoSelectId: string | null;
 }
 
 export const _REFRESH_FIX = Date.now();

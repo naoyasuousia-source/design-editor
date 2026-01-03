@@ -31,17 +31,16 @@
 <content>
 - テキストボックス挿入時、デフォルトのフォントカラーは黒にする。
 - テキストボックス挿入直後は、そのテキストボックス選択状態にする。</content>
-<current-situation>現在、挿入直後水色枠がつかないので、どれが挿入されたか見失いやすい。</current-situation>
+<current-situation>挿入テキストボックスのフォントカラーがやはり黒になっていない。</current-situation>
 <remarks></remarks>
-<permission-to-move>OK</permission-to-move>
+<permission-to-move>NG</permission-to-move>
 </requirement>
 
 <requirement>
-<content>グループ解除直後は、複数要素選択時メニューを出さないようにしてほしい。</content>
-<current-situation>
-<content>解除後、複数要素選択時メニューは表示されないようになったが、複数要素選択状態が解除されず、個別要素の水色枠が消えない。解除後、水色枠は出ないようにしてほしい。</current-situation>
+<content>要素削除後、現在は、水色枠が残存するが、要素削除と同時に水色枠も非表示にしてほしい。</content>
+<current-situation></current-situation>
 <remarks></remarks>
-<permission-to-move>OK</permission-to-move>
+<permission-to-move>NG</permission-to-move>
 </requirement>
 
 ## 2. 未解決要件に関するコード変更履歴（目的、変更内容、変更日時）
@@ -138,6 +137,14 @@
         - `MoveableManager.tsx`: オレンジ枠の表示条件を `targets.length > 1` に緩和。未グループ化の複数選択でもオレンジ枠が出るように修正。
         - `useMoveable.ts`: シフトクリック時の副作用を整理。複数選択時は個別の水色枠を消してグループメニューを優先表示し、状態管理を安定化。
         - `FloatingMenu.tsx`: 青いヘッダーで「複数要素選択中」と表示し、「グループ化」「削除」ボタンを確実に提供。
+- **テキストボックス挿入機能の改善（デフォルト色・自動選択）**
+    - 目的: テキストボックス挿入時の視認性を高め、即座に編集・移動可能な状態にするため。
+    - 内容:
+        - `types/editor.ts` / `store/useEditorStore.ts`: `autoSelectId` ステートを追加。
+        - `hooks/useElementInsertion.ts`: デフォルトの `color` を `#000000`（黒）に変更し、挿入後に ID を `autoSelectId` にセットするように修正。
+        - `hooks/useMoveable.ts`: `autoSelectId` を監視し、DOM反映を待って自動的にターゲットを選択状態にする `useEffect` を追加。
+    - 日時: 2026-01-04 00:00
+
 - **グループ解除後の水色枠（選択中クラス）の残存バグ修正**
     - 目的: グループ解除直後に、要素が選択されていないにもかかわらず水色の枠（アウトライン）が残ってしまう問題を解決するため。
     - 内容:
@@ -199,7 +206,7 @@
 
 - **グループ選択時のオレンジ枠・ポイントのみ表示**
     - 要件: グループを1回クリック時、オレンジ枠とオレンジポイントのみを表示し、グループ専用メニュー（解除、削除、ID表示、コピー）を表示する。
-    - 解決方法: `FloatingMenu.tsx` を修正し、`selectionMode === 'group'` の場合はグループ専用メニューのみ表示するように条件分岐を追加。
+    - 解決方法: `FloatingMenu.tsx` を修正し、`selectionMode === 'group'` の場合はグループ専用メニューのみ表示するように条件分岐を追加。`MoveableManager.tsx` に `key` を導入し、ワンクリック時にポイントが即座に描画されるよう再マウントを強制。`index.css` でポイントの可視性を `!important` で保持。
 
 - **個別選択時のテキスト/画像/シェイプメニュー表示**
     - 要件: グループ内の個別要素をクリック時、オレンジ枠を維持しつつ水色枠とテキストメニュー等を表示する。
@@ -216,6 +223,14 @@
 - **複数要素選択時の専用メニュー実装**
     - 要件: 複数選択時、青いヘッダーの「複数要素選択中」メニュー（グループ化・削除）を表示。既存グループ同士の統合も可能とする。
     - 解決方法: `FloatingMenu.tsx` の判定ロジックを刷新し、複数選択状態（`canGroup`）を最優先で表示。`useFloatingMenu.ts` で全要素を囲むバウンディングボックス計算を実装。`useMoveable.ts` でシフトクリック時の重複排除と属性一括付与（`handleGroup`）を強化。
+
+- **テキストボックス挿入機能の改善**
+    - 要件: デフォルト色を黒にし、挿入直後に自動選択状態にする。
+    - 解決方法: `useElementInsertion.ts` で黒色を指定。`autoSelectId` 経由で `useMoveable.ts` が挿入を検知し、自動的に `targets` に追加・選択モードへ移行。
+
+- **グループ解除後のUIクリーンアップ**
+    - 要件: 解除後に複数選択メニューを出さず、かつ水色枠も消す。
+    - 解決方法: `handleUngroup` で `selectNone` を実行。保存ロジック（`updateContentFromDOM`）で `.moveable-target-active` クラスを強制除去することで、残存枠を根絶。
 
 ## 5. 要件に関連する全ファイルのファイル構成（それぞれの役割を1行で併記）
 

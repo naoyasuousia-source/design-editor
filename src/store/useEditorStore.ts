@@ -33,6 +33,7 @@ interface EditorStore extends EditorState {
     setCropAspectRatio: (ratio: number | 'free' | null) => void;
     setResponsiveResize: (enabled: boolean) => void;
     setShowSaveToast: (show: boolean) => void;
+    setAutoSelectId: (id: string | null) => void;
     reset: () => void;
 }
 
@@ -84,6 +85,7 @@ const initialState: EditorState & {
     cropAspectRatio: null,
     isResponsiveResize: false,
     showSaveToast: false,
+    autoSelectId: null,
 };
 
 export const useEditorStore = create<EditorStore>((set, get) => ({
@@ -252,5 +254,6 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     setCropAspectRatio: (cropAspectRatio) => set({ cropAspectRatio }),
     setResponsiveResize: (isResponsiveResize) => set({ isResponsiveResize }),
     setShowSaveToast: (showSaveToast) => set({ showSaveToast }),
+    setAutoSelectId: (autoSelectId) => set({ autoSelectId }),
     reset: () => set(initialState),
 }));
