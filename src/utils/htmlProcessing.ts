@@ -126,7 +126,7 @@ export const constructFullHTML = (content: string, customCss: string, meta: Meta
         Noto Sans JP, Noto Serif JP, 游ゴシック (Yu Gothic), 游明朝 (Yu Mincho), メイリオ (Meiryo), M PLUS 1p, Zen 角ゴシック New, Inter, Montserrat, Roboto, Playfair Display, Oswald, Poppins, JetBrains Mono, Times New Roman
     - テキストボックス内には子要素は配置できない。
     - 各テキストボックス、各画像、各デザイン素材は、独立した要素として扱い、必ず一意のIDを付与すること。
-    - 画像は `./ images / ` フォルダ内のファイルをパスで参照すること。
+    - 画像は ./images/ フォルダ内のファイルをパスで参照すること。
     -->
     <!-- AI_METADATA_END -->
     <style>
