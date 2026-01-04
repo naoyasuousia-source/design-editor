@@ -129,9 +129,9 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
                 // 通常クリック：2段階選択ロジック（MouseDownフェーズ）
                 if (groupId) {
                     const isAlreadyGroupSelected = targets.length === groupElements.length &&
-                        groupElements.every(e => targets.includes(e));
+                        targets.every(t => t.getAttribute('data-group-id') === groupId);
 
-                    if (isAlreadyGroupSelected) {
+                    if (isAlreadyGroupSelected && selectionMode === 'group') {
                         // すでにグループ選択されている場合は、MouseDownでは何もしない（ドラッグを優先）
                         // 個別選択への切り替えは handleMouseUp で行う
                         return;
@@ -196,15 +196,14 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
         if (groupId) {
             const groupElements = Array.from(canvasRef.current?.querySelectorAll(`[data-group-id="${groupId}"]`) || []) as HTMLElement[];
             const isTargetInCurrentGroup = targets.length === groupElements.length &&
-                groupElements.every(e => targets.includes(e));
+                targets.every(t => t.getAttribute('data-group-id') === groupId);
 
-            if (isTargetInCurrentGroup && (selectionMode === 'group' || selectionMode === 'individual')) {
-                // すでに同じグループを選択している場合 -> クリックした個別要素を選択
+            if (isTargetInCurrentGroup && selectionMode === 'group') {
+                // すでに同じグループ全体を選択している場合 -> クリックした個別要素を選択
                 setSelectionMode('individual');
                 setActiveSubTarget(el);
             } else if (!isTargetInCurrentGroup) {
-                // 別のグループまたは要素から現在のグループへの切り替えは handleCanvasClick で行われているはず
-                // 万が一漏れた場合のためにここでケア
+                const groupElements = Array.from(canvasRef.current?.querySelectorAll(`[data-group-id="${groupId}"]`) || []) as HTMLElement[];
                 setTargets(groupElements);
                 setSelectionMode('group');
                 setActiveSubTarget(null);

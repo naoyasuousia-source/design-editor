@@ -45,26 +45,26 @@ const calculateGroupBounds = (elements: HTMLElement[], container: HTMLElement | 
 const MoveableManager: React.FC<MoveableManagerProps> = (props) => {
     const { targets, canvasRef, selectionMode, activeSubTarget, hoverTargets, zoom } = props;
     const [overlayEl, setOverlayEl] = useState<HTMLDivElement | null>(null);
+    const [tick, setTick] = useState(0);
 
     const onOverlayRef = useCallback((el: HTMLDivElement | null) => {
         setOverlayEl(el);
     }, []);
 
+    const updateOverlayBounds = useCallback(() => {
+        setTick(t => t + 1);
+    }, []);
+
     // 境界計算をメモ化
     const hoverBounds = useMemo(() => calculateGroupBounds(hoverTargets, canvasRef.current, zoom), [hoverTargets, canvasRef, zoom]);
-    const groupBounds = useMemo(() => calculateGroupBounds(targets, canvasRef.current, zoom), [targets, canvasRef, zoom]);
+    const groupBounds = useMemo(() => calculateGroupBounds(targets, canvasRef.current, zoom), [targets, canvasRef, zoom, tick]);
 
     const hasGroupId = targets.length > 0 && targets[0]?.getAttribute('data-group-id');
     const isGroupActive = (selectionMode === 'group' || selectionMode === 'individual') && hasGroupId;
 
     const selectionKey = useMemo(() => {
-        return `${selectionMode}-${targets.map(t => t.id || t.className).join(',')}-${groupBounds?.width}-${groupBounds?.height}`;
-    }, [selectionMode, targets, groupBounds]);
-
-    const updateOverlayBounds = useCallback(() => {
-        // 現在は JSX ベースでレンダリングしているため、この関数は Moveable 側のリクエストに応えるための空実装、
-        // あるいは必要に応じて forceUpdate を呼ぶためのものになります。
-    }, []);
+        return `${selectionMode}-${targets.map(t => (t.id || t.className)).join(',')}-${groupBounds?.width}-${groupBounds?.height}-${tick}`;
+    }, [selectionMode, targets, groupBounds, tick]);
 
     return (
         <>

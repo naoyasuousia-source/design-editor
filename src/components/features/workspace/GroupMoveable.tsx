@@ -76,6 +76,7 @@ const GroupMoveable: React.FC<GroupMoveableProps> = ({
                     }
                 });
                 if (maxR > 0 || maxB > 0) expandCanvas(maxR, maxB);
+                updateOverlayBounds();
             }}
             onDragEnd={() => {
                 if (groupOverlay) {
@@ -146,6 +147,7 @@ const GroupMoveable: React.FC<GroupMoveableProps> = ({
                     }
                 });
                 if (maxR > 0 || maxB > 0) expandCanvas(maxR, maxB);
+                updateOverlayBounds();
             }}
             onResizeEnd={() => {
                 if (groupOverlay) {
