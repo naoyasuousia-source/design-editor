@@ -48,14 +48,14 @@ const MetaMessageEditor: React.FC<MetaMessageEditorProps> = ({ onClose }) => {
     };
 
     const renderTextarea = (label: string, field: keyof Pick<typeof localMeta, 'fixedRules' | 'collaborativeRules' | 'designConcept'>, placeholder: string, subLabel?: string) => (
-        <section className="space-y-2">
-            <div className="flex items-center justify-between">
+        <section className="space-y-1">
+            <div className="flex items-center justify-between px-1">
                 <div className="flex items-center gap-2">
-                    <h3 className="text-[14px] font-bold text-blue-400 uppercase tracking-widest">{label}</h3>
-                    {subLabel && <span className="text-[10px] text-gray-500 mt-1">{subLabel}</span>}
+                    <h3 className="text-[12px] font-bold text-blue-400 uppercase tracking-widest">{label}</h3>
+                    {subLabel && <span className="text-[9px] text-gray-500">{subLabel}</span>}
                 </div>
                 <span className={cn(
-                    "text-[10px] tabular-nums",
+                    "text-[9px] tabular-nums",
                     localMeta[field].length >= 500 ? "text-red-400" : "text-gray-600"
                 )}>
                     {localMeta[field].length}/500
@@ -65,7 +65,7 @@ const MetaMessageEditor: React.FC<MetaMessageEditorProps> = ({ onClose }) => {
                 value={localMeta[field]}
                 onChange={(e) => setLocalMeta({ ...localMeta, [field]: e.target.value.slice(0, 500) })}
                 maxLength={500}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm h-[82px] focus:border-blue-500 outline-none transition-all resize-none placeholder:text-gray-700 CustomScrollbar overflow-y-auto font-medium"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm h-[76px] focus:border-blue-500 outline-none transition-all resize-none placeholder:text-gray-700 CustomScrollbar overflow-y-auto font-medium"
                 placeholder={placeholder}
             />
         </section>
@@ -143,17 +143,17 @@ const MetaMessageEditor: React.FC<MetaMessageEditorProps> = ({ onClose }) => {
                 </div>
 
                 {/* コンテンツ */}
-                <div className="px-8 py-6 space-y-6 overflow-y-auto max-h-[calc(90vh-140px)] CustomScrollbar">
-                    <div className="space-y-4 max-w-xl mx-auto">
+                <div className="px-8 py-2.5 space-y-2.5 overflow-hidden">
+                    <div className="space-y-2 max-w-xl mx-auto">
                         {renderTextarea('固定ルール', 'fixedRules', '例：ロゴの改変は禁止です。タイトルは必ず28px以上にしてください。', '※AI編集不可')}
                         {renderTextarea('共同編集ルール', 'collaborativeRules', '例：余白は大きく取ってください。明るい印象にしてください。')}
                         {renderTextarea('デザインコンセプト', 'designConcept', '例：ミニマルでモダン、信頼感のあるコーポレートデザイン')}
 
                         {/* カラーデザイン */}
-                        <section className="space-y-5 pt-4 border-t border-white/5">
-                            <div className="space-y-4">
+                        <section className="space-y-2 pt-2 border-t border-white/5">
+                            <div className="space-y-2">
                                 <div className="flex items-center justify-between">
-                                    <h3 className="text-[14px] font-bold text-blue-400 uppercase tracking-widest">カラーデザイン</h3>
+                                    <h3 className="text-[12px] font-bold text-blue-400 uppercase tracking-widest">カラーデザイン</h3>
                                 </div>
 
                                 <div className="flex gap-4">
@@ -162,9 +162,9 @@ const MetaMessageEditor: React.FC<MetaMessageEditorProps> = ({ onClose }) => {
                                     {renderColorPicker('アクセント', 'accent')}
                                 </div>
 
-                                <div className="space-y-2 pt-2">
-                                    <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">カラーデザインキット</h4>
-                                    <div className="grid grid-cols-6 gap-2">
+                                <div className="space-y-1 pt-0.5">
+                                    <h4 className="text-[9px] font-bold text-gray-500 uppercase tracking-widest ml-1">カラーデザインキット</h4>
+                                    <div className="grid grid-cols-6 gap-1.5">
                                         {Object.entries(COLOR_KITS).map(([key, kit]) => (
                                             <button
                                                 key={key}
@@ -176,16 +176,16 @@ const MetaMessageEditor: React.FC<MetaMessageEditorProps> = ({ onClose }) => {
                                                     });
                                                 }}
                                                 className={cn(
-                                                    "px-2 py-2 rounded-lg text-[10px] font-bold transition-all flex flex-col items-center gap-1.5 border",
+                                                    "px-1 py-1 rounded-lg text-[9px] font-bold transition-all flex flex-col items-center gap-1 border",
                                                     localMeta.colorKit === key || (key === 'custom' && !localMeta.colorKit)
                                                         ? "bg-blue-600/20 border-blue-500 text-white shadow-lg shadow-blue-600/10"
                                                         : "bg-white/5 border-transparent text-gray-500 hover:bg-white/10 hover:text-gray-300"
                                                 )}
                                             >
                                                 <div className="flex -space-x-1 shrink-0">
-                                                    <div className="w-2.5 h-2.5 rounded-full border border-black/20" style={{ backgroundColor: kit.main }} />
-                                                    <div className="w-2.5 h-2.5 rounded-full border border-black/20" style={{ backgroundColor: kit.sub }} />
-                                                    <div className="w-2.5 h-2.5 rounded-full border border-black/20" style={{ backgroundColor: kit.accent }} />
+                                                    <div className="w-2 rounded-full border border-black/20 aspect-square" style={{ backgroundColor: kit.main }} />
+                                                    <div className="w-2 rounded-full border border-black/20 aspect-square" style={{ backgroundColor: kit.sub }} />
+                                                    <div className="w-2 rounded-full border border-black/20 aspect-square" style={{ backgroundColor: kit.accent }} />
                                                 </div>
                                                 <span className="truncate w-full text-center">{kit.label}</span>
                                             </button>
