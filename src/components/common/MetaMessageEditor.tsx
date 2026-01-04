@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Plus, Trash2, Ban, Brain } from 'lucide-react';
+import { X, Ban, Brain } from 'lucide-react';
 import { useEditorStore } from '@/store/useEditorStore';
 import { useFileSystem } from '@/hooks/useFileSystem';
 import { cn } from '@/utils/cn';

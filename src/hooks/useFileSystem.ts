@@ -1,7 +1,7 @@
 import { useEditorStore } from '@/store/useEditorStore';
 import { fileSystemService } from '@/services/fileSystem';
 import { useCallback } from 'react';
-import { parseMetaMessage, extractDesignContent, constructFullHTML, extractCustomCss } from '@/utils/htmlProcessing';
+import { extractDesignContent, constructFullHTML, parseMetaMessage } from '@/utils/htmlProcessing';
 import { GET_INITIAL_TEMPLATE } from '@/utils/templates';
 import type { PageSize } from '@/types/editor';
 
@@ -19,7 +19,6 @@ export const useFileSystem = () => {
         setDirty,
         setLastSaveTime,
         setMetaMessage,
-        setCustomCss,
         setPageSize
     } = useEditorStore();
 
@@ -68,7 +67,7 @@ export const useFileSystem = () => {
 
             // 新規ファイルを作成
             const template = GET_INITIAL_TEMPLATE(pageSize);
-            const { metaMessage, customCss } = useEditorStore.getState();
+            const { metaMessage } = useEditorStore.getState();
 
             // metaMessage に pageSize を含める
             const updatedMeta = { ...metaMessage, pageSize };
@@ -90,7 +89,7 @@ export const useFileSystem = () => {
             console.error('新規作成に失敗:', error);
             alert('新規ファイルの作成に失敗しました。');
         }
-    }, [content, setProjectDirectoryHandle, setProjectFolderName, setCurrentFileHandle, setContent, setDirty, setLastSaveTime]);
+    }, [content, setProjectDirectoryHandle, setProjectFolderName, setCurrentFileHandle, setContent, setDirty, setLastSaveTime, setMetaMessage, setPageSize]);
 
     /**
      * 開く
@@ -121,6 +120,8 @@ export const useFileSystem = () => {
 
             // エディタに読み込み
             const designContent = extractDesignContent(htmlContent);
+            const meta = parseMetaMessage(htmlContent);
+
             setContent(designContent, true); // 履歴に積まない
             if (meta) {
                 setMetaMessage(meta);
@@ -149,7 +150,7 @@ export const useFileSystem = () => {
      * @returns 保存成功時は true、失敗時は false
      */
     const handleOverwrite = useCallback(async (): Promise<boolean> => {
-        const { currentFileHandle, content, customCss, metaMessage, setShowSaveToast } = useEditorStore.getState();
+        const { currentFileHandle, content, metaMessage, setShowSaveToast } = useEditorStore.getState();
 
         console.log('handleOverwrite called');
         console.log('currentFileHandle:', currentFileHandle);

@@ -52,7 +52,7 @@ export const LayerItem: React.FC<LayerItemProps> = ({
                 onDragOver(e);
             }}
             onDragLeave={() => setDragOverPosition(null)}
-            onDrop={(e) => {
+            onDrop={() => {
                 const position = dragOverPosition || 'bottom';
                 setDragOverPosition(null);
                 onDrop(position);
