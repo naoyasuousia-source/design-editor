@@ -37,8 +37,8 @@ const App: React.FC = () => {
 
             {/* メインコンテンツ領域 */}
             <main className="flex-1 relative overflow-hidden flex flex-row">
+                <LayerSidebar />
                 <div className="flex-1 relative overflow-hidden">
-                    <LayerSidebar />
                     {/* デザイン領域 */}
                     <Workspace isLocked={isLocked || showComparison} />
 

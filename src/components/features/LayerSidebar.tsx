@@ -14,7 +14,7 @@ export const LayerSidebar: React.FC = () => {
 
     return (
         <div className={cn(
-            "fixed left-0 top-0 bottom-0 w-72 bg-[#121212]/95 backdrop-blur-xl border-r border-white/10 z-[100]",
+            "relative h-full w-72 bg-[#121212]/95 backdrop-blur-xl border-r border-white/10 z-[50]",
             "flex flex-col shadow-2xl animate-in slide-in-from-left duration-300 ease-out"
         )}>
             {/* Header */}
