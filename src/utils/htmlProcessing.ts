@@ -247,9 +247,13 @@ export const constructFullHTML = (content: string, customCss: string, meta: Meta
     [IMPORTANT] あなたは一流のデザイナーとして、以下のルールを「厳格に」順守してHTMLデザインを生成してください。
 
     0. CANVAS DIMENSIONS
+    - **Current Size**: ${meta.pageSize || 'SQUARE'} (${PAGE_SIZES[meta.pageSize || 'SQUARE'].label})
     - **Width**: ${PAGE_SIZES[meta.pageSize || 'SQUARE'].width}px
     - **Height**: ${PAGE_SIZES[meta.pageSize || 'SQUARE'].height}px
-    - **Note**: このサイズに合わせてレイアウトを最適化してください。
+    - **Note**: ${meta.pageSize === 'A4' ? '印刷を考慮し、上下左右に適切な余白を確保したA4縦レイアウトに最適化してください。' :
+            meta.pageSize === '9:16' ? 'スマートフォンでの閲覧を前提とした、縦長でインパクトのあるモバイル/ストーリー用レイアウトに最適化してください。' :
+                'SNS投稿等に適した、中央配置が美しく映える正方形（1:1）のレイアウトに最適化してください。'
+        }
 
     1. MISSION
     - **Mission**: ユーザーの要求を完璧に反映したデザインを作成する。
@@ -265,8 +269,10 @@ export const constructFullHTML = (content: string, customCss: string, meta: Meta
     3. COMPONENT CONSTRAINTS
     - **Elements**: テキストボックス、画像、図形の3種類のみ使用。
     - **IDs**: すべての要素に一意のID（id="el-..."）を付与し、独立した要素として扱うこと。
+    - **Group IDs**: 既存の要素に付与されている \`data-group-id\` は「絶対に」変更したり削除したりしないでください。
+    - **Appending**: 新しく要素を追加する場合は、必ず \`<!-- DESIGN_START -->\` 内の既存要素の「一番最後」に追記してください。
     - **No Nesting in Text**: 「テキストボックス内」に子要素（span等）を配置することは厳禁。
-    - **Layering**: 要素を重ねる場合は、親要素内に子要素を記述する構造を使用する。
+    - **No Deep Nesting**: 要素を重ねる場合は、親要素内に子要素を記述する構造を使用する。
     - **Image Paths**: 画像は必ず ./images/ フォルダ内のファイルを参照すること。
 
     4. DESIGN & STYLING
@@ -278,7 +284,7 @@ export const constructFullHTML = (content: string, customCss: string, meta: Meta
 
     5. DATA STRUCTURE
     - **JSON Metadata**: <!-- USER_REQUIREMENT_START --> 内には、ユーザー要件をJSON形式で正確に記載すること。
-    -<!-- USER_REQUIREMENT_START --> 内は、毎回必ず、すべての項目を最新に更新し、必ず「日本語」で記述すること。
+    - <!-- USER_REQUIREMENT_START --> 内は、毎回必ず、すべての項目を最新に更新し、必ず「日本語」で記述すること。
     -->
     <!-- AI_METADATA_END -->
     <style>
