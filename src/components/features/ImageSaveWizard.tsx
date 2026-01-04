@@ -15,6 +15,7 @@ const ImageSaveWizard: React.FC = () => {
 
     const [isCropping, setIsCropping] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [isTransparent, setIsTransparent] = useState(false);
 
     // トリミング領域の状態（デザインの等倍ピクセル単位）
     const [cropRect, setCropRect] = useState({ x: 0, y: 0, width: 300, height: 300 });
@@ -101,6 +102,7 @@ const ImageSaveWizard: React.FC = () => {
                     width: cropRect.width,
                     height: cropRect.height,
                     pixelRatio: 2,
+                    backgroundColor: isTransparent ? undefined : '#ffffff',
                     style: {
                         transform: `scale(1) translate(${-cropRect.x}px, ${-cropRect.y}px)`,
                         transformOrigin: 'top left',
@@ -109,7 +111,10 @@ const ImageSaveWizard: React.FC = () => {
                     },
                 });
             } else {
-                dataUrl = await toPng(surface, { pixelRatio: 2 });
+                dataUrl = await toPng(surface, {
+                    pixelRatio: 2,
+                    backgroundColor: isTransparent ? undefined : '#ffffff'
+                });
             }
 
             const link = document.createElement('a');
@@ -241,6 +246,30 @@ const ImageSaveWizard: React.FC = () => {
                             ))}
                         </div>
                     )}
+                </div>
+
+                <div className="flex items-center gap-2 px-3 border-r border-white/10 py-1">
+                    <label className="flex items-center gap-2 cursor-pointer group">
+                        <div className="relative flex items-center">
+                            <input
+                                type="checkbox"
+                                checked={isTransparent}
+                                onChange={(e) => setIsTransparent(e.target.checked)}
+                                className="sr-only"
+                            />
+                            <div className={cn(
+                                "w-8 h-4 rounded-full transition-colors duration-200 ease-in-out",
+                                isTransparent ? "bg-blue-600" : "bg-white/10"
+                            )} />
+                            <div className={cn(
+                                "absolute left-0.5 w-3 h-3 bg-white rounded-full transition-transform duration-200 ease-in-out shadow-sm",
+                                isTransparent ? "translate-x-4" : "translate-x-0"
+                            )} />
+                        </div>
+                        <span className="text-[10px] font-bold text-gray-400 group-hover:text-gray-200 transition-colors uppercase select-none">
+                            透明背景
+                        </span>
+                    </label>
                 </div>
 
                 <div className="flex items-center gap-2 pl-2 border-l border-white/10 ml-2 py-1 pr-1">

@@ -126,16 +126,6 @@ const HintDialog: React.FC<HintDialogProps> = ({ onClose }) => {
                         color="bg-orange-500"
                     />
                 </div>
-
-                {/* Footer */}
-                <div className="px-8 py-6 border-t border-white/5 bg-sidebar/30 flex justify-center">
-                    <button
-                        onClick={onClose}
-                        className="px-12 py-3 bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold rounded-xl transition-all shadow-[0_10px_20px_rgba(37,99,235,0.2)] hover:shadow-[0_10px_25px_rgba(37,99,235,0.3)] hover:-translate-y-0.5 active:translate-y-0"
-                    >
-                        エディタに戻る
-                    </button>
-                </div>
             </div>
         </div>
     );
@@ -164,7 +154,7 @@ const StepItem: React.FC<StepItemProps> = ({ number, icon, title, description, c
         <div className="space-y-2">
             <div className="flex items-center gap-2">
                 <span className={cn("inline-block p-1 rounded-md mb-1", color, "bg-opacity-20 text-white transition-transform group-hover:rotate-12")}>
-                    {React.cloneElement(icon as React.ReactElement, { size: 14 })}
+                    {React.cloneElement(icon as any, { size: 14 })}
                 </span>
                 <h3 className="text-[15px] font-bold text-gray-100 tracking-tight group-hover:text-white transition-colors">
                     {title}
