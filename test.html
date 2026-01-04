@@ -9,15 +9,18 @@
     [ABSOLUTE PRIORITY: FIXED RULES]
     以下の指示は、本デザインプロジェクトの最上位制約です。
     これらのルールに反する変更は「絶対的な禁止事項」です。
-
-    0. CANVAS DIMENSIONS (ABSOLUTE CONSTRAINT)
-- Current Canvas Size: Square 1:1 (800 x 800px)
-- [CRITICAL] All elements MUST be placed WITHIN these boundaries.
-- [PROHIBITION] Never set positions or sizes exceeding these limits.
     -->
     <!-- FIXED_RULES_START -->
     
     <!-- FIXED_RULES_END -->
+
+    <!-- 
+    0. CANVAS DIMENSIONS (ABSOLUTE CONSTRAINT)
+- Current Canvas Size: Square 1:1 (800 x 800px)
+- [CRITICAL] All elements MUST be placed WITHIN these boundaries.
+- [PROHIBITION] Never set positions or sizes exceeding these limits.
+    [NOTICE] 万が一計算ミスではみ出した場合、システムにより自動的にキャンバス内に押し戻されますが、デザイナーとして最初からこの範囲内に収まるよう厳密に計算してください。
+    -->
 
     <!-- 
     ### SYSTEM RULES: DESIGN GENERATION
@@ -35,13 +38,13 @@
     - 以下の「タグ」に囲まれた領域「のみ」を編集し、それ以外は一切変更しないこと。
         1. [DESIGN_START] ～ [DESIGN_END]
         2. [USER_REQUIREMENT_START] ～ [USER_REQUIREMENT_END]
-    - **[IMPERATIVE]**: <!-- FIXED_RULES_START --> および <!-- FIXED_RULES_END --> タグ、そしてその中身は「編集絶対禁止」です。
+    - **[IMPERATIVE]**: <!-- FIXED_RULES_START --> および <!-- FIXED_RULES_END --> タグ、それ自体のタグ文字、そしてその中身は「編集絶対禁止」です。
     - 注意: [ ] は実際の HTML コメントタグ <!-- ... --> に置き換えて認識してください。
 
     3. COMPONENT CONSTRAINTS
     - **Elements**: テキストボックス、画像、図形の3種類のみ使用。
     - **IDs**: すべての要素に一意のID（id="el-..."）を付与し、独立した要素として扱うこと。
-    - **[PROHIBITION] No Nesting**: **親子構造（要素の中に別の要素を入れること）は一切禁止**です。すべての要素は必ず `.DesignSurface` の「直下」にフラットに配置してください。
+    - **[PROHIBITION] No Nesting**: **親子構造（要素の中に別の要素を入れること）は一切禁止**です。すべての要素は必ず .DesignSurface の「直下」にフラットに配置してください。
     - **Group IDs**: 関連する要素（例：背景、ロゴ、見出しなど）には、共通の data-group-id="group-..." を付与してください。
     - **Group ID Management**: 既存の要素に付与されている data-group-id は「絶対に」変更しないでください。新要素追加時は他のグループと被らない新しいIDを生成してください。
     - **No Flex/Grid**: 全要素を position: absolute で配置してください。FlexboxやGridによるレイアウトは使用せず、中央揃え等は left と width または text-align で実現してください。
@@ -85,8 +88,10 @@
 <body>
     <!-- DESIGN_START -->
     <div class="DesignSurface" style="position: relative; width: 100%; height: 100%; overflow: hidden;">
-        <div id="el-t9k177e7z" data-group-id="group-qbw0iqms3" style="position: absolute; top: 280px; left: 160px; width: 480px; font-family: 'Playfair Display', serif; font-size: 64px; color: #1a1a1a; text-align: center; font-weight: bold;">TITLE HERE</div>
-                <div id="el-n4yh4bmsr" data-group-id="group-qbw0iqms3" style="position: absolute; top: 400px; left: 160px; width: 480px; font-family: 'Montserrat', sans-serif; font-size: 24px; color: #666; text-transform: uppercase; letter-spacing: 0.1em; text-align: center;">Description here</div>
+        <div id="el-f98fkozcz" data-group-id="group-7fsl9jcwb" style="position: absolute; top: 280px; left: 160px; width: 480px; font-family: 'Playfair Display', serif; font-size: 64px; color: #1a1a1a; text-align: center; font-weight: bold">
+            TITLE HERE</div>
+        <div id="el-upv9dqcjv" data-group-id="group-7fsl9jcwb" style="position: absolute; top: 400px; left: 160px; width: 480px; font-family: 'Montserrat', sans-serif; font-size: 24px; color: #666; text-transform: uppercase; letter-spacing: 0.1em; text-align: center">
+            Descああription here</div>
     </div>
     <!-- DESIGN_END -->
 </body>

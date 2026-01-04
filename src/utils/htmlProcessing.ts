@@ -1,8 +1,60 @@
-import { type MetaMessage } from '@/types/editor';
+import { type MetaMessage, PAGE_SIZES } from '@/types/editor';
+
+/**
+ * 要素のスタイルを解析し、キャンバスサイズ内に強制的に収める
+ */
+const sanitizeStyles = (styleStr: string, canvasWidth: number, canvasHeight: number): string => {
+    const styles: Record<string, string> = {};
+    styleStr.split(';').forEach(s => {
+        const [k, v] = s.split(':').map(str => str.trim());
+        if (k && v) styles[k.toLowerCase()] = v;
+    });
+
+    const getPx = (val: string | undefined): number | null => {
+        if (!val) return null;
+        const match = val.match(/^(-?\d+(\.\d+)?)px$/);
+        return match ? parseFloat(match[1]) : null;
+    };
+
+    let left = getPx(styles['left']);
+    let top = getPx(styles['top']);
+    let width = getPx(styles['width']);
+    let height = getPx(styles['height']);
+
+    // 1. サイズのクランプ (キャンバスより大きくならないように)
+    if (width !== null) width = Math.min(width, canvasWidth);
+    if (height !== null) height = Math.min(height, canvasHeight);
+
+    // 2. 座標のクランプと押し戻し (はみ出し防止)
+    if (left !== null) {
+        if (width !== null) {
+            // width がある場合は、右端を超えないように押し戻す
+            if (left + width > canvasWidth) left = canvasWidth - width;
+        }
+        // 左端を超えないように (マイナス座標防止)
+        left = Math.max(0, Math.min(left, canvasWidth));
+    }
+
+    if (top !== null) {
+        if (height !== null) {
+            // height がある場合は、下端を超えないように押し戻す
+            if (top + height > canvasHeight) top = canvasHeight - height;
+        }
+        // 上端を超えないように (マイナス座標防止)
+        top = Math.max(0, Math.min(top, canvasHeight));
+    }
+
+    // スタイル文字列を再構築
+    if (left !== null) styles['left'] = `${left}px`;
+    if (top !== null) styles['top'] = `${top}px`;
+    if (width !== null) styles['width'] = `${width}px`;
+    if (height !== null) styles['height'] = `${height}px`;
+
+    return Object.entries(styles).map(([k, v]) => `${k}: ${v}`).join('; ');
+};
 
 /**
  * HTML からメタメッセージ（JSON）を抽出する
- * <!-- USER_REQUIREMENT_START --> を優先し、なければ従来の script タグから取得する
  */
 export const parseMetaMessage = (html: string): MetaMessage | null => {
     try {
@@ -105,8 +157,23 @@ export const extractDesignContent = (html: string): string => {
         const root = doc.getElementById('__root__');
         if (root) {
             const surface = root.querySelector('.DesignSurface');
+            const target = (surface || root) as HTMLElement;
+
+            // キャンバスサイズを取得
+            const meta = parseMetaMessage(html);
+            const pageSize = meta?.pageSize || 'SQUARE';
+            const config = PAGE_SIZES[pageSize];
+
+            // すべての直下要素に対してスタイルクランプを適用
+            Array.from(target.children).forEach(el => {
+                const element = el as HTMLElement;
+                const style = element.getAttribute('style');
+                if (style) {
+                    element.setAttribute('style', sanitizeStyles(style, config.width, config.height));
+                }
+            });
+
             if (surface) {
-                // DesignSurface の中身を返す
                 return surface.innerHTML.trim();
             }
         }
@@ -196,12 +263,15 @@ export const constructFullHTML = (content: string, _customCss: string, meta: Met
     [ABSOLUTE PRIORITY: FIXED RULES]
     以下の指示は、本デザインプロジェクトの最上位制約です。
     これらのルールに反する変更は「絶対的な禁止事項」です。
-
-    ${sizeMessage}
     -->
     <!-- FIXED_RULES_START -->
     ${meta.fixedRules || ''}
     <!-- FIXED_RULES_END -->
+
+    <!-- 
+    ${sizeMessage}
+    [NOTICE] 万が一計算ミスではみ出した場合、システムにより自動的にキャンバス内に押し戻されますが、デザイナーとして最初からこの範囲内に収まるよう厳密に計算してください。
+    -->
 
     <!-- 
     ### SYSTEM RULES: DESIGN GENERATION
@@ -219,13 +289,13 @@ export const constructFullHTML = (content: string, _customCss: string, meta: Met
     - 以下の「タグ」に囲まれた領域「のみ」を編集し、それ以外は一切変更しないこと。
         1. [DESIGN_START] ～ [DESIGN_END]
         2. [USER_REQUIREMENT_START] ～ [USER_REQUIREMENT_END]
-    - **[IMPERATIVE]**: <!-- FIXED_RULES_START --> および <!-- FIXED_RULES_END --> タグ、そしてその中身は「編集絶対禁止」です。
+    - **[IMPERATIVE]**: <!-- FIXED_RULES_START --> および <!-- FIXED_RULES_END --> タグ、それ自体のタグ文字、そしてその中身は「編集絶対禁止」です。
     - 注意: [ ] は実際の HTML コメントタグ <!-- ... --> に置き換えて認識してください。
 
     3. COMPONENT CONSTRAINTS
     - **Elements**: テキストボックス、画像、図形の3種類のみ使用。
     - **IDs**: すべての要素に一意のID（id="el-..."）を付与し、独立した要素として扱うこと。
-    - **[PROHIBITION] No Nesting**: **親子構造（要素の中に別の要素を入れること）は一切禁止**です。すべての要素は必ず \`.DesignSurface\` の「直下」にフラットに配置してください。
+    - **[PROHIBITION] No Nesting**: **親子構造（要素の中に別の要素を入れること）は一切禁止**です。すべての要素は必ず .DesignSurface の「直下」にフラットに配置してください。
     - **Group IDs**: 関連する要素（例：背景、ロゴ、見出しなど）には、共通の data-group-id="group-..." を付与してください。
     - **Group ID Management**: 既存の要素に付与されている data-group-id は「絶対に」変更しないでください。新要素追加時は他のグループと被らない新しいIDを生成してください。
     - **No Flex/Grid**: 全要素を position: absolute で配置してください。FlexboxやGridによるレイアウトは使用せず、中央揃え等は left と width または text-align で実現してください。
