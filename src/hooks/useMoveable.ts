@@ -307,6 +307,7 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
         getBounds,
         getDirections: getRenderDirections,
         handleCanvasClick,
+        handleMouseUp,
         handleMouseMove,
         handleMouseLeave,
         handleDoubleClick,

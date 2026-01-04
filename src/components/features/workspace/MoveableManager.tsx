@@ -63,8 +63,8 @@ const MoveableManager: React.FC<MoveableManagerProps> = (props) => {
     const isGroupActive = (selectionMode === 'group' || selectionMode === 'individual') && hasGroupId;
 
     const selectionKey = useMemo(() => {
-        return `${selectionMode}-${targets.map(t => (t.id || t.className)).join(',')}-${groupBounds?.width}-${groupBounds?.height}-${tick}`;
-    }, [selectionMode, targets, groupBounds, tick]);
+        return `${selectionMode}-${targets.map(t => (t.id || 'no-id')).join('-')}`;
+    }, [selectionMode, targets]);
 
     return (
         <>
@@ -108,6 +108,7 @@ const MoveableManager: React.FC<MoveableManagerProps> = (props) => {
                     groupOverlay={overlayEl}
                     selectionKey={selectionKey}
                     updateOverlayBounds={updateOverlayBounds}
+                    tick={tick}
                 />
             )}
 

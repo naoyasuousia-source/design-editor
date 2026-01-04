@@ -43,7 +43,17 @@ export const useSelection = (canvasRef: RefObject<HTMLDivElement | null>, conten
         if (hasChanged) {
             setTargets(nextTargets);
         }
-    }, [content, canvasRef]);
+
+        // activeSubTarget の更新
+        if (activeSubTarget && !document.body.contains(activeSubTarget) && activeSubTarget.id) {
+            const refreshedSub = surface.querySelector(`[id="${activeSubTarget.id}"]`);
+            if (refreshedSub instanceof HTMLElement) {
+                setActiveSubTarget(refreshedSub);
+            } else {
+                setActiveSubTarget(null);
+            }
+        }
+    }, [content, canvasRef, activeSubTarget]);
 
     // 選択解除を含めたセット関数
     const selectNone = useCallback(() => {

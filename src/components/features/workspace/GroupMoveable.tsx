@@ -15,6 +15,7 @@ interface GroupMoveableProps {
     expandCanvas: (neededWidth: number, neededHeight: number) => void;
     updateOverlayBounds: () => void;
     updateContentFromDOM: () => void;
+    tick: number;
 }
 
 const GroupMoveable: React.FC<GroupMoveableProps> = ({
@@ -29,12 +30,22 @@ const GroupMoveable: React.FC<GroupMoveableProps> = ({
     getBounds,
     expandCanvas,
     updateOverlayBounds,
-    updateContentFromDOM
+    updateContentFromDOM,
+    tick
 }) => {
+    const moveableRef = React.useRef<Moveable>(null);
+
+    React.useEffect(() => {
+        if (moveableRef.current) {
+            moveableRef.current.updateRect();
+        }
+    }, [tick]);
+
     if (!groupOverlay) return null;
 
     return (
         <Moveable
+            ref={moveableRef}
             key={selectionKey}
             target={groupOverlay}
             container={canvasRef.current || undefined}
