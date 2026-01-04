@@ -8,25 +8,31 @@ import DesignArea from '@/components/features/workspace/DesignArea';
 import MoveableManager from '@/components/features/workspace/MoveableManager';
 import ImageCropOverlay from '@/components/features/workspace/ImageCropOverlay';
 import ImageSaveWizard from '@/components/features/image-save/ImageSaveWizard';
+import { HOME_AD_HTML } from '@/utils/home/adTemplate';
 
 interface WorkspaceProps {
     isLocked: boolean;
+    isHome?: boolean;
 }
 
-const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
+const Workspace: React.FC<WorkspaceProps> = ({ isLocked, isHome }) => {
     const canvasRef = useRef<HTMLDivElement>(null);
     const {
-        pageSize,
+        pageSize: storePageSize,
         zoom,
-        content,
+        content: storeContent,
         customWidth,
         customHeight,
         expandCanvas,
     } = useEditorStore();
-    const config = PAGE_SIZES[pageSize];
 
-    const currentWidth = customWidth || config.width;
-    const currentHeight = customHeight || config.height;
+    // ホーム画面（未接続）時は固定の広告テンプレートを表示
+    const pageSize = isHome ? 'SQUARE' : storePageSize;
+    const content = isHome ? HOME_AD_HTML : storeContent;
+
+    const config = PAGE_SIZES[pageSize];
+    const currentWidth = isHome ? config.width : (customWidth || config.width);
+    const currentHeight = isHome ? config.height : (customHeight || config.height);
 
     const {
         targets,

@@ -67,6 +67,7 @@ const Navbar: React.FC = () => {
         isImageSaveMode,
         isLayerSidebarOpen,
         setLayerSidebarOpen,
+        currentFileHandle,
     } = useEditorStore();
 
     const { handleNew, handleOpen, handleOverwrite } = useFileSystem();
@@ -125,7 +126,10 @@ const Navbar: React.FC = () => {
                             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                             className={cn(
                                 "flex items-center gap-2 px-3 py-1.5 rounded-md transition-all duration-200",
-                                "text-sm font-medium text-gray-300 hover:text-white hover:bg-white/10",
+                                "text-sm font-medium transition-all duration-500",
+                                !currentFileHandle
+                                    ? "text-blue-400 bg-blue-500/10 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.3)] animate-pulse"
+                                    : "text-gray-300 hover:text-white hover:bg-white/10",
                                 isDropdownOpen && "bg-white/10 text-white"
                             )}
                         >
@@ -153,17 +157,21 @@ const Navbar: React.FC = () => {
                         icon={<FolderOpen />}
                         label="開く"
                         onClick={handleOpen}
+                        className={cn(
+                            !currentFileHandle && "text-purple-400 bg-purple-500/10 border border-purple-500/30 shadow-[0_0_15px_rgba(168,85,247,0.3)] animate-pulse delay-700"
+                        )}
                     />
                     <NavButton
                         icon={<Save />}
                         label="上書き保存"
                         onClick={handleSave}
-                        disabled={isImageSaveMode}
+                        disabled={isImageSaveMode || !currentFileHandle}
                     />
                     <NavButton
                         icon={<Layers />}
                         label="レイヤー"
                         onClick={() => setLayerSidebarOpen(!isLayerSidebarOpen)}
+                        disabled={!currentFileHandle}
                         className={cn(isLayerSidebarOpen && "bg-primary/20 text-primary hover:bg-primary/30 hover:text-primary")}
                     />
 
@@ -171,10 +179,12 @@ const Navbar: React.FC = () => {
                     <div className="relative" ref={insertRef}>
                         <button
                             onClick={() => setIsInsertOpen(!isInsertOpen)}
+                            disabled={!currentFileHandle}
                             className={cn(
                                 "flex items-center gap-2 px-3 py-1.5 rounded-md transition-all duration-200",
                                 "text-sm font-medium text-gray-300 hover:text-white hover:bg-white/10",
-                                isInsertOpen && "bg-white/10 text-white"
+                                isInsertOpen && "bg-white/10 text-white",
+                                "disabled:opacity-20"
                             )}
                         >
                             <Plus className="w-4 h-4 text-blue-400" />
@@ -214,7 +224,7 @@ const Navbar: React.FC = () => {
                         icon={<ImageIcon />}
                         label="画像として保存"
                         onClick={() => setImageSaveMode(true)}
-                        disabled={isImageSaveMode}
+                        disabled={isImageSaveMode || !currentFileHandle}
                     />
                     <ZoomControl zoom={zoom} onZoomChange={setZoom} />
                 </div>
@@ -224,13 +234,13 @@ const Navbar: React.FC = () => {
                         icon={<Undo />}
                         label="戻す"
                         onClick={undo}
-                        disabled={history.past.length === 0}
+                        disabled={history.past.length === 0 || !currentFileHandle}
                     />
                     <NavButton
                         icon={<Redo />}
                         label="進む"
                         onClick={redo}
-                        disabled={history.future.length === 0}
+                        disabled={history.future.length === 0 || !currentFileHandle}
                     />
                 </div>
 
@@ -238,7 +248,8 @@ const Navbar: React.FC = () => {
                 <div className="flex flex-wrap items-center gap-1 border-l border-white/10 pl-4">
                     <button
                         onClick={() => setShowMetaEditor(true)}
-                        className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium text-blue-400 bg-blue-500/5 hover:bg-blue-500/10 hover:text-blue-300 border border-blue-500/10 transition-all group"
+                        disabled={!currentFileHandle}
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium text-blue-400 bg-blue-500/5 hover:bg-blue-500/10 hover:text-blue-300 border border-blue-500/10 transition-all group disabled:opacity-20 disabled:cursor-not-allowed"
                     >
                         <Brain className="w-4 h-4 group-hover:scale-110 transition-transform" />
                         <span>AIへの指示</span>
@@ -246,7 +257,10 @@ const Navbar: React.FC = () => {
                     <NavButton
                         icon={<HelpCircle />}
                         label="ヒント"
-                        className="p-1 min-w-0"
+                        className={cn(
+                            "p-1 min-w-0 transition-all duration-500",
+                            !currentFileHandle && "text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.3)] animate-pulse delay-1000"
+                        )}
                         onClick={() => setShowHint(true)}
                     />
                 </div>

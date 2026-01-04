@@ -6,7 +6,6 @@ import TemporaryBar from '@/components/common/TemporaryBar';
 import ImageSaveWizard from '@/components/features/image-save/ImageSaveWizard';
 import SaveToast from '@/components/common/SaveToast';
 import LayerSidebar from '@/components/features/layer/LayerSidebar';
-import Home from '@/components/features/home/Home';
 import { useHotkeys } from '@/hooks/useHotkeys';
 import { useBeforeUnload } from '@/hooks/useBeforeUnload';
 import { useEditorStore } from '@/store/useEditorStore';
@@ -32,10 +31,8 @@ const App: React.FC = () => {
     // 終了警告の有効化
     useBeforeUnload();
 
-    // フォルダ・ファイルが選択されていない場合はホーム画面を表示
-    if (!currentFileHandle) {
-        return <Home />;
-    }
+    // フォルダ・ファイルが選択されていない場合でも、NavbarとWorkspace（広告表示）を出す
+    const isHome = !currentFileHandle;
 
     return (
         <div className="flex flex-col h-screen w-screen bg-background overflow-hidden relative">
@@ -46,8 +43,8 @@ const App: React.FC = () => {
             <main className="flex-1 relative overflow-hidden flex flex-row">
                 <LayerSidebar />
                 <div className="flex-1 relative h-full w-full flex flex-col overflow-hidden">
-                    {/* デザイン領域 */}
-                    <Workspace isLocked={isLocked || showComparison} />
+                    {/* デザイン領域（ホーム時はロック） */}
+                    <Workspace isLocked={isLocked || showComparison || isHome} isHome={isHome} />
 
                     {/* 比較ビュー（オーバーレイ） */}
                     {showComparison && (
