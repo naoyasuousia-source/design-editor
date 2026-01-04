@@ -21,8 +21,8 @@
 
     <!-- 
     0. CANVAS DIMENSIONS (ABSOLUTE CONSTRAINT)
-- Current Canvas Size: Vertical 9:16 (630 x 1120px)
-- Width: 630px, Height: 1120px
+- Current Canvas Size: Square 1:1 (800 x 800px)
+- Width: 800px, Height: 800px
 - [CRITICAL] All elements MUST be placed WITHIN these boundaries.
 - [PROHIBITION] Never set positions or sizes exceeding these limits.
     [NOTICE] 万が一計算ミスではみ出した場合、システムにより自動的にキャンバス内に押し戻されますが、デザイナーとして最初からこの範囲内に収まるよう厳密に計算してください。
@@ -84,10 +84,10 @@
         .DesignSurface { 
             position: relative; 
             background: white; 
-            width: 630px; 
-            height: 1120px; 
-            min-width: 630px; 
-            min-height: 1120px;
+            width: 800px; 
+            height: 800px; 
+            min-width: 800px; 
+            min-height: 800px;
             flex-shrink: 0;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             overflow: hidden;
@@ -104,7 +104,7 @@
     "sub": "#1f2937",
     "accent": "#fbbf24"
   },
-  "pageSize": "9:16"
+  "pageSize": "SQUARE"
 }
         <!-- USER_REQUIREMENT_END -->
     </script>
@@ -112,11 +112,8 @@
 <body class="bg-black">
     <!-- DESIGN_START -->
     <div class="DesignSurface" style="position: relative; overflow: hidden;">
-        <div id="el-nsebakk6m" data-group-id="group-tlizg42if" style="position: absolute; top: 220px; left: 63px; width: 504px; font-family: 'Oswald', sans-serif; font-size: 64px; color: #3b82f6; text-transform: uppercase; line-height: 1; font-weight: bold;">Fresh<br>Design</div>
-                <div id="el-83o3vlnmy" data-group-id="group-tlizg42if" style="position: absolute; top: 360px; left: 63px; width: 50px; height: 4px; background: #3b82f6;"></div>
-                <div id="el-8t3sdjr9p" data-group-id="group-tlizg42if" style="position: absolute; top: 390px; left: 63px; width: 504px; font-family: 'Inter', sans-serif; font-size: 16px; color: #4b5563;">
-                    Vertical content for mobile or stories.
-                </div>
+        <div id="el-5qz4gdj9y" data-group-id="group-rms6x9vuz" style="position: absolute; top: 280px; left: 160px; width: 480px; font-family: 'Playfair Display', serif; font-size: 64px; color: #1a1a1a; text-align: center; font-weight: bold;">TITLE HERE</div>
+                <div id="el-ji7c40l0m" data-group-id="group-rms6x9vuz" style="position: absolute; top: 400px; left: 160px; width: 480px; font-family: 'Montserrat', sans-serif; font-size: 24px; color: #666; text-transform: uppercase; letter-spacing: 0.1em; text-align: center;">Description here</div>
     </div>
     <!-- DESIGN_END -->
 </body>
