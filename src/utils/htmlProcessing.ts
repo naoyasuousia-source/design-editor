@@ -289,8 +289,8 @@ export const constructFullHTML = (content: string, _customCss: string, meta: Met
     - 以下の「タグ」に囲まれた領域「のみ」を編集し、それ以外は一切変更しないこと。
         1. [DESIGN_START] ～ [DESIGN_END]
         2. [USER_REQUIREMENT_START] ～ [USER_REQUIREMENT_END]
-    - **[IMPERATIVE]**: <!-- FIXED_RULES_START --> および <!-- FIXED_RULES_END --> タグ、それ自体のタグ文字、そしてその中身は「編集絶対禁止」です。
-    - 注意: [ ] は実際の HTML コメントタグ <!-- ... --> に置き換えて認識してください。
+    - **[IMPERATIVE]**: [FIXED_RULES_START] および [FIXED_RULES_END] タグ、それ自体のタグ文字、そしてその中身は「編集絶対禁止」です。
+    - 注意: [ ] は実際の HTML コメント形式に置き換えて認識してください。
 
     3. COMPONENT CONSTRAINTS
     - **Elements**: テキストボックス、画像、図形の3種類のみ使用。
@@ -299,7 +299,7 @@ export const constructFullHTML = (content: string, _customCss: string, meta: Met
     - **Group IDs**: 関連する要素（例：背景、ロゴ、見出しなど）には、共通の data-group-id="group-..." を付与してください。
     - **Group ID Management**: 既存の要素に付与されている data-group-id は「絶対に」変更しないでください。新要素追加時は他のグループと被らない新しいIDを生成してください。
     - **No Flex/Grid**: 全要素を position: absolute で配置してください。FlexboxやGridによるレイアウトは使用せず、中央揃え等は left と width または text-align で実現してください。
-    - **Appending**: 新しく要素を追加する場合は、必ず \`<!-- DESIGN_START -->\` 内の既存要素の「一番最後」に追記してください。
+    - **Appending**: 新しく要素を追加する場合は、必ず \`[DESIGN_START]\` 内の既存要素の「一番最後」に追記してください。
     - **No Nesting in Text**: 「テキストボックス内」に子要素（span等）を配置することは厳禁。
     - **Image Paths**: 画像は必ず ./images/ フォルダ内のファイルを参照すること。
 
@@ -310,8 +310,8 @@ export const constructFullHTML = (content: string, _customCss: string, meta: Met
     - **Consistency**: 共通の配色は各要素のインラインスタイルに直接記述してください。
 
     5. DATA STRUCTURE
-    - **JSON Metadata**: <!-- USER_REQUIREMENT_START --> 内には、ユーザー要件をJSON形式で正確に記載すること。
-    - <!-- USER_REQUIREMENT_START --> 内は、毎回必ず、すべての項目を最新に更新し、必ず「日本語」で記述すること。
+    - **JSON Metadata**: [USER_REQUIREMENT_START] 内には、ユーザー要件をJSON形式で正確に記載すること。
+    - [USER_REQUIREMENT_START] 内は、毎回必ず、すべての項目を最新に更新し、必ず「日本語」で記述すること。
     -->
     <!-- AI_METADATA_END -->
 
