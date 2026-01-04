@@ -114,6 +114,8 @@
     /* DesignSurface内のデフォルトテキストカラーを黒に設定（bodyのtext-whiteを上書き） */
     .DesignSurface {
         color: #000000;
+        user-select: none;
+        -webkit-user-select: none;
     }
 
     /* 画像のトリミングやサイズ変更時の品質と制約の調整 */
@@ -132,6 +134,8 @@
     /* The requirement said "stay editor mode" with blue frame + points. */
     [contenteditable="true"] {
         outline: none !important;
+        user-select: text !important;
+        -webkit-user-select: text !important;
     }
 
     /* If it's active and editable, we still want the outline from the rule above to apply. */

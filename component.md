@@ -16,7 +16,7 @@
 <content></content>
 <current-situation></current-situation>
 <remarks></remarks>
-<permission-to-move>NGs</permission-to-move>
+<permission-to-move>NG</permission-to-move>
 </requirement>
 
 </uneditable>
@@ -28,21 +28,35 @@
 ## 1. 未解決要件（移動許可がNGの要件は絶対に移動・編集しないこと）（勝手に移動許可をOKに書き換えないこと）
 
 <requirement>
-<content>複数要素選択時、なぜか選択してないテキストボックスも含めて、いろいろなテキストの一部がドラッグ選択されてるように青くなってしまうので、複数要素選択時は、一切テキストが青くならないようにする。</content>
+<content>現在、複数要素選択時、単独要素は水色枠が常時表示で期待通りだが、既存グループを選択した場合は、オレンジ枠が安定せず、ホバー時のみ表示される。既存グループも単独要素と同じように、複数要素選択時は、常にオレンジ枠を表示するようにする。</content>
 <current-situation></current-situation>
 <remarks></remarks>
-<permission-to-move>NGs</permission-to-move>
+<permission-to-move>NG</permission-to-move>
 </requirement>
 
 <requirement>
-<content>テキストボックス要素、図形要素、画像要素、グループのすべてのメニューに「複製」ボタンを追加する。複製を選択すると、複製元と少しずらして、同じものをレンダリングする。（コード上は一番最後尾に追加する）（idのみ変える）</content>
-<current-situation>修正完了。複製ボタンが正しく動作し、複製後に対象が自動選択されるように改善。</current-situation>
-<remarks>複数要素選択メニューには複製は追加しない！</remarks>
+<content>グループ化直後、そのグループを選択してる状態にする。</content>
+<current-situation>現在は、グループ化直後、オレンジ枠は表示されるものの、グループ選択状態となっておらず、そのまま、拡大縮小や移動ができない。</current-situation>
+<remarks></remarks>
+<permission-to-move>NG</permission-to-move>
+</requirement>
+
+<requirement>
+<content>複数要素選択時、なぜか選択してないテキストボックスも含めて、いろいろなテキストの一部がドラッグ選択されてるように青くなってしまうので、複数要素選択時は、一切テキストが青くならないようにする。</content>
+<current-situation>実装完了。DesignSurface全体に user-select: none を適用し、編集時のみ許可するように調整しました。</current-situation>
+<remarks></remarks>
 <permission-to-move>OK</permission-to-move>
 </requirement>
 
 
 ## 2. 未解決要件に関するコード変更履歴（目的、変更内容、変更日時）
+
+- **複数要素選択時の意図しないテキスト選択（ハイライト）の防止**
+    - 目的: ドラッグ操作や複数選択時に、関係のないテキストが青くハイライトされてしまうのを防ぎ、エディタとしての操作感を向上させるため。
+    - 内容:
+        - `src/styles/index.css`: `.DesignSurface` に対し `user-select: none` を適用。
+        - `src/styles/index.css`: `[contenteditable="true"]` に対して `user-select: text !important` を適用し、テキスト編集時のみ選択を許可するように設定。
+    - 日時: 2026-01-04 12:50
 
 - **要素・グループの複製機能のバグ修正と改善**
     - 目的: 複製ボタンが動作していなかった問題を修正し、操作性を向上させるため。
@@ -241,6 +255,8 @@
 - **useRef vs useState**: `useRef` で管理したDOM要素は、作成されても再レンダリングをトリガーしない。Moveableの `target` として使用する場合、要素が存在することをReactに伝えるために `useState` を使用する必要がある。
 - **inline styleの!importantは無効**: HTMLの `style` 属性に `!important` を書いても効果がない。CSSの仕様上の制約であり、`!important` はスタイルシート内でのみ有効。
 - **CSS継承の競合**: `body` に `text-white` が設定されており、DesignSurface内に明示的な `color` を設定しないと白文字が継承されてテキストが見えなくなる。
+- **ブラウザのデフォルト選択挙動**: キャンバス風のUIでは、要素のドラッグ操作がブラウザによってテキスト選択として解釈されることがある。これを防ぐには `user-select: none` の制御が不可欠。
+- **!important の使い分け**: HTMLのインラインスタイルでは `!important` は無効だが、CSSファイル内（特に `[contenteditable]` 等の状態上書き）では、他のライブラリや動的スタイルの干渉を防ぐために有効。
 
 
 
@@ -248,7 +264,7 @@
 
 - **要素・グループの複製機能**
     - 要件: テキスト、図形、画像、グループのメニューに「複製」ボタンを追加し、複製元からずらして作成。複数選択メニューには表示しない。
-    - 解決方法: `useFloatingMenu` に共通の複製ロジックを実装。単一要素ならその要素を、グループならグループ内全要素を複製し、全体に新しいグループIDを付与（グループの場合のみ）。座標を+20pxし、`DesignSurface` の末尾に追加することで実装完了。
+    - 解決方法: `useFloatingMenu` に共通の複製ロジックを実装。単一要素ならその要素を、グループならグループ内全要素を複製し、全体に新しいグループIDを付与（グループの場合のみ）。座標を+20pxし、`DesignSurface` の末尾に追加することで、`document.querySelector('.DesignSurface')` を用いた修正も含め完了。複製後に対象を自動選択するUI強化も実施。
 
 - **テキストボックス挿入時のデフォルト文字色（黒）の保証**
     - 要件: テキストボックス挿入時、デフォルトのフォントカラーを黒にする。
