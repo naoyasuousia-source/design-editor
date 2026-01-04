@@ -12,6 +12,8 @@ export const PAGE_SIZES: Record<PageSize, PageConfig> = {
     'SQUARE': { width: 800, height: 800, label: '正方形 (1:1)' },
 };
 
+export type ColorKit = 'custom' | 'business' | 'natural' | 'pop' | 'chic' | 'dark' | 'warm' | 'cool' | 'elegant' | 'cute' | 'earth' | 'japanese';
+
 export interface MetaMessage {
     fixedRules: string;
     collaborativeRules: string;
@@ -21,6 +23,7 @@ export interface MetaMessage {
         sub: string | 'none';
         accent: string | 'none';
     };
+    colorKit?: ColorKit;
     pageSize?: PageSize;
 }
 

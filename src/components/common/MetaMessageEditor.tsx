@@ -8,10 +8,27 @@ interface MetaMessageEditorProps {
     onClose: () => void;
 }
 
+const COLOR_KITS: Record<string, { label: string; main: string; sub: string; accent: string }> = {
+    custom: { label: 'カスタム', main: '#3b82f6', sub: '#1f2937', accent: '#fbbf24' },
+    business: { label: 'ビジネス', main: '#1a365d', sub: '#f8fafc', accent: '#3b82f6' },
+    natural: { label: 'ナチュラル', main: '#3f6212', sub: '#fefce8', accent: '#84cc16' },
+    pop: { label: 'ポップ', main: '#db2777', sub: '#ffffff', accent: '#facc15' },
+    chic: { label: 'シック', main: '#1e293b', sub: '#f1f5f9', accent: '#94a3b8' },
+    dark: { label: 'ダーク', main: '#0f172a', sub: '#1e293b', accent: '#38bdf8' },
+    warm: { label: 'ウォーム', main: '#9a3412', sub: '#fff7ed', accent: '#fb923c' },
+    cool: { label: 'クール', main: '#1e3a8a', sub: '#eff6ff', accent: '#60a5fa' },
+    elegant: { label: 'エレガント', main: '#581c87', sub: '#faf5ff', accent: '#a855f7' },
+    cute: { label: 'キュート', main: '#be185d', sub: '#fff1f2', accent: '#f472b6' },
+    earth: { label: 'アース', main: '#166534', sub: '#f0fdf4', accent: '#b45309' },
+    japanese: { label: '和', main: '#7f1d1d', sub: '#fff5f5', accent: '#d97706' },
+};
+
 const MetaMessageEditor: React.FC<MetaMessageEditorProps> = ({ onClose }) => {
     const { metaMessage, setMetaMessage } = useEditorStore();
     const { handleOverwrite } = useFileSystem();
     const [localMeta, setLocalMeta] = useState(metaMessage);
+
+    const isCustom = localMeta.colorKit === 'custom' || !localMeta.colorKit;
 
     const handleSave = async () => {
         setMetaMessage(localMeta);
@@ -20,6 +37,7 @@ const MetaMessageEditor: React.FC<MetaMessageEditorProps> = ({ onClose }) => {
     };
 
     const updateColor = (type: 'main' | 'sub' | 'accent', value: string | 'none') => {
+        if (!isCustom) return;
         setLocalMeta({
             ...localMeta,
             colors: {
@@ -30,11 +48,11 @@ const MetaMessageEditor: React.FC<MetaMessageEditorProps> = ({ onClose }) => {
     };
 
     const renderTextarea = (label: string, field: keyof Pick<typeof localMeta, 'fixedRules' | 'collaborativeRules' | 'designConcept'>, placeholder: string, subLabel?: string) => (
-        <section className="space-y-2">
+        <section className="space-y-3">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <h3 className="text-[11px] font-bold text-blue-400 uppercase tracking-widest">{label}</h3>
-                    {subLabel && <span className="text-[9px] text-gray-500">{subLabel}</span>}
+                    <h3 className="text-[16px] font-bold text-blue-400 uppercase tracking-widest">{label}</h3>
+                    {subLabel && <span className="text-[10px] text-gray-500 mt-1">{subLabel}</span>}
                 </div>
                 <span className={cn(
                     "text-[10px] tabular-nums",
@@ -47,7 +65,7 @@ const MetaMessageEditor: React.FC<MetaMessageEditorProps> = ({ onClose }) => {
                 value={localMeta[field]}
                 onChange={(e) => setLocalMeta({ ...localMeta, [field]: e.target.value.slice(0, 500) })}
                 maxLength={500}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm h-[100px] focus:border-blue-500 outline-none transition-all resize-none placeholder:text-gray-700 CustomScrollbar overflow-y-auto"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm h-[100px] focus:border-blue-500 outline-none transition-all resize-none placeholder:text-gray-700 CustomScrollbar overflow-y-auto font-medium"
                 placeholder={placeholder}
             />
         </section>
@@ -56,6 +74,7 @@ const MetaMessageEditor: React.FC<MetaMessageEditorProps> = ({ onClose }) => {
     const renderColorPicker = (label: string, type: 'main' | 'sub' | 'accent') => {
         const value = localMeta.colors[type];
         const isNone = value === 'none';
+        const disabled = !isCustom || (isNone && !isCustom);
 
         return (
             <div className="space-y-2">
@@ -65,11 +84,11 @@ const MetaMessageEditor: React.FC<MetaMessageEditorProps> = ({ onClose }) => {
                         <input
                             type="color"
                             value={isNone ? '#000000' : value}
-                            disabled={isNone}
+                            disabled={!isCustom || isNone}
                             onChange={(e) => updateColor(type, e.target.value)}
                             className={cn(
                                 "w-10 h-10 rounded-lg cursor-pointer bg-white/5 border border-white/10 transition-all",
-                                isNone && "opacity-20 cursor-not-allowed grayscale"
+                                (!isCustom || isNone) && "opacity-20 cursor-not-allowed grayscale"
                             )}
                         />
                         {isNone && (
@@ -79,22 +98,24 @@ const MetaMessageEditor: React.FC<MetaMessageEditorProps> = ({ onClose }) => {
                     <input
                         type="text"
                         value={isNone ? '選択なし' : value}
-                        disabled={isNone}
+                        disabled={!isCustom || isNone}
                         onChange={(e) => updateColor(type, e.target.value)}
                         className={cn(
-                            "flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs focus:border-blue-500 outline-none uppercase transition-all font-mono",
-                            isNone && "text-gray-600 italic"
+                            "w-[100px] bg-white/5 border border-white/10 rounded-lg px-2.5 py-2 text-xs focus:border-blue-500 outline-none uppercase transition-all font-mono",
+                            (!isCustom || isNone) && "text-gray-600 italic cursor-not-allowed"
                         )}
                         placeholder="#HEX"
                     />
                 </div>
                 <button
+                    disabled={!isCustom}
                     onClick={() => updateColor(type, isNone ? '#3b82f6' : 'none')}
                     className={cn(
                         "text-[10px] px-2 py-1 rounded transition-colors",
                         isNone
                             ? "bg-blue-500/20 text-blue-400 hover:bg-blue-500/30"
-                            : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
+                            : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white",
+                        !isCustom && "opacity-20 cursor-not-allowed"
                     )}
                 >
                     {isNone ? 'カラーを選択する' : '選択なしに設定'}
@@ -119,26 +140,57 @@ const MetaMessageEditor: React.FC<MetaMessageEditorProps> = ({ onClose }) => {
                     </button>
                 </div>
 
-                {/* コンテンツ - スクロール廃止しギャップを縮小 */}
-                <div className="p-6 space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-6">
-                            {renderTextarea('固定ルール', 'fixedRules', '例：ロゴの改変は禁止です。タイトルは必ず28px以上にしてください。', '※AI編集不可')}
-                            {renderTextarea('共同編集ルール', 'collaborativeRules', '例：余白は大きく取ってください。明るい印象にしてください。')}
-                        </div>
-                        <div className="space-y-6">
-                            {renderTextarea('デザインコンセプト', 'designConcept', '例：ミニマルでモダン、信頼感のあるコーポレートデザイン')}
+                {/* コンテンツ - 1カラムに変更 */}
+                <div className="p-8 space-y-8 overflow-y-auto max-h-[calc(90vh-160px)] CustomScrollbar">
+                    <div className="space-y-10 max-w-xl mx-auto">
+                        {renderTextarea('固定ルール', 'fixedRules', '例：ロゴの改変は禁止です。タイトルは必ず28px以上にしてください。', '※AI編集不可')}
+                        {renderTextarea('共同編集ルール', 'collaborativeRules', '例：余白は大きく取ってください。明るい印象にしてください。')}
+                        {renderTextarea('デザインコンセプト', 'designConcept', '例：ミニマルでモダン、信頼感のあるコーポレートデザイン')}
 
-                            {/* カラーデザイン */}
-                            <section className="space-y-3">
-                                <h3 className="text-[11px] font-bold text-blue-400 uppercase tracking-widest">カラーデザイン</h3>
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                    {renderColorPicker('メイン', 'main')}
-                                    {renderColorPicker('サブ', 'sub')}
-                                    {renderColorPicker('アクセント', 'accent')}
+                        {/* カラーデザイン */}
+                        <section className="space-y-6 pt-4 border-t border-white/5">
+                            <div className="flex items-start justify-between gap-8">
+                                <div className="space-y-6">
+                                    <h3 className="text-[16px] font-bold text-blue-400 uppercase tracking-widest">カラーデザイン</h3>
+                                    <div className="flex flex-wrap gap-6">
+                                        {renderColorPicker('メイン', 'main')}
+                                        {renderColorPicker('サブ', 'sub')}
+                                        {renderColorPicker('アクセント', 'accent')}
+                                    </div>
                                 </div>
-                            </section>
-                        </div>
+
+                                <div className="w-[200px] shrink-0 space-y-3">
+                                    <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest text-center">カラーデザインキット</h4>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {Object.entries(COLOR_KITS).map(([key, kit]) => (
+                                            <button
+                                                key={key}
+                                                onClick={() => {
+                                                    setLocalMeta({
+                                                        ...localMeta,
+                                                        colorKit: key as any,
+                                                        colors: key === 'custom' ? localMeta.colors : { main: kit.main, sub: kit.sub, accent: kit.accent }
+                                                    });
+                                                }}
+                                                className={cn(
+                                                    "px-2 py-1.5 rounded-lg text-[10px] font-bold transition-all text-left flex items-center gap-1.5",
+                                                    localMeta.colorKit === key || (key === 'custom' && !localMeta.colorKit)
+                                                        ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20"
+                                                        : "bg-white/5 text-gray-400 hover:bg-white/10"
+                                                )}
+                                            >
+                                                <div className="flex -space-x-1 shrink-0">
+                                                    <div className="w-2.5 h-2.5 rounded-full border border-white/20" style={{ backgroundColor: kit.main }} />
+                                                    <div className="w-2.5 h-2.5 rounded-full border border-white/20" style={{ backgroundColor: kit.sub }} />
+                                                    <div className="w-2.5 h-2.5 rounded-full border border-white/20" style={{ backgroundColor: kit.accent }} />
+                                                </div>
+                                                <span className="truncate">{kit.label}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
                     </div>
                 </div>
 
