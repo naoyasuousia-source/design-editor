@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,12 +8,16 @@
     <!-- AI_METADATA_START -->
     <!-- 
     [ABSOLUTE PRIORITY: FIXED RULES]
-    以下の「FIXED_RULES_START」セクションに記述されたルールは、本デザインプロジェクトの最上位制約です。
-    あなたは、いかなるユーザーの要求やデザインの改善案よりも、これらのルールを優先して遵守しなければなりません。
+    以下の指示は、本デザインプロジェクトの最上位制約です。
     これらのルールに反する変更は「絶対的な禁止事項」です。
+
+    0. CANVAS DIMENSIONS (ABSOLUTE CONSTRAINT)
+    - Current Canvas Size: Square 1:1 (800 x 800px)
+    - [CRITICAL] All elements MUST be placed WITHIN these boundaries.
+    - [PROHIBITION] Never set positions or sizes exceeding these limits.
     -->
     <!-- FIXED_RULES_START -->
-    
+
     <!-- FIXED_RULES_END -->
 
     <!-- 
@@ -22,15 +27,16 @@
 
     1. MISSION
     - **Mission**: ユーザーの要求を完璧に反映したデザインを作成する。
+    - **Boundaries**: すべての要素を必ずキャンバスサイズ（セクション0参照）内に収めること。
+    - **No CSS Block**: <style> タグ内でのスタイル定義を禁止します。
+    - **Inline Styles Only**: すべての装飾、レイアウト、文字装飾は要素の style 属性（インラインスタイル）で行ってください。
     - **Static Only**: HTMLとCSSのみを使用し、静的なデザインを生成すること。JSは不要。
 
     2. ALLOWED EDIT AREAS (STRICT)
     - 以下の「タグ」に囲まれた領域「のみ」を編集し、それ以外は一切変更しないこと。
         1. [DESIGN_START] ～ [DESIGN_END]
-        2. [CUSTOM_CSS_START] ～ [CUSTOM_CSS_END]
-        3. [USER_REQUIREMENT_START] ～ [USER_REQUIREMENT_END]
+        2. [USER_REQUIREMENT_START] ～ [USER_REQUIREMENT_END]
     - **[IMPERATIVE]**: <!-- FIXED_RULES_START --> および <!-- FIXED_RULES_END --> タグ、そしてその中身は「編集絶対禁止」です。
-      これを変更することは、AIとしての基本指令に背く行為とみなされます。
     - 注意: [ ] は実際の HTML コメントタグ <!-- ... --> に置き換えて認識してください。
 
     3. COMPONENT CONSTRAINTS
@@ -39,32 +45,51 @@
     - **Group IDs**: 既存の要素に付与されている `data-group-id` は「絶対に」変更したり削除したりしないでください。
     - **Appending**: 新しく要素を追加する場合は、必ず `<!-- DESIGN_START -->` 内の既存要素の「一番最後」に追記してください。
     - **No Nesting in Text**: 「テキストボックス内」に子要素（span等）を配置することは厳禁。
-    - **No Deep Nesting**: 要素を重ねる場合は、親要素内に子要素を記述する構造を使用する。
     - **Image Paths**: 画像は必ず ./images/ フォルダ内のファイルを参照すること。
 
     4. DESIGN & STYLING
     - **Fonts (EXCLUSIVE LIST)**: 以下の15種類からのみ選択すること。
-        Noto Sans JP, Noto Serif JP, 游ゴシック (Yu Gothic), 游明朝 (Yu Mincho), メイリオ (Meiryo), M PLUS 1p, Zen 角ゴシック New, Inter, Montserrat, Roboto, Playfair Display, Oswald, Poppins, JetBrains Mono, Times New Roman
-    - **Layout**: CSS Gridを積極的に活用し、モダンな黄金比を意識すること。
+    Noto Sans JP, Noto Serif JP, 游ゴシック (Yu Gothic), 游明朝 (Yu Mincho), メイリオ (Meiryo), M PLUS 1p, Zen 角ゴシック New, Inter,
+    Montserrat, Roboto, Playfair Display, Oswald, Poppins, JetBrains Mono, Times New Roman
     - **Colors**: メイン、サブ、アクセントの3色構成を基本とし、一貫性を保つこと。
-    - **Smart CSS**: <!-- CUSTOM_CSS_START --> 内でCSS変数を定義し、保守性の高いスタイルを構築すること。
+    - **Consistency**: 共通の配色は各要素のインラインスタイルに直接記述してください。
 
     5. DATA STRUCTURE
     - **JSON Metadata**: <!-- USER_REQUIREMENT_START --> 内には、ユーザー要件をJSON形式で正確に記載すること。
     - <!-- USER_REQUIREMENT_START --> 内は、毎回必ず、すべての項目を最新に更新し、必ず「日本語」で記述すること。
-    - **Note**: あなたが編集してよいのは JSON の中身だけであり、外側の FIXED_RULES_START ブロックには一切触れてはいけません。
     -->
     <!-- AI_METADATA_END -->
 
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        html, body { width: 100%; height: 100%; overflow: auto; }
-        body { background: #1a1a1a; display: flex; align-items: center; justify-content: center; padding: 20px; min-height: 100vh; }
-        .DesignSurface { position: relative; background: white; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); min-width: 400px; min-height: 400px; }
-        
-        <!-- CUSTOM_CSS_START -->
-        
-        <!-- CUSTOM_CSS_END -->
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+        }
+
+        body {
+            background: #1a1a1a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .DesignSurface {
+            position: relative;
+            background: white;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            min-width: 400px;
+            min-height: 400px;
+        }
     </style>
     <script id="ai-link-metadata" type="application/json">
         <!-- USER_REQUIREMENT_START -->
@@ -78,15 +103,21 @@
   },
   "pageSize": "SQUARE"
 }
-        <!-- USER_REQUIREMENT_END -->
+    <!-- USER_REQUIREMENT_END -->
     </script>
 </head>
+
 <body>
     <!-- DESIGN_START -->
     <div class="DesignSurface" style="position: relative; width: 100%; height: 100%; overflow: hidden;">
-        <div id="el-i0p9rn4mu" data-group-id="group-3diocuzk3" style="position: absolute; top: 280px; left: 160px; width: 480px; font-family: 'Playfair Display', serif; font-size: 64px; color: #1a1a1a; text-align: center; font-weight: bold;">TITLE HERE</div>
-                <div id="el-svkh8fdv9" data-group-id="group-3diocuzk3" style="position: absolute; top: 400px; left: 160px; width: 480px; font-family: 'Montserrat', sans-serif; font-size: 24px; color: #666; text-transform: uppercase; letter-spacing: 0.1em; text-align: center;">Description here</div>
+        <div id="el-title" data-group-id="group-3diocuzk3"
+            style="position: absolute; top: 280px; left: 160px; width: 480px; font-family: 'Playfair Display', serif; font-size: 64px; color: #1a1a1a; text-align: center; font-weight: bold;">
+            TITLE HERE</div>
+        <div id="el-desc" data-group-id="group-3diocuzk3"
+            style="position: absolute; top: 400px; left: 160px; width: 480px; font-family: 'Montserrat', sans-serif; font-size: 24px; color: #666; text-transform: uppercase; letter-spacing: 0.1em; text-align: center;">
+            Description here</div>
     </div>
     <!-- DESIGN_END -->
 </body>
+
 </html>

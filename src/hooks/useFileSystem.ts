@@ -74,7 +74,7 @@ export const useFileSystem = () => {
             const updatedMeta = { ...metaMessage, pageSize };
             setMetaMessage(updatedMeta);
 
-            const fullHTML = constructFullHTML(template, customCss, updatedMeta);
+            const fullHTML = constructFullHTML(template, '', updatedMeta);
             const fileHandle = await fileSystemService.createNewDesignFile(directoryHandle, fileName, fullHTML);
 
             // ファイルハンドルをストアに保存
@@ -121,11 +121,7 @@ export const useFileSystem = () => {
 
             // エディタに読み込み
             const designContent = extractDesignContent(htmlContent);
-            const customCss = extractCustomCss(htmlContent);
-            const meta = parseMetaMessage(htmlContent);
-
             setContent(designContent, true); // 履歴に積まない
-            setCustomCss(customCss);
             if (meta) {
                 setMetaMessage(meta);
                 if (meta.pageSize) {
@@ -172,7 +168,7 @@ export const useFileSystem = () => {
             // HTML を構築 (pageSize を確実に最新の状態で保存する)
             const { pageSize } = useEditorStore.getState();
             const updatedMeta = { ...metaMessage, pageSize };
-            const fullHTML = constructFullHTML(content, customCss, updatedMeta);
+            const fullHTML = constructFullHTML(content, '', updatedMeta);
             console.log('fullHTML constructed, length:', fullHTML.length);
 
             // 上書き保存

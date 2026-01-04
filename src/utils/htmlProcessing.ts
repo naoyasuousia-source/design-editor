@@ -125,10 +125,10 @@ export const extractDesignContent = (html: string): string => {
 
 /**
  * カスタム CSS 領域を抽出する
+ * (廃止予定: 常に空文字を返す)
  */
-export const extractCustomCss = (html: string): string => {
-    const match = html.match(/<!-- CUSTOM_CSS_START -->([\s\S]*?)<!-- CUSTOM_CSS_END -->/);
-    return match ? match[1].trim() : '';
+export const extractCustomCss = (_html: string): string => {
+    return '';
 };
 
 /**
@@ -251,13 +251,13 @@ export const flattenHTML = (nestedHtml: string, customCss?: string): string => {
     return flatElements.map(el => el.outerHTML).join('\n');
 };
 
-export const constructFullHTML = (content: string, customCss: string, meta: MetaMessage): string => {
+export const constructFullHTML = (content: string, _customCss: string, meta: MetaMessage): string => {
     const cleanContent = cleanHTML(content);
 
     // content がすでに DesignSurface クラスを含むか確認
     const hasDesignSurface = cleanContent.includes('class="DesignSurface"') ||
         cleanContent.includes("class='DesignSurface'") ||
-        cleanContent.includes('class="absolute inset-0 w-full h-full DesignSurface"'); // Workspace から取得した場合
+        cleanContent.includes('class="absolute inset-0 w-full h-full DesignSurface"');
 
     // DesignSurface がない場合のみラップする
     const wrappedContent = hasDesignSurface
@@ -266,8 +266,24 @@ export const constructFullHTML = (content: string, customCss: string, meta: Meta
         ${cleanContent}
     </div>`;
 
-    // meta から fixedRules を除外したコピーを作成（JSONには含めない）
+    // meta から fixedRules を除外したコピーを作成
     const { fixedRules: _, ...metaWithoutFixedRules } = meta;
+
+    // キャンバスサイズに応じた告知メッセージ（セクション0）
+    const pageSize = meta.pageSize || 'SQUARE';
+    let sizeInfo = '';
+    switch (pageSize) {
+        case 'A4': sizeInfo = 'A4 (794 x 1123px)'; break;
+        case '9:16': sizeInfo = 'Vertical 9:16 (630 x 1120px)'; break;
+        case 'SQUARE': default: sizeInfo = 'Square 1:1 (800 x 800px)'; break;
+    }
+
+    const sizeMessage = `
+0. CANVAS DIMENSIONS (ABSOLUTE CONSTRAINT)
+- Current Canvas Size: ${sizeInfo}
+- [CRITICAL] All elements MUST be placed WITHIN these boundaries.
+- [PROHIBITION] Never set positions or sizes exceeding these limits.
+`.trim();
 
     return `<!DOCTYPE html>
 <html lang="ja">
@@ -278,9 +294,10 @@ export const constructFullHTML = (content: string, customCss: string, meta: Meta
     <!-- AI_METADATA_START -->
     <!-- 
     [ABSOLUTE PRIORITY: FIXED RULES]
-    以下の「FIXED_RULES_START」セクションに記述されたルールは、本デザインプロジェクトの最上位制約です。
-    あなたは、いかなるユーザーの要求やデザインの改善案よりも、これらのルールを優先して遵守しなければなりません。
+    以下の指示は、本デザインプロジェクトの最上位制約です。
     これらのルールに反する変更は「絶対的な禁止事項」です。
+
+    ${sizeMessage}
     -->
     <!-- FIXED_RULES_START -->
     ${meta.fixedRules || ''}
@@ -293,15 +310,16 @@ export const constructFullHTML = (content: string, customCss: string, meta: Meta
 
     1. MISSION
     - **Mission**: ユーザーの要求を完璧に反映したデザインを作成する。
+    - **Boundaries**: すべての要素を必ずキャンバスサイズ（セクション0参照）内に収めること。
+    - **No CSS Block**: <style> タグ内でのスタイル定義を禁止します。
+    - **Inline Styles Only**: すべての装飾、レイアウト、文字装飾は要素の style 属性（インラインスタイル）で行ってください。
     - **Static Only**: HTMLとCSSのみを使用し、静的なデザインを生成すること。JSは不要。
 
     2. ALLOWED EDIT AREAS (STRICT)
     - 以下の「タグ」に囲まれた領域「のみ」を編集し、それ以外は一切変更しないこと。
         1. [DESIGN_START] ～ [DESIGN_END]
-        2. [CUSTOM_CSS_START] ～ [CUSTOM_CSS_END]
-        3. [USER_REQUIREMENT_START] ～ [USER_REQUIREMENT_END]
+        2. [USER_REQUIREMENT_START] ～ [USER_REQUIREMENT_END]
     - **[IMPERATIVE]**: <!-- FIXED_RULES_START --> および <!-- FIXED_RULES_END --> タグ、そしてその中身は「編集絶対禁止」です。
-      これを変更することは、AIとしての基本指令に背く行為とみなされます。
     - 注意: [ ] は実際の HTML コメントタグ <!-- ... --> に置き換えて認識してください。
 
     3. COMPONENT CONSTRAINTS
@@ -310,20 +328,17 @@ export const constructFullHTML = (content: string, customCss: string, meta: Meta
     - **Group IDs**: 既存の要素に付与されている \`data-group-id\` は「絶対に」変更したり削除したりしないでください。
     - **Appending**: 新しく要素を追加する場合は、必ず \`<!-- DESIGN_START -->\` 内の既存要素の「一番最後」に追記してください。
     - **No Nesting in Text**: 「テキストボックス内」に子要素（span等）を配置することは厳禁。
-    - **No Deep Nesting**: 要素を重ねる場合は、親要素内に子要素を記述する構造を使用する。
     - **Image Paths**: 画像は必ず ./images/ フォルダ内のファイルを参照すること。
 
     4. DESIGN & STYLING
     - **Fonts (EXCLUSIVE LIST)**: 以下の15種類からのみ選択すること。
         Noto Sans JP, Noto Serif JP, 游ゴシック (Yu Gothic), 游明朝 (Yu Mincho), メイリオ (Meiryo), M PLUS 1p, Zen 角ゴシック New, Inter, Montserrat, Roboto, Playfair Display, Oswald, Poppins, JetBrains Mono, Times New Roman
-    - **Layout**: CSS Gridを積極的に活用し、モダンな黄金比を意識すること。
     - **Colors**: メイン、サブ、アクセントの3色構成を基本とし、一貫性を保つこと。
-    - **Smart CSS**: <!-- CUSTOM_CSS_START --> 内でCSS変数を定義し、保守性の高いスタイルを構築すること。
+    - **Consistency**: 共通の配色は各要素のインラインスタイルに直接記述してください。
 
     5. DATA STRUCTURE
     - **JSON Metadata**: <!-- USER_REQUIREMENT_START --> 内には、ユーザー要件をJSON形式で正確に記載すること。
     - <!-- USER_REQUIREMENT_START --> 内は、毎回必ず、すべての項目を最新に更新し、必ず「日本語」で記述すること。
-    - **Note**: あなたが編集してよいのは JSON の中身だけであり、外側の FIXED_RULES_START ブロックには一切触れてはいけません。
     -->
     <!-- AI_METADATA_END -->
 
@@ -332,10 +347,6 @@ export const constructFullHTML = (content: string, customCss: string, meta: Meta
         html, body { width: 100%; height: 100%; overflow: auto; }
         body { background: #1a1a1a; display: flex; align-items: center; justify-content: center; padding: 20px; min-height: 100vh; }
         .DesignSurface { position: relative; background: white; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); min-width: 400px; min-height: 400px; }
-        
-        <!-- CUSTOM_CSS_START -->
-        ${customCss}
-        <!-- CUSTOM_CSS_END -->
     </style>
     <script id="ai-link-metadata" type="application/json">
         <!-- USER_REQUIREMENT_START -->
