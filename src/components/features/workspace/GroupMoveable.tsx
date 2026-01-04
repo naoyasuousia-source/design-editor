@@ -40,7 +40,7 @@ const GroupMoveable: React.FC<GroupMoveableProps> = ({
             container={canvasRef.current || undefined}
             draggable={selectionMode === 'group'}
             resizable={selectionMode === 'group'}
-            renderDirections={["nw", "ne", "sw", "se"]}
+            renderDirections={selectionMode === 'group' ? ["nw", "ne", "sw", "se"] : []}
             origin={false}
             snappable={selectionMode === 'group'}
             bounds={getBounds() || {

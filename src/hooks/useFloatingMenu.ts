@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useEditorStore } from '@/store/useEditorStore';
+import type { SelectionMode } from '@/hooks/moveable/useSelection';
 
 export type MenuType = 'text' | 'image' | 'shape';
 
@@ -15,7 +16,13 @@ declare global {
     }
 }
 
-export const useFloatingMenu = (targets: HTMLElement[], onUpdate: () => void, onClearSelection?: () => void) => {
+export const useFloatingMenu = (
+    targets: HTMLElement[],
+    onUpdate: () => void,
+    onClearSelection?: () => void,
+    selectionMode: SelectionMode = 'none',
+    activeSubTarget: HTMLElement | null = null
+) => {
     const [rect, setRect] = useState<DOMRect | null>(null);
     const [showImagePicker, setShowImagePicker] = useState(false);
     const [showCropPicker, setShowCropPicker] = useState(false);
@@ -32,13 +39,15 @@ export const useFloatingMenu = (targets: HTMLElement[], onUpdate: () => void, on
     const [showStrokePalette, setShowStrokePalette] = useState(false);
 
     const { setResponsiveResize, setImageCropMode } = useEditorStore();
-    const target = targets[0];
+    const effectiveTarget = (selectionMode === 'individual' && activeSubTarget) ? activeSubTarget : targets[0];
 
     useEffect(() => {
         if (targets.length === 0) return;
 
         const updateRect = () => {
-            if (targets.length === 1) {
+            if (selectionMode === 'individual' && activeSubTarget) {
+                setRect(activeSubTarget.getBoundingClientRect());
+            } else if (targets.length === 1) {
                 setRect(targets[0].getBoundingClientRect());
             } else {
                 let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
@@ -71,22 +80,23 @@ export const useFloatingMenu = (targets: HTMLElement[], onUpdate: () => void, on
             window.removeEventListener('resize', updateRect);
             observers.forEach(obs => obs.disconnect());
         };
-    }, [targets]);
+    }, [targets, selectionMode, activeSubTarget]);
 
     const targetType = useMemo((): MenuType => {
-        if (!target) return 'shape';
-        const tagName = target.tagName.toLowerCase();
-        const isImage = tagName === 'img' || (target.style.backgroundImage && target.style.backgroundImage.includes('url'));
+        const t = effectiveTarget;
+        if (!t) return 'shape';
+        const tagName = t.tagName.toLowerCase();
+        const isImage = tagName === 'img' || (t.style.backgroundImage && t.style.backgroundImage.includes('url'));
         if (isImage) return 'image';
 
-        const isText = target.textContent?.trim() !== '' &&
-            (target.children.length === 0 ||
-                Array.from(target.children).every(c =>
+        const isText = t.textContent?.trim() !== '' &&
+            (t.children.length === 0 ||
+                Array.from(t.children).every(c =>
                     ['br', 'span'].includes(c.tagName.toLowerCase()) ||
                     (['div', 'p'].includes(c.tagName.toLowerCase()) && !c.id)
                 ));
         return isText ? 'text' : 'shape';
-    }, [target]);
+    }, [effectiveTarget]);
 
     const gid = targets[0]?.getAttribute('data-group-id');
     const isGrouped = targets.length > 1 && gid !== null && targets.every(el => el.getAttribute('data-group-id') === gid);
@@ -123,11 +133,12 @@ export const useFloatingMenu = (targets: HTMLElement[], onUpdate: () => void, on
     }, [targets, onUpdate, onClearSelection]);
 
     const toggleBold = useCallback(() => {
-        if (!target) return;
-        const currentWeight = window.getComputedStyle(target).fontWeight;
+        const t = effectiveTarget;
+        if (!t) return;
+        const currentWeight = window.getComputedStyle(t).fontWeight;
         const isBold = currentWeight === 'bold' || parseInt(currentWeight) >= 700;
         applyStyle('fontWeight', isBold ? 'normal' : 'bold');
-    }, [target, applyStyle]);
+    }, [effectiveTarget, applyStyle]);
 
 
     const openEyeDropper = async (propertyOrCallback: ((color: string) => void) | keyof CSSStyleDeclaration = 'color') => {
@@ -166,7 +177,7 @@ export const useFloatingMenu = (targets: HTMLElement[], onUpdate: () => void, on
 
     return {
         rect,
-        target,
+        target: effectiveTarget,
         targetType,
         isGrouped,
         canGroup,

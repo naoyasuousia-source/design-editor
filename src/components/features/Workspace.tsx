@@ -77,27 +77,27 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
                         handleMouseMove={handleMouseMove}
                         handleMouseLeave={handleMouseLeave}
                         updateContentFromDOM={updateContentFromDOM}
-                    />
-
-                    {!isLocked && (
-                        <MoveableManager
-                            targets={targets}
-                            canvasRef={canvasRef}
-                            getRenderDirections={getRenderDirections}
-                            getBounds={getBounds}
-                            currentWidth={currentWidth}
-                            currentHeight={currentHeight}
-                            moveableKeepRatio={moveableKeepRatio}
-                            zoom={zoom}
-                            expandCanvas={expandCanvas}
-                            isTextBox={isTextBox}
-                            selectionMode={selectionMode}
-                            activeSubTarget={activeSubTarget}
-                            hoverTargets={hoverTargets}
-                            handleResizeStart={handleResizeStart}
-                            updateContentFromDOM={updateContentFromDOM}
-                        />
-                    )}
+                    >
+                        {!isLocked && (
+                            <MoveableManager
+                                targets={targets}
+                                canvasRef={canvasRef}
+                                getRenderDirections={getRenderDirections}
+                                getBounds={getBounds}
+                                currentWidth={currentWidth}
+                                currentHeight={currentHeight}
+                                moveableKeepRatio={moveableKeepRatio}
+                                zoom={zoom}
+                                expandCanvas={expandCanvas}
+                                isTextBox={isTextBox}
+                                selectionMode={selectionMode}
+                                activeSubTarget={activeSubTarget}
+                                hoverTargets={hoverTargets}
+                                handleResizeStart={handleResizeStart}
+                                updateContentFromDOM={updateContentFromDOM}
+                            />
+                        )}
+                    </DesignArea>
                 </div>
             </div>
 

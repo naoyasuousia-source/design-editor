@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import React, { useMemo, useState, useCallback, useRef } from 'react';
+import { cn } from '@/utils/cn';
 import type { SelectionMode } from '@/hooks/moveable/useSelection';
 import GroupMoveable from './GroupMoveable';
 import IndividualMoveable from './IndividualMoveable';
@@ -21,7 +22,7 @@ interface MoveableManagerProps {
     updateContentFromDOM: () => void;
 }
 
-const calculateGroupBounds = (elements: HTMLElement[], container: HTMLElement | null) => {
+const calculateGroupBounds = (elements: HTMLElement[], container: HTMLElement | null, zoom: number) => {
     if (elements.length === 0 || !container) return null;
     const cr = container.getBoundingClientRect();
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
@@ -32,96 +33,79 @@ const calculateGroupBounds = (elements: HTMLElement[], container: HTMLElement | 
         maxX = Math.max(maxX, r.right - cr.left);
         maxY = Math.max(maxY, r.bottom - cr.top);
     });
-    return { left: minX, top: minY, width: maxX - minX, height: maxY - minY };
+    // コンテナ自体が scale(zoom) されているので、CSS の left/top に指定する値は unscaled である必要がある
+    return {
+        left: minX / zoom,
+        top: minY / zoom,
+        width: (maxX - minX) / zoom,
+        height: (maxY - minY) / zoom
+    };
 };
 
 const MoveableManager: React.FC<MoveableManagerProps> = (props) => {
-    const { targets, canvasRef, selectionMode, activeSubTarget, hoverTargets } = props;
-    const [hoverOverlay, setHoverOverlay] = useState<HTMLDivElement | null>(null);
-    const [groupOverlay, setGroupOverlay] = useState<HTMLDivElement | null>(null);
-    const [, forceUpdate] = useState({});
+    const { targets, canvasRef, selectionMode, activeSubTarget, hoverTargets, zoom } = props;
+    const [overlayEl, setOverlayEl] = useState<HTMLDivElement | null>(null);
 
-    useEffect(() => {
-        if (!canvasRef.current) return;
-        let overlay = hoverOverlay;
-        if (!overlay) {
-            overlay = document.createElement('div');
-            overlay.className = "absolute pointer-events-none border-2 border-orange-500 hidden z-[9998]";
-            canvasRef.current.appendChild(overlay);
-            setHoverOverlay(overlay);
-        }
-        if (hoverTargets.length > 0) {
-            const b = calculateGroupBounds(hoverTargets, canvasRef.current);
-            if (b) {
-                overlay.style.display = 'block';
-                overlay.style.left = `${b.left}px`;
-                overlay.style.top = `${b.top}px`;
-                overlay.style.width = `${b.width}px`;
-                overlay.style.height = `${b.height}px`;
-            }
-        } else {
-            overlay.style.display = 'none';
-        }
-    }, [hoverTargets, canvasRef, hoverOverlay]);
+    const onOverlayRef = useCallback((el: HTMLDivElement | null) => {
+        setOverlayEl(el);
+    }, []);
 
-    useEffect(() => {
-        if (!canvasRef.current) return;
-        let overlay = groupOverlay;
-        if (!overlay) {
-            overlay = document.createElement('div');
-            overlay.className = "absolute hidden z-[9999]";
-            canvasRef.current.appendChild(overlay);
-            setGroupOverlay(overlay);
-        }
-        const hasGroup = targets.length > 0 && targets[0]?.getAttribute('data-group-id');
-        if ((selectionMode === 'group' || selectionMode === 'individual') && hasGroup) {
-            const b = calculateGroupBounds(targets, canvasRef.current);
-            if (b) {
-                overlay.style.display = 'block';
-                overlay.style.left = `${b.left}px`;
-                overlay.style.top = `${b.top}px`;
-                overlay.style.width = `${b.width}px`;
-                overlay.style.height = `${b.height}px`;
-                if (selectionMode === 'group') {
-                    overlay.classList.remove('pointer-events-none');
-                } else {
-                    overlay.classList.add('pointer-events-none');
-                }
-            }
-        } else {
-            overlay.style.display = 'none';
-        }
-        forceUpdate({});
-    }, [targets, selectionMode, canvasRef, groupOverlay]);
+    // 境界計算をメモ化
+    const hoverBounds = useMemo(() => calculateGroupBounds(hoverTargets, canvasRef.current, zoom), [hoverTargets, canvasRef, zoom]);
+    const groupBounds = useMemo(() => calculateGroupBounds(targets, canvasRef.current, zoom), [targets, canvasRef, zoom]);
 
-    useEffect(() => {
-        return () => {
-            hoverOverlay?.remove();
-            groupOverlay?.remove();
-        };
-    }, [hoverOverlay, groupOverlay]);
+    const hasGroupId = targets.length > 0 && targets[0]?.getAttribute('data-group-id');
+    const isGroupActive = (selectionMode === 'group' || selectionMode === 'individual') && hasGroupId;
+
+    const selectionKey = useMemo(() => {
+        return `${selectionMode}-${targets.map(t => t.id || t.className).join(',')}-${groupBounds?.width}-${groupBounds?.height}`;
+    }, [selectionMode, targets, groupBounds]);
 
     const updateOverlayBounds = useCallback(() => {
-        if (!groupOverlay || !canvasRef.current) return;
-        const b = calculateGroupBounds(targets, canvasRef.current);
-        if (b) {
-            groupOverlay.style.left = `${b.left}px`;
-            groupOverlay.style.top = `${b.top}px`;
-            groupOverlay.style.width = `${b.width}px`;
-            groupOverlay.style.height = `${b.height}px`;
-        }
-    }, [groupOverlay, targets, canvasRef]);
-
-    const selectionKey = useMemo(() => `${selectionMode}-${targets.map(t => t.id).join(',')}`, [selectionMode, targets]);
-    const showGroupMoveable = groupOverlay && (targets.length > 1 || (targets.length > 0 && targets[0]?.getAttribute('data-group-id'))) &&
-        (selectionMode === 'group' || selectionMode === 'individual') && groupOverlay.style.display !== 'none';
+        // 現在は JSX ベースでレンダリングしているため、この関数は Moveable 側のリクエストに応えるための空実装、
+        // あるいは必要に応じて forceUpdate を呼ぶためのものになります。
+    }, []);
 
     return (
         <>
-            {showGroupMoveable && (
+            {/* ホバーオーバーレイ */}
+            {hoverTargets.length > 0 && hoverBounds && (
+                <div
+                    className="absolute pointer-events-none border-2 border-orange-500 z-[9998] hover-selection-overlay"
+                    style={{
+                        left: hoverBounds.left,
+                        top: hoverBounds.top,
+                        width: hoverBounds.width,
+                        height: hoverBounds.height,
+                    }}
+                />
+            )}
+
+            {/* グループ選択オーバーレイ */}
+            {isGroupActive && groupBounds && (
+                <div
+                    ref={onOverlayRef}
+                    className={cn(
+                        "absolute z-[9999] group-selection-overlay",
+                        // グループ選択モードの時は Moveable が線を引くので border-0、
+                        // 個別選択モードの時は Moveable が引かないので border-2 を出す
+                        selectionMode === 'individual' ? "border-2 border-orange-500" : "border-0",
+                        selectionMode !== 'group' && "pointer-events-none"
+                    )}
+                    style={{
+                        left: groupBounds.left,
+                        top: groupBounds.top,
+                        width: groupBounds.width,
+                        height: groupBounds.height,
+                    }}
+                />
+            )}
+
+            {/* GroupMoveable: 文字通り「オーバーレイ」をターゲットにする */}
+            {isGroupActive && overlayEl && (
                 <GroupMoveable
                     {...props}
-                    groupOverlay={groupOverlay}
+                    groupOverlay={overlayEl}
                     selectionKey={selectionKey}
                     updateOverlayBounds={updateOverlayBounds}
                 />

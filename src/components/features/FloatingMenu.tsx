@@ -46,11 +46,11 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectio
         showTextBgPalette, setShowTextBgPalette,
         showStrokePalette, setShowStrokePalette,
         applyStyle, setImageCropMode, handleGroup, handleUngroup, handleDelete, toggleBold, openEyeDropper, closeAllPanels
-    } = useFloatingMenu(targets, onUpdate, onClearSelection);
+    } = useFloatingMenu(targets, onUpdate, onClearSelection, selectionMode, activeSubTarget);
 
     if (!rect || !target) return null;
 
-    const displayTarget = selectionMode === 'individual' && activeSubTarget ? activeSubTarget : target;
+    const displayTarget = target;
 
     const handleCopyId = () => {
         if (displayTarget.id) navigator.clipboard.writeText(displayTarget.id);
@@ -102,7 +102,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectio
                 onCopyGroupId={handleCopyGroupId}
             />
 
-            {(canGroup || (selectionMode === 'group' && isGrouped)) ? (
+            {(canGroup || (isGrouped && selectionMode === 'group')) ? (
                 <GroupActions
                     isGrouped={isGrouped}
                     canGroup={canGroup}

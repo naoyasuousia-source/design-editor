@@ -54,10 +54,18 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
 
         // オーバーレイ（グループ枠など）がクリックされた場合、背後にある実際の要素を特定する
         if (!target.closest('.DesignSurface')) {
-            const originalPointerEvents = target.style.pointerEvents;
-            target.style.pointerEvents = 'none';
+            const groupOverlay = canvasRef.current?.querySelector('.group-selection-overlay') as HTMLElement;
+            const hoverOverlay = canvasRef.current?.querySelector('.hover-selection-overlay') as HTMLElement;
+            const overlaysToHide = [target];
+            if (groupOverlay) overlaysToHide.push(groupOverlay);
+            if (hoverOverlay) overlaysToHide.push(hoverOverlay);
+            const controlBox = canvasRef.current?.querySelector('.moveable-control-box') as HTMLElement;
+            if (controlBox) overlaysToHide.push(controlBox);
+
+            const originalStyles = overlaysToHide.map(el => el.style.pointerEvents);
+            overlaysToHide.forEach(el => el.style.pointerEvents = 'none');
             const underlying = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement;
-            target.style.pointerEvents = originalPointerEvents;
+            overlaysToHide.forEach((el, i) => el.style.pointerEvents = originalStyles[i]);
 
             if (underlying && underlying.closest('.DesignSurface')) {
                 target = underlying;
@@ -152,32 +160,60 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
         lastMouseDownPos.current = null;
 
         // ドラッグした場合は個別選択に切り替えない
-        if (distance > 3) return;
+        if (distance > 5) return;
 
         let target = e.target as HTMLElement;
         if (!target.closest('.DesignSurface')) {
-            const originalPointerEvents = target.style.pointerEvents;
-            target.style.pointerEvents = 'none';
+            // オーバーレイや Moveable のコントロールがクリックされた場合、それらを透過して下の要素を探す
+            const groupOverlay = canvasRef.current?.querySelector('.group-selection-overlay') as HTMLElement;
+            const hoverOverlay = canvasRef.current?.querySelector('.hover-selection-overlay') as HTMLElement;
+            const overlaysToHide = [target];
+            if (groupOverlay) overlaysToHide.push(groupOverlay);
+            if (hoverOverlay) overlaysToHide.push(hoverOverlay);
+
+            // Moveable のコントロールボックスも隠す
+            const controlBox = canvasRef.current?.querySelector('.moveable-control-box') as HTMLElement;
+            if (controlBox) overlaysToHide.push(controlBox);
+
+            const originalStyles = overlaysToHide.map(el => el.style.pointerEvents);
+            overlaysToHide.forEach(el => el.style.pointerEvents = 'none');
+
             const underlying = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement;
-            target.style.pointerEvents = originalPointerEvents;
-            if (underlying && underlying.closest('.DesignSurface')) target = underlying;
-            else return;
+
+            overlaysToHide.forEach((el, i) => el.style.pointerEvents = originalStyles[i]);
+
+            if (underlying && underlying.closest('.DesignSurface')) {
+                target = underlying;
+            } else {
+                return;
+            }
         }
 
         const el = target.closest('.DesignSurface > *, .DesignSurface *') as HTMLElement;
         if (!el || el.classList.contains('DesignSurface')) return;
 
         const groupId = el.getAttribute('data-group-id');
-        if (groupId && selectionMode === 'group') {
+        if (groupId) {
             const groupElements = Array.from(canvasRef.current?.querySelectorAll(`[data-group-id="${groupId}"]`) || []) as HTMLElement[];
             const isTargetInCurrentGroup = targets.length === groupElements.length &&
                 groupElements.every(e => targets.includes(e));
 
-            if (isTargetInCurrentGroup) {
-                // Clicking an element within the already selected group -> switch to individual
+            if (isTargetInCurrentGroup && (selectionMode === 'group' || selectionMode === 'individual')) {
+                // すでに同じグループを選択している場合 -> クリックした個別要素を選択
                 setSelectionMode('individual');
                 setActiveSubTarget(el);
+            } else if (!isTargetInCurrentGroup) {
+                // 別のグループまたは要素から現在のグループへの切り替えは handleCanvasClick で行われているはず
+                // 万が一漏れた場合のためにここでケア
+                setTargets(groupElements);
+                setSelectionMode('group');
+                setActiveSubTarget(null);
             }
+        } else {
+            // グループなし単体要素への切り替え
+            setTargets([el]);
+            setSelectionMode('individual');
+            setActiveSubTarget(el);
         }
     }, [isLocked, selectionMode, targets, canvasRef, setSelectionMode, setActiveSubTarget]);
 

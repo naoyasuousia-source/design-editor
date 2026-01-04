@@ -12,6 +12,7 @@ interface DesignAreaProps {
     handleMouseMove: (e: React.MouseEvent) => void;
     handleMouseLeave: () => void;
     updateContentFromDOM: () => void;
+    children?: React.ReactNode;
 }
 
 export const DesignContent = React.memo(({
@@ -54,7 +55,8 @@ const DesignArea: React.FC<DesignAreaProps> = ({
     handleMouseUp,
     handleMouseMove,
     handleMouseLeave,
-    updateContentFromDOM
+    updateContentFromDOM,
+    children
 }) => {
     const isApplyingUpdate = useEditorStore(state => state.isApplyingUpdate);
     const customCss = useEditorStore(state => state.customCss);
@@ -132,6 +134,7 @@ const DesignArea: React.FC<DesignAreaProps> = ({
                     </div>
                 </div>
             )}
+            {children}
         </div>
     );
 };
