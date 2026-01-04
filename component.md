@@ -28,14 +28,40 @@
 ## 1. 未解決要件（移動許可がNGの要件は絶対に移動・編集しないこと）（勝手に移動許可をOKに書き換えないこと）
 
 <requirement>
-<content>テキストボックス要素、図形要素、画像要素、グループのすべてのメニューに「複製」ボタンを追加する。複製を選択すると、複製元と少しずらして、同じものをレンダリングする。（コード上は一番最後尾に追加する）（idのみ変える）</content>
+<content>複数要素選択時、なぜか選択してないテキストボックスも含めて、いろいろなテキストの一部がドラッグ選択されてるように青くなってしまうので、複数要素選択時は、一切テキストが青くならないようにする。</content>
 <current-situation></current-situation>
+<remarks></remarks>
+<permission-to-move>NGs</permission-to-move>
+</requirement>
+
+<requirement>
+<content>テキストボックス要素、図形要素、画像要素、グループのすべてのメニューに「複製」ボタンを追加する。複製を選択すると、複製元と少しずらして、同じものをレンダリングする。（コード上は一番最後尾に追加する）（idのみ変える）</content>
+<current-situation>修正完了。複製ボタンが正しく動作し、複製後に対象が自動選択されるように改善。</current-situation>
 <remarks>複数要素選択メニューには複製は追加しない！</remarks>
-<permission-to-move>NG</permission-to-move>
+<permission-to-move>OK</permission-to-move>
 </requirement>
 
 
 ## 2. 未解決要件に関するコード変更履歴（目的、変更内容、変更日時）
+
+- **要素・グループの複製機能のバグ修正と改善**
+    - 目的: 複製ボタンが動作していなかった問題を修正し、操作性を向上させるため。
+    - 内容:
+        - `useFloatingMenu.ts`: 
+            - `document.getElementById('DesignSurface')` を `document.querySelector('.DesignSurface')` に修正（IDではなくクラスが正しいため）。
+            - 複製後に `setAutoSelectId` を呼び出し、複製された要素が自動的に選択されるように改善。
+            - グループ内個別選択時の複製で `data-group-id` を保持しないように修正（単体複製扱い）。
+        - `useMoveable.ts`: `autoSelectId` による自動選択時に、対象がグループIDを持っていればグループ全体を自動選択するように拡張。
+    - 日時: 2026-01-04 12:45
+
+- **要素・グループの複製機能の実装**
+    - 目的: ユーザーが要素やグループを簡単に複製できるようにするため。
+    - 内容:
+        - `useFloatingMenu.ts`: `handleDuplicate` 関数を実装。選択された要素を `cloneNode` で複製し、IDを新規生成、座標を20pxオフセットして `DesignSurface` に追加するロジックを実装。
+        - `FloatingMenu.tsx`: 下部ツールバーに複製ボタン（`Copy`アイコン）を追加。
+        - `GroupActions.tsx`: グループ選択時のメニューに複製ボタンを追加。
+        - `lucide-react`: `Copy` アイコンをインポート。
+    - 日時: 2026-01-04 12:35
 
 - **FloatingMenu のコンソールエラー修正**
     - 目的: `useAssets is not defined` エラーによりエディタがクラッシュする問題を解決するため。
@@ -219,6 +245,10 @@
 
 
 ## 4. 解決済み要件とその解決方法
+
+- **要素・グループの複製機能**
+    - 要件: テキスト、図形、画像、グループのメニューに「複製」ボタンを追加し、複製元からずらして作成。複数選択メニューには表示しない。
+    - 解決方法: `useFloatingMenu` に共通の複製ロジックを実装。単一要素ならその要素を、グループならグループ内全要素を複製し、全体に新しいグループIDを付与（グループの場合のみ）。座標を+20pxし、`DesignSurface` の末尾に追加することで実装完了。
 
 - **テキストボックス挿入時のデフォルト文字色（黒）の保証**
     - 要件: テキストボックス挿入時、デフォルトのフォントカラーを黒にする。

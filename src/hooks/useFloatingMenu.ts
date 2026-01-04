@@ -38,7 +38,7 @@ export const useFloatingMenu = (
     const [showTextBgPalette, setShowTextBgPalette] = useState(false);
     const [showStrokePalette, setShowStrokePalette] = useState(false);
 
-    const { setResponsiveResize, setImageCropMode } = useEditorStore();
+    const { setResponsiveResize, setImageCropMode, setAutoSelectId } = useEditorStore();
     const effectiveTarget = (selectionMode === 'individual' && activeSubTarget) ? activeSubTarget : targets[0];
 
     useEffect(() => {
@@ -132,6 +132,48 @@ export const useFloatingMenu = (
         onUpdate();
     }, [targets, onUpdate, onClearSelection]);
 
+    const handleDuplicate = useCallback(() => {
+        if (targets.length === 0) return;
+
+        const designSurface = document.querySelector('.DesignSurface');
+        if (!designSurface) return;
+
+        // グループの場合、新しい共通のグループIDを生成
+        const isGroupDuplication = targets.length > 1 || (targets.length === 1 && targets[0].hasAttribute('data-group-id'));
+        const newGroupId = isGroupDuplication
+            ? `group-${Math.random().toString(36).substr(2, 9)}`
+            : null;
+
+        let firstCloneId: string | null = null;
+
+        targets.forEach((el, index) => {
+            const clone = el.cloneNode(true) as HTMLElement;
+            const newId = `el-${Math.random().toString(36).substr(2, 9)}`;
+            clone.id = newId;
+            if (index === 0) firstCloneId = newId;
+
+            if (newGroupId) {
+                clone.setAttribute('data-group-id', newGroupId);
+            } else {
+                clone.removeAttribute('data-group-id');
+            }
+
+            // 位置を少しずらす (20px)
+            const top = parseFloat(el.style.top || '0');
+            const left = parseFloat(el.style.left || '0');
+            clone.style.top = `${top + 20}px`;
+            clone.style.left = `${left + 20}px`;
+
+            designSurface.appendChild(clone);
+        });
+
+        onUpdate();
+
+        if (firstCloneId) {
+            setAutoSelectId(firstCloneId);
+        }
+    }, [targets, onUpdate, setAutoSelectId]);
+
     const toggleBold = useCallback(() => {
         const t = effectiveTarget;
         if (!t) return;
@@ -201,6 +243,7 @@ export const useFloatingMenu = (
         handleGroup,
         handleUngroup,
         handleDelete,
+        handleDuplicate,
         toggleBold,
         openEyeDropper,
         closeAllPanels

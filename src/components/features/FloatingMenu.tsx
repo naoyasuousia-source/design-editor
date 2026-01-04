@@ -5,6 +5,7 @@ import {
     ImagePlus,
     Square,
     Scissors,
+    Copy,
 } from 'lucide-react';
 import { useAssets } from '@/hooks/useAssets';
 import { cn } from '@/utils/cn';
@@ -45,7 +46,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectio
         showShadowPalette, setShowShadowPalette,
         showTextBgPalette, setShowTextBgPalette,
         showStrokePalette, setShowStrokePalette,
-        applyStyle, setImageCropMode, handleGroup, handleUngroup, handleDelete, toggleBold, openEyeDropper, closeAllPanels
+        applyStyle, setImageCropMode, handleGroup, handleUngroup, handleDelete, handleDuplicate, toggleBold, openEyeDropper, closeAllPanels
     } = useFloatingMenu(targets, onUpdate, onClearSelection, selectionMode, activeSubTarget);
 
     if (!rect || !target) return null;
@@ -109,6 +110,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectio
                     onGroup={handleGroup}
                     onUngroup={handleUngroup}
                     onDelete={handleDelete}
+                    onDuplicate={handleDuplicate}
                 />
             ) : (
                 <>
@@ -252,6 +254,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectio
                         )}
 
                         <div className="flex items-center gap-1 px-1">
+                            <button className="p-1.5 hover:bg-white/5 rounded text-gray-400 hover:text-white transition-all" onClick={handleDuplicate} title="Duplicate"><Copy size={14} /></button>
                             <button className="p-1.5 hover:bg-red-500/20 rounded text-gray-400 hover:text-red-400 transition-all" onClick={handleDelete} title="Delete"><Trash2 size={14} /></button>
                         </div>
                     </div>

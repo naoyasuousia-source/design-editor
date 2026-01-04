@@ -298,9 +298,17 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
         const timeout = setTimeout(() => {
             const el = canvasRef.current?.querySelector(`[id="${autoSelectId}"]`) as HTMLElement;
             if (el) {
-                setTargets([el]);
-                setSelectionMode('individual');
-                setActiveSubTarget(el);
+                const gid = el.getAttribute('data-group-id');
+                if (gid) {
+                    const groupElements = Array.from(canvasRef.current?.querySelectorAll(`[data-group-id="${gid}"]`) || []) as HTMLElement[];
+                    setTargets(groupElements);
+                    setSelectionMode('group');
+                    setActiveSubTarget(null);
+                } else {
+                    setTargets([el]);
+                    setSelectionMode('individual');
+                    setActiveSubTarget(el);
+                }
                 setAutoSelectId(null);
             }
         }, 300); // 余裕を持って300ms待機

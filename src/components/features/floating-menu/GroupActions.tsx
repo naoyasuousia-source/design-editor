@@ -1,5 +1,5 @@
 import React from 'react';
-import { Group, Ungroup, Trash2 } from 'lucide-react';
+import { Group, Ungroup, Trash2, Copy } from 'lucide-react';
 
 interface GroupActionsProps {
     isGrouped: boolean;
@@ -7,6 +7,7 @@ interface GroupActionsProps {
     onGroup: () => void;
     onUngroup: () => void;
     onDelete: () => void;
+    onDuplicate: () => void;
 }
 
 const GroupActions: React.FC<GroupActionsProps> = ({
@@ -14,7 +15,8 @@ const GroupActions: React.FC<GroupActionsProps> = ({
     canGroup,
     onGroup,
     onUngroup,
-    onDelete
+    onDelete,
+    onDuplicate
 }) => {
     if (canGroup) {
         return (
@@ -49,6 +51,14 @@ const GroupActions: React.FC<GroupActionsProps> = ({
                 >
                     <Ungroup size={14} />
                     <span className="text-xs font-bold">解除</span>
+                </button>
+                <button
+                    className="p-1.5 hover:bg-orange-500/20 rounded text-orange-400 hover:text-orange-300 transition-all flex items-center gap-1"
+                    onClick={onDuplicate}
+                    title="Duplicate Group"
+                >
+                    <Copy size={14} />
+                    <span className="text-xs font-bold">複製</span>
                 </button>
                 <button
                     className="p-1.5 hover:bg-red-500/20 rounded text-red-400 hover:text-red-300 transition-all flex items-center gap-1"
