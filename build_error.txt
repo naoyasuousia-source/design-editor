@@ -1,0 +1,9 @@
+src/components/features/FloatingMenu.tsx(37,9): error TS6133: 'showCropPicker' is declared but its value is never read.
+src/components/features/FloatingMenu.tsx(37,25): error TS6133: 'setShowCropPicker' is declared but its value is never read.
+src/components/features/workspace/IndividualMoveable.tsx(50,13): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: MoveableDefaultProps & GroupableProps & IndividualGroupableProps & BeforeRenderableProps & RenderableProps & MoveableProps & { ...; }): Moveable<...>', gave the following error.
+    Type 'string | boolean' is not assignable to type 'boolean'.
+      Type 'string' is not assignable to type 'boolean'.
+  Overload 2 of 2, '(props: MoveableDefaultProps & GroupableProps & IndividualGroupableProps & BeforeRenderableProps & RenderableProps & MoveableProps & { ...; }, context: any): Moveable<...>', gave the following error.
+    Type 'string | boolean' is not assignable to type 'boolean'.
+      Type 'string' is not assignable to type 'boolean'.

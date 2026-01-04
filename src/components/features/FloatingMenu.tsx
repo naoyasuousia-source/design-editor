@@ -34,7 +34,6 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectio
     const {
         rect, target, targetType, isGrouped, canGroup, groupId,
         showImagePicker, setShowImagePicker,
-        showCropPicker, setShowCropPicker,
         showColorPalette, setShowColorPalette,
         showBorderPalette, setShowBorderPalette,
         showBgPalette, setShowBgPalette,
