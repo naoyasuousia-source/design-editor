@@ -44,11 +44,12 @@ export const LayerSidebar: React.FC = () => {
                         <p className="text-xs">要素がありません</p>
                     </div>
                 ) : (
-                    layers.map((layer) => (
+                    layers.map((layer, index) => (
                         <LayerItem
                             key={layer.id}
                             layer={layer}
                             isActive={layer.elementIds.some(id => selectedIds.includes(id))}
+                            isFirst={index === 0}
                             onSelect={() => selectLayer(layer)}
                             onDragStart={(e) => {
                                 setDraggedId(layer.id);
@@ -58,9 +59,9 @@ export const LayerSidebar: React.FC = () => {
                             onDragOver={(_e) => {
                                 // Prevent default is handled in LayerItem
                             }}
-                            onDrop={() => {
+                            onDrop={(position) => {
                                 if (draggedId && draggedId !== layer.id) {
-                                    handleReorder(draggedId, layer.id);
+                                    handleReorder(draggedId, layer.id, position === 'top' ? 'above' : 'below');
                                 }
                                 setDraggedId(null);
                             }}

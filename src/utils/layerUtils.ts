@@ -53,7 +53,12 @@ export const parseLayers = (html: string): LayerData[] => {
 /**
  * レイヤーの順序を更新したHTMLを生成する
  */
-export const updateLayerOrder = (html: string, dragId: string, hoverId: string): string => {
+export const updateLayerOrder = (
+    html: string,
+    dragId: string,
+    hoverId: string,
+    position: 'above' | 'below' = 'below'
+): string => {
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
     const surface = doc.querySelector('.DesignSurface') || doc.body;
@@ -76,11 +81,12 @@ export const updateLayerOrder = (html: string, dragId: string, hoverId: string):
     // 挿入位置の特定
     const hoverIndex = remainingElements.findIndex(c => c.id === hoverId);
 
-    // レイヤーリスト上では上が前面（DOMの後ろ）なので、
-    // 移動先（hoverId）の「前」に移動するということは、DOM上では「後」に移動することを意味する場合がある
-    // ここではシンプルに、hoverId の要素があった位置に dragElements を一括挿入する
     if (hoverIndex !== -1) {
-        remainingElements.splice(hoverIndex, 0, ...dragElements);
+        // レイヤーリスト上では上が前面（DOMの後ろ）
+        // position === 'above' (リストで上) -> DOM上で hoverId より後に挿入
+        // position === 'below' (リストで下) -> DOM上で hoverId より前に挿入
+        const insertIndex = position === 'above' ? hoverIndex + 1 : hoverIndex;
+        remainingElements.splice(insertIndex, 0, ...dragElements);
     } else {
         remainingElements.push(...dragElements);
     }

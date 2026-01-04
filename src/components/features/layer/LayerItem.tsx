@@ -6,21 +6,23 @@ import { cn } from '@/utils/cn';
 interface LayerItemProps {
     layer: LayerData;
     isActive: boolean;
+    isFirst: boolean;
     onSelect: () => void;
     onDragStart: (e: React.DragEvent) => void;
     onDragOver: (e: React.DragEvent) => void;
-    onDrop: (e: React.DragEvent) => void;
+    onDrop: (position: 'top' | 'bottom') => void;
 }
 
 export const LayerItem: React.FC<LayerItemProps> = ({
     layer,
     isActive,
+    isFirst,
     onSelect,
     onDragStart,
     onDragOver,
     onDrop
 }) => {
-    const [isDragOver, setIsDragOver] = useState(false);
+    const [dragOverPosition, setDragOverPosition] = useState<'top' | 'bottom' | null>(null);
 
     const getIcon = () => {
         switch (layer.type) {
@@ -38,20 +40,30 @@ export const LayerItem: React.FC<LayerItemProps> = ({
             onDragStart={onDragStart}
             onDragOver={(e) => {
                 e.preventDefault();
-                setIsDragOver(true);
+                const rect = e.currentTarget.getBoundingClientRect();
+                const y = e.clientY - rect.top;
+
+                // 要件: 一番上のレイヤーのみ上辺への移動を許可
+                if (isFirst && y < rect.height / 2) {
+                    setDragOverPosition('top');
+                } else {
+                    setDragOverPosition('bottom');
+                }
                 onDragOver(e);
             }}
-            onDragLeave={() => setIsDragOver(false)}
+            onDragLeave={() => setDragOverPosition(null)}
             onDrop={(e) => {
-                setIsDragOver(false);
-                onDrop(e);
+                const position = dragOverPosition || 'bottom';
+                setDragOverPosition(null);
+                onDrop(position);
             }}
             onClick={onSelect}
             className={cn(
                 "group relative flex items-center gap-3 p-2 rounded-xl cursor-pointer transition-all duration-200",
                 "border border-transparent hover:bg-white/5",
                 isActive ? "bg-white/10 border-white/10 shadow-lg" : "",
-                isDragOver ? "border-t-primary border-t-2 bg-primary/5" : ""
+                dragOverPosition === 'top' && "border-t-primary border-t-2 bg-primary/5",
+                dragOverPosition === 'bottom' && "border-b-primary border-b-2 bg-primary/5"
             )}
         >
             <div className="opacity-0 group-hover:opacity-40 transition-opacity cursor-grab active:cursor-grabbing">

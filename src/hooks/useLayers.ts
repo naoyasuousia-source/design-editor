@@ -10,9 +10,9 @@ export const useLayers = () => {
         return parseLayers(content);
     }, [content]);
 
-    const handleReorder = useCallback((dragId: string, hoverId: string) => {
+    const handleReorder = useCallback((dragId: string, hoverId: string, position: 'above' | 'below' = 'below') => {
         if (dragId === hoverId) return;
-        const newContent = updateLayerOrder(content, dragId, hoverId);
+        const newContent = updateLayerOrder(content, dragId, hoverId, position);
         setContent(newContent);
     }, [content, setContent]);
 
