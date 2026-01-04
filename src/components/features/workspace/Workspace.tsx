@@ -1,4 +1,5 @@
 import React, { useRef } from 'react';
+import { cn } from '@/utils/cn';
 import { useEditorStore } from '@/store/useEditorStore';
 import { PAGE_SIZES } from '@/types/editor';
 import { useAutoSync } from '@/hooks/useAutoSync';
@@ -55,10 +56,16 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked, isHome }) => {
     useAutoSync();
 
     return (
-        <div className="h-full w-full relative overflow-auto CustomScrollbar flex select-none">
+        <div className={cn(
+            "h-full w-full relative flex select-none",
+            isHome ? "overflow-hidden" : "overflow-auto CustomScrollbar"
+        )}>
             {/* 視覚的なサイズを確保するラッパー（スクロールと中央寄せ用） */}
             <div
-                className="relative shrink-0 shadow-2xl m-auto my-16 mx-auto"
+                className={cn(
+                    "relative shrink-0 shadow-2xl mx-auto",
+                    isHome ? "m-auto" : "m-auto my-16"
+                )}
                 style={{
                     width: `${currentWidth * zoom}px`,
                     height: `${currentHeight * zoom}px`,
