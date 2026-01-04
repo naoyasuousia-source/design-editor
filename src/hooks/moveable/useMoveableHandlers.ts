@@ -126,13 +126,13 @@ export const useMoveableHandlers = ({
 
                     const isSameElementClicked = activeSubTarget === el;
 
-                    // すでにグループ選択されているか、同じ要素の個別選択中なら MouseDown では変えない
-                    // (個別選択中のドラッグを許可するため)
+                    // 1. グループ選択中、または同じ要素の個別選択中の場合のみ、MouseUpでの個別切替を許可するフラグを立てる
                     if (isAlreadyGroupSelected && (selectionMode === 'group' || (selectionMode === 'individual' && isSameElementClicked))) {
                         wasAlreadySelectedRef.current = selectionMode === 'group';
                         return;
                     } else {
-                        // 別の要素をクリックしたか、新規選択の場合はグループ選択に戻す
+                        // 2. 別の要素をクリックしたか、新規選択の場合は、強制的にグループ選択に戻す
+                        // この際、wasAlreadySelectedRef を false にすることで、MouseUp での即座な個別切替を阻止する
                         setTargets(groupElements);
                         setSelectionMode('group');
                         setActiveSubTarget(null);
@@ -146,7 +146,7 @@ export const useMoveableHandlers = ({
                 }
             }
         }
-    }, [isLocked, canvasRef, finishEditing, handleDoubleClick, setTargets, targets, selectNone, setSelectionMode, setActiveSubTarget, isEditingRef, editingElementRef]);
+    }, [isLocked, canvasRef, finishEditing, handleDoubleClick, setTargets, targets, selectNone, setSelectionMode, setActiveSubTarget, isEditingRef, editingElementRef, selectionMode, activeSubTarget]);
 
     const handleMouseUp = useCallback((e: React.MouseEvent) => {
         if (isLocked || !lastMouseDownPos.current) return;
@@ -205,11 +205,13 @@ export const useMoveableHandlers = ({
                 targets.every(t => t.getAttribute('data-group-id') === groupId);
 
             if (isTargetInCurrentGroup) {
-                // selectionMode が group かつ、MouseDown時にすでに選択されていた場合のみ個別選択へ移行
+                // selectionMode が group であり、かつ MouseDown 時に既にそのグループが選択されていた場合のみ個別選択へ移行
                 if (selectionMode === 'group' && wasAlreadySelectedRef.current) {
                     setSelectionMode('individual');
                     setActiveSubTarget(el);
                 }
+                // selectionMode が individual だった場合は、MouseDown 側のロジックで既に group に戻されているか、
+                // 同一要素クリックなら何もしない（ドラッグ維持）ため、ここでは追加処理不要
             } else if (!isTargetInCurrentGroup) {
                 setTargets(groupElements);
                 setSelectionMode('group');
