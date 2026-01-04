@@ -209,10 +209,10 @@ export const cleanHTML = (html: string): string => {
     cleaned = cleaned.replace(/\sspellcheck="[^"]*"/g, '');
     // エディタ用の一時的な data 属性を除去 (data-group-id は維持)
     cleaned = cleaned.replace(/\sdata-(?!group-id|group-type)[a-zA-Z0-9-]+="[^"]*"/g, '');
-    // デザイン領域のクラスをクリーンアップ (absolute inset-0 などを消す)
+    // デザイン領域のクラスをクリーンアップ
     cleaned = cleaned.replace(/class="[^"]*DesignSurface[^"]*"/g, 'class="DesignSurface"');
-    // デザイン領域のスタイルを一部リセット
-    cleaned = cleaned.replace(/style="[^"]*DesignSurface[^"]*"/g, 'style="position: relative; width: 100%; height: 100%; overflow: hidden;"');
+    // デザイン領域のスタイルをリセット (固定サイズは CSS 側で制御するため 100% 指定を消去)
+    cleaned = cleaned.replace(/style="[^"]*DesignSurface[^"]*"/g, 'style="position: relative; overflow: hidden;"');
     // 空の style 属性の除去
     cleaned = cleaned.replace(/\sstyle=""/g, '');
     return cleaned.trim();
@@ -233,7 +233,7 @@ export const constructFullHTML = (content: string, _customCss: string, meta: Met
     // DesignSurface がない場合のみラップする
     const wrappedContent = hasDesignSurface
         ? cleanContent
-        : `<div class="DesignSurface" style="position: relative; width: 100%; height: 100%; overflow: hidden;">
+        : `<div class="DesignSurface" style="position: relative; overflow: hidden;">
         ${cleanContent}
     </div>`;
 
@@ -267,6 +267,7 @@ export const constructFullHTML = (content: string, _customCss: string, meta: Met
             height: ${config.height}px; 
             min-width: ${config.width}px; 
             min-height: ${config.height}px;
+            flex-shrink: 0;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             overflow: hidden;
         }
@@ -346,6 +347,7 @@ export const constructFullHTML = (content: string, _customCss: string, meta: Met
         body { 
             display: flex; 
             justify-content: center; 
+            align-items: flex-start;
             padding: 80px 40px; 
             min-height: 100vh;
         }
