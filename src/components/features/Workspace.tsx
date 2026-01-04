@@ -34,6 +34,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
         handleResizeStart,
         getBounds,
         handleCanvasClick,
+        handleMouseUp,
         handleMouseMove,
         handleMouseLeave,
         updateContentFromDOM,
@@ -72,6 +73,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
                         config={config}
                         canvasRef={canvasRef}
                         handleCanvasClick={handleCanvasClick}
+                        handleMouseUp={handleMouseUp}
                         handleMouseMove={handleMouseMove}
                         handleMouseLeave={handleMouseLeave}
                         updateContentFromDOM={updateContentFromDOM}

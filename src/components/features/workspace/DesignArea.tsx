@@ -8,6 +8,7 @@ interface DesignAreaProps {
     config: { label: string };
     canvasRef: React.RefObject<HTMLDivElement | null>;
     handleCanvasClick: (e: React.MouseEvent) => void;
+    handleMouseUp: (e: React.MouseEvent) => void;
     handleMouseMove: (e: React.MouseEvent) => void;
     handleMouseLeave: () => void;
     updateContentFromDOM: () => void;
@@ -50,6 +51,7 @@ const DesignArea: React.FC<DesignAreaProps> = ({
     config,
     canvasRef,
     handleCanvasClick,
+    handleMouseUp,
     handleMouseMove,
     handleMouseLeave,
     updateContentFromDOM
@@ -65,6 +67,7 @@ const DesignArea: React.FC<DesignAreaProps> = ({
                 isLocked && "brightness-75 grayscale-[0.2]"
             )}
             onMouseDown={handleCanvasClick}
+            onMouseUp={handleMouseUp}
         >
             {/* カスタムCSSの反映 */}
             <style>{customCss}</style>

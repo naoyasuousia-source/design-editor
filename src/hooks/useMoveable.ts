@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import type { RefObject, MouseEvent } from 'react';
 import { useEditorStore } from '@/store/useEditorStore';
 import { useSelection } from './moveable/useSelection';
@@ -42,12 +42,15 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
         getBounds
     } = useTransform(canvasRef, targets, zoom, isTextBox);
 
+    const lastMouseDownPos = useRef<{ x: number, y: number } | null>(null);
+
     // クリックによる要素選択
     const handleCanvasClick = useCallback((e: MouseEvent) => {
         if (isLocked) return;
 
         let target = e.target as HTMLElement;
         const isShift = e.shiftKey;
+        lastMouseDownPos.current = { x: e.clientX, y: e.clientY };
 
         // オーバーレイ（グループ枠など）がクリックされた場合、背後にある実際の要素を特定する
         if (!target.closest('.DesignSurface')) {
@@ -113,18 +116,17 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
                     nextTargets.every(t => t.getAttribute('data-group-id') === firstGid);
 
                 setSelectionMode(isSameGroup ? 'group' : 'individual');
-                // 複数選択時は個別選択ターゲットをクリア（青枠を出さず、グループメニューを優先するため）
                 setActiveSubTarget(null);
             } else {
-                // 通常クリック：2段階選択ロジック
+                // 通常クリック：2段階選択ロジック（MouseDownフェーズ）
                 if (groupId) {
                     const isAlreadyGroupSelected = targets.length === groupElements.length &&
                         groupElements.every(e => targets.includes(e));
 
                     if (isAlreadyGroupSelected) {
-                        // 2回目：個別選択モードへ
-                        setSelectionMode('individual');
-                        setActiveSubTarget(el);
+                        // すでにグループ選択されている場合は、MouseDownでは何もしない（ドラッグを優先）
+                        // 個別選択への切り替えは handleMouseUp で行う
+                        return;
                     } else {
                         // 1回目：グループ全体を選択
                         setTargets(groupElements);
@@ -132,7 +134,7 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
                         setActiveSubTarget(null);
                     }
                 } else {
-                    // グループなし要素、またはグループ解除後
+                    // グループなし要素
                     setTargets([el]);
                     setSelectionMode('individual');
                     setActiveSubTarget(el);
@@ -140,6 +142,44 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
             }
         }
     }, [isLocked, canvasRef, finishEditing, handleDoubleClick, setTargets, targets, selectNone, setSelectionMode, setActiveSubTarget]);
+
+    const handleMouseUp = useCallback((e: MouseEvent) => {
+        if (isLocked || !lastMouseDownPos.current) return;
+
+        const dx = e.clientX - lastMouseDownPos.current.x;
+        const dy = e.clientY - lastMouseDownPos.current.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        lastMouseDownPos.current = null;
+
+        // ドラッグした場合は個別選択に切り替えない
+        if (distance > 3) return;
+
+        let target = e.target as HTMLElement;
+        if (!target.closest('.DesignSurface')) {
+            const originalPointerEvents = target.style.pointerEvents;
+            target.style.pointerEvents = 'none';
+            const underlying = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement;
+            target.style.pointerEvents = originalPointerEvents;
+            if (underlying && underlying.closest('.DesignSurface')) target = underlying;
+            else return;
+        }
+
+        const el = target.closest('.DesignSurface > *, .DesignSurface *') as HTMLElement;
+        if (!el || el.classList.contains('DesignSurface')) return;
+
+        const groupId = el.getAttribute('data-group-id');
+        if (groupId && selectionMode === 'group') {
+            const groupElements = Array.from(canvasRef.current?.querySelectorAll(`[data-group-id="${groupId}"]`) || []) as HTMLElement[];
+            const isTargetInCurrentGroup = targets.length === groupElements.length &&
+                groupElements.every(e => targets.includes(e));
+
+            if (isTargetInCurrentGroup) {
+                // Clicking an element within the already selected group -> switch to individual
+                setSelectionMode('individual');
+                setActiveSubTarget(el);
+            }
+        }
+    }, [isLocked, selectionMode, targets, canvasRef, setSelectionMode, setActiveSubTarget]);
 
     // ホバー時の処理（グループハイライト用）
     const handleMouseMove = useCallback((e: React.MouseEvent) => {

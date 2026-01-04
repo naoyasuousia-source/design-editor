@@ -27,35 +27,8 @@
 
 ## 1. 未解決要件（移動許可がNGの要件は絶対に移動・編集しないこと）（勝手に移動許可をOKに書き換えないこと）
 
-<requirement>
-<content>
+（現在、未解決要件はありません。動作確認をお願いします。）
 
-- 副作用として、また、「グループ選択状態」での、グループ全体ドラッグ移動ができなくなった。</content>
-<current-situation></current-situation>
-<remarks></remarks>
-<permission-to-move>NG</permission-to-move>
-</requirement>
-
-<requirement>
-<content>
-
-- 「グループ選択状態」で、さらにグループ内の個別要素をクリックすると、外側のオレンジ枠は表示したまま、個別要素の青枠と青ポイントが表示され、個別要素選択状態をなる。</content>
-<current-situation>
-</current-situation>
-<remarks></remarks>
-<permission-to-move>OK</permission-to-move>
-</requirement>
-
-
-<requirement>
-<content>
-
-- 複数要素を、シフトキーを使って選択すると、「複数要素選択メニュー」（「グループ化」ボタン、削除ボタン）のみが表示され、グループ化および選択要素の一括削除が可能。
-</content>
-<current-situation></current-situation>
-<remarks></remarks>
-<permission-to-move>OK</permission-to-move>
-</requirement>
 
 
 ## 2. 未解決要件に関するコード変更履歴（目的、変更内容、変更日時）
@@ -65,6 +38,12 @@
 - **目的**: 複数要素選択メニュー（グループ化ボタン等）の表示修正
   - **変更内容**: `useFloatingMenu.ts` の `isGrouped` 判定において、`data-group-id` が `null` の場合はグループ化されているとみなさないように修正。これにより、複数要素選択時に正しく `canGroup` が `true` となり、グループ化メニューが表示されるようになった。
   - **変更日時**: 2026-01-04
+- **目的**: デザインエリアでの MouseUp ハンドラ定義漏れ修正
+  - **変更内容**: `DesignArea.tsx` の引数に `handleMouseUp` を追加し、実行時に発生していた `ReferenceError` を解消。
+  - **変更日時**: 2026-01-04
+- **目的**: グループ全体移動の副作用修正
+  - **変更内容**: `useMoveable.ts` にて「グループから個別」への遷移を `MouseDown` ではなく `MouseUp` (かつ移動距離が短い場合) へ移動。これにより、`MouseDown` 時点ではグループモードが維持され、Moveable によるドラッグ移動が正常に開始されるようになった。
+  - **変更日時**: 2026-01-04
 
 ## 3. 分析中に気づいた重要ポイント（試してだめだったこと、仮設、制約条件等...）
 - `react-moveable` のオーバーレイ（特に `GroupMoveable` で生成する `groupOverlay`）は `pointer-events-auto` にしないとドラッグできないが、そうすると背後の要素へのクリックイベントが遮断される。これを解決するため、クリックイベント発生時に一時的に `pointer-events` を切り替えて背面要素を特定する手法を採用した。
@@ -72,9 +51,13 @@
 
 ## 4. 解決済み要件とその解決方法
 - **要件**: グループ全体移動の有効化
-  - **解決方法**: `MoveableManager.tsx` にて `selectionMode === 'group'` の際に `groupOverlay` の `pointer-events-none` を解除し、ドラッグ操作を受け取れるようにした。
+  - **解決方法**: `MoveableManager.tsx` にて `selectionMode === 'group'` の際に `groupOverlay` の `pointer-events-none` を解除。さらに `useMoveable.ts` でクリック判定を最適化し、ドラッグを阻害せずに2段階選択を実現した。
 - **要件**: 図形要素へのテキスト入力制限
   - **解決方法**: `useTextEditing.ts` の `handleDoubleClick` に `isTextBox` 判定を追加し、テキスト以外の要素が編集状態にならないようにした。
+- **要件**: グループ内個別要素の選択・編集機能（個別要素への切り替え）
+  - **解決方法**: `useMoveable.ts` でオーバーレイをクリックした際に背後の要素を取得する `elementFromPoint` を実装し、2段階選択を可能にした。
+- **要件**: 複数要素選択メニューの表示修正
+  - **解決方法**: `useFloatingMenu.ts` の `isGrouped` 判定において、IDが `null` の場合はグループ化済みとみなさないよう修正し、複数選択メニューが出るようにした。
 
 ## 5. 要件に関連する全ファイルのファイル構成（それぞれの役割を1行で併記）
 - `src/hooks/moveable/useSelection.ts`: 要素の選択状態（単一、複数、グループ）を管理する。
