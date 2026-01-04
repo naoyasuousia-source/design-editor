@@ -5,7 +5,7 @@
 @layer base {
     body {
         @apply text-white overflow-hidden;
-        background: radial-gradient(circle at top left, #1a1a1a 0%, #0f0f0f 100%);
+        background: #0e0e0e;
         font-family: 'Inter', 'Noto Sans JP', sans-serif;
     }
 }

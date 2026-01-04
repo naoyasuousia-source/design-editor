@@ -12,6 +12,7 @@ import {
     Plus,
     Brain,
     Layers,
+    ArrowUp,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useEditorStore } from '@/store/useEditorStore';
@@ -32,20 +33,39 @@ interface NavButtonProps {
     disabled?: boolean;
 }
 
-const NavButton: React.FC<NavButtonProps> = ({ icon, label, onClick, className, disabled }) => (
-    <button
-        onClick={onClick}
-        disabled={disabled}
-        className={cn(
-            "flex items-center gap-2 px-3 py-1.5 rounded-md transition-all duration-200",
-            "text-sm font-medium text-gray-300 hover:text-white hover:bg-white/10",
-            "disabled:opacity-40 disabled:cursor-not-allowed",
-            className
-        )}
-    >
-        <span className="w-4 h-4">{icon}</span>
-        <span className="whitespace-nowrap">{label}</span>
-    </button>
+const NavButton: React.FC<NavButtonProps & { children?: React.ReactNode }> = ({ icon, label, onClick, className, disabled, children }) => (
+    <div className="relative flex flex-col items-center">
+        <button
+            onClick={onClick}
+            disabled={disabled}
+            className={cn(
+                "flex items-center gap-2 px-3 py-1.5 rounded-md transition-all duration-200",
+                "text-sm font-medium text-gray-300 hover:text-white hover:bg-white/10",
+                "disabled:opacity-40 disabled:cursor-not-allowed",
+                className
+            )}
+        >
+            <span className="w-4 h-4">{icon}</span>
+            <span className="whitespace-nowrap">{label}</span>
+        </button>
+        {children}
+    </div>
+);
+
+const GuideArrow: React.FC = () => (
+    <div className="absolute top-[calc(100%+12px)] left-1/2 -translate-x-1/2 opacity-0 animate-[guideFadeIn_0.8s_ease-out_2.8s_forwards,guideFloat_2s_ease-in-out_3.6s_infinite] pointer-events-none z-[100]">
+        <ArrowUp className="w-5 h-5 text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)] rotate-0" />
+        <style>{`
+            @keyframes guideFadeIn {
+                from { opacity: 0; transform: translate(-50%, 10px); }
+                to { opacity: 1; transform: translate(-50%, 0); }
+            }
+            @keyframes guideFloat {
+                0%, 100% { transform: translate(-50%, 0); }
+                50% { transform: translate(-50%, 5px); }
+            }
+        `}</style>
+    </div>
 );
 
 const Navbar: React.FC = () => {
@@ -137,6 +157,7 @@ const Navbar: React.FC = () => {
                             <span>新規作成</span>
                             <ChevronDown className={cn("w-3 h-3 transition-transform", isDropdownOpen && "rotate-180")} />
                         </button>
+                        {!currentFileHandle && <GuideArrow />}
 
                         {isDropdownOpen && (
                             <div className="absolute top-full left-0 mt-1 w-48 bg-sidebar border border-white/10 rounded-lg shadow-2xl py-2 z-[70] animate-in fade-in slide-in-from-top-2">
@@ -160,7 +181,9 @@ const Navbar: React.FC = () => {
                         className={cn(
                             !currentFileHandle && "text-white bg-white/10 border border-white/20 shadow-[0_0_20px_rgba(255,255,255,0.15)] ring-1 ring-white/20 delay-300"
                         )}
-                    />
+                    >
+                        {!currentFileHandle && <GuideArrow />}
+                    </NavButton>
                     <NavButton
                         icon={<Save />}
                         label="上書き保存"
@@ -262,7 +285,9 @@ const Navbar: React.FC = () => {
                             !currentFileHandle && "text-white bg-white/10 border border-white/20 shadow-[0_0_20px_rgba(255,255,255,0.15)] ring-1 ring-white/20 delay-500"
                         )}
                         onClick={() => setShowHint(true)}
-                    />
+                    >
+                        {!currentFileHandle && <GuideArrow />}
+                    </NavButton>
                 </div>
             </div>
 
