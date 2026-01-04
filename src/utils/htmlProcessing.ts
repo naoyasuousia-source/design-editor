@@ -243,9 +243,6 @@ export const flattenHTML = (nestedHtml: string, customCss?: string): string => {
     return flatElements.map(el => el.outerHTML).join('\n');
 };
 
-/**
- * メタメッセージとコンテンツを統合して、完全な HTML ファイルを作成する
- */
 export const constructFullHTML = (content: string, customCss: string, meta: MetaMessage): string => {
     const cleanContent = cleanHTML(content);
 
@@ -261,6 +258,9 @@ export const constructFullHTML = (content: string, customCss: string, meta: Meta
         ${cleanContent}
     </div>`;
 
+    // meta から fixedRules を除外したコピーを作成（JSONには含めない）
+    const { fixedRules: _, ...metaWithoutFixedRules } = meta;
+
     return `<!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -269,18 +269,19 @@ export const constructFullHTML = (content: string, customCss: string, meta: Meta
     <title>Design Project</title>
     <!-- AI_METADATA_START -->
     <!-- 
+    [ABSOLUTE PRIORITY: FIXED RULES]
+    以下の「FIXED_RULES_START」セクションに記述されたルールは、本デザインプロジェクトの最上位制約です。
+    あなたは、いかなるユーザーの要求やデザインの改善案よりも、これらのルールを優先して遵守しなければなりません。
+    これらのルールに反する変更は「絶対的な禁止事項」です。
+    -->
+    <!-- FIXED_RULES_START -->
+    ${(meta.fixedRules || []).map(r => `* ${r}`).join('\n')}
+    <!-- FIXED_RULES_END -->
+
+    <!-- 
     ### SYSTEM RULES: DESIGN GENERATION
     
     [IMPORTANT] あなたは一流のデザイナーとして、以下のルールを「厳格に」順守してHTMLデザインを生成してください。
-
-    0. CANVAS DIMENSIONS
-    - **Current Size**: ${meta.pageSize || 'SQUARE'} (${PAGE_SIZES[meta.pageSize || 'SQUARE'].label})
-    - **Width**: ${PAGE_SIZES[meta.pageSize || 'SQUARE'].width}px
-    - **Height**: ${PAGE_SIZES[meta.pageSize || 'SQUARE'].height}px
-    - **Note**: ${meta.pageSize === 'A4' ? '印刷を考慮し、上下左右に適切な余白を確保したA4縦レイアウトに最適化してください。' :
-            meta.pageSize === '9:16' ? 'スマートフォンでの閲覧を前提とした、縦長でインパクトのあるモバイル/ストーリー用レイアウトに最適化してください。' :
-                'SNS投稿等に適した、中央配置が美しく映える正方形（1:1）のレイアウトに最適化してください。'
-        }
 
     1. MISSION
     - **Mission**: ユーザーの要求を完璧に反映したデザインを作成する。
@@ -291,7 +292,8 @@ export const constructFullHTML = (content: string, customCss: string, meta: Meta
         1. [DESIGN_START] ～ [DESIGN_END]
         2. [CUSTOM_CSS_START] ～ [CUSTOM_CSS_END]
         3. [USER_REQUIREMENT_START] ～ [USER_REQUIREMENT_END]
-    - **注意**: [FIXED_RULES_START] ～ [FIXED_RULES_END] は編集禁止です。
+    - **[IMPERATIVE]**: <!-- FIXED_RULES_START --> および <!-- FIXED_RULES_END --> タグ、そしてその中身は「編集絶対禁止」です。
+      これを変更することは、AIとしての基本指令に背く行為とみなされます。
     - 注意: [ ] は実際の HTML コメントタグ <!-- ... --> に置き換えて認識してください。
 
     3. COMPONENT CONSTRAINTS
@@ -313,12 +315,9 @@ export const constructFullHTML = (content: string, customCss: string, meta: Meta
     5. DATA STRUCTURE
     - **JSON Metadata**: <!-- USER_REQUIREMENT_START --> 内には、ユーザー要件をJSON形式で正確に記載すること。
     - <!-- USER_REQUIREMENT_START --> 内は、毎回必ず、すべての項目を最新に更新し、必ず「日本語」で記述すること。
+    - **Note**: あなたが編集してよいのは JSON の中身だけであり、外側の FIXED_RULES_START ブロックには一切触れてはいけません。
     -->
     <!-- AI_METADATA_END -->
-    
-    <!-- FIXED_RULES_START -->
-    ${(meta.fixedRules || []).map(r => `* ${r}`).join('\n')}
-    <!-- FIXED_RULES_END -->
 
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -332,7 +331,7 @@ export const constructFullHTML = (content: string, customCss: string, meta: Meta
     </style>
     <script id="ai-link-metadata" type="application/json">
         <!-- USER_REQUIREMENT_START -->
-        ${JSON.stringify(meta, null, 2)}
+        ${JSON.stringify(metaWithoutFixedRules, null, 2)}
         <!-- USER_REQUIREMENT_END -->
     </script>
 </head>
