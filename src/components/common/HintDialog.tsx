@@ -1,78 +1,139 @@
-import React from 'react';
-import { X, MousePointer2, Type, Layers, RefreshCw, Save, Image as ImageIcon } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, FolderOpen, Zap, Edit3, Save, Copy, Check, ChevronDown, ChevronUp, Terminal } from 'lucide-react';
+import { cn } from '@/utils/cn';
 
 interface HintDialogProps {
     onClose: () => void;
 }
 
 const HintDialog: React.FC<HintDialogProps> = ({ onClose }) => {
+    const [showWorkflow, setShowWorkflow] = useState(false);
+    const [copied, setCopied] = useState(false);
+
+    const workflowText = `## ステップ1
+- implementation_plan.mdを確認し、進捗を確認する。
+
+## ステップ2
+- requirement.mdとrules.mdを確認する。
+- requirement.mdとrules.mdに厳密に従って、タスクを考える。
+
+## ステップ3
+- rules.mdに従って、実際にコーディングを行う。
+
+## ステップ4
+- 作業終了後、implementation_plan.mdのチェックリストを更新する。
+- implementation_plan.mdを必要に応じて更新する。
+- 今後の方針について、ユーザーに対して質問がある場合は質問する。`;
+
+    const handleCopy = () => {
+        navigator.clipboard.writeText(workflowText);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
     return (
-        <div className="fixed inset-0 z-[300] bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm">
-            <div className="bg-[#1a1a1a] border border-white/10 rounded-xl w-full max-w-xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-                <div className="flex items-center justify-between px-6 py-4 border-b border-white/5 bg-sidebar/50">
-                    <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                        <span className="p-1 px-2 bg-blue-500 rounded text-xs">Help</span>
-                        エディタの使い方
-                    </h2>
-                    <button onClick={onClose} className="p-1 hover:bg-white/10 rounded-full transition-colors">
-                        <X className="w-5 h-5 text-gray-400" />
+        <div className="fixed inset-0 z-[300] bg-black/80 flex items-center justify-center p-4 backdrop-blur-md animate-in fade-in duration-300">
+            <div className="bg-[#121212] border border-white/10 rounded-2xl w-full max-w-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden animate-in zoom-in-95 duration-300 flex flex-col max-h-[90vh]">
+                {/* Header */}
+                <div className="flex items-center justify-between px-8 py-5 border-b border-white/5 bg-gradient-to-r from-[#1a1a1a] to-[#121212]">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-blue-600/20 rounded-lg">
+                            <Zap className="w-5 h-5 text-blue-500" />
+                        </div>
+                        <div>
+                            <h2 className="text-lg font-bold text-white tracking-tight">AI-Link Design ガイド</h2>
+                            <p className="text-xs text-gray-500 font-medium uppercase tracking-widest mt-0.5">Editor Usage & Workflow</p>
+                        </div>
+                    </div>
+                    <button
+                        onClick={onClose}
+                        className="p-2 hover:bg-white/5 rounded-full transition-all text-gray-400 hover:text-white"
+                        aria-label="Close"
+                    >
+                        <X className="w-6 h-6" />
                     </button>
                 </div>
 
-                <div className="p-6 space-y-6 overflow-y-auto max-h-[70vh] CustomScrollbar">
-                    <section className="space-y-3">
-                        <h3 className="text-xs font-bold text-blue-400 uppercase tracking-widest border-b border-blue-500/20 pb-1">基本操作</h3>
-                        <div className="grid grid-cols-1 gap-3">
-                            <FeatureItem
-                                icon={<MousePointer2 size={16} />}
-                                title="要素の選択と移動"
-                                description="要素をクリックして選択し、ドラッグで移動、枠線のハンドルでリサイズできます。"
-                            />
-                            <FeatureItem
-                                icon={<Type size={16} />}
-                                title="テキスト編集"
-                                description="テキスト要素をダブルクリックすると直接編集モードになります。フォーカスを外すと保存されます。"
-                            />
-                            <FeatureItem
-                                icon={<Layers size={16} />}
-                                title="グループ化 (Shift + Click)"
-                                description="Shiftキーを押しながらクリックで複数選択。上部のメニューからグループ化して、まとめて操作可能です。"
-                            />
-                        </div>
-                    </section>
+                {/* Content */}
+                <div className="flex-1 overflow-y-auto p-8 space-y-8 CustomScrollbar">
+                    {/* Step 1 */}
+                    <StepItem
+                        number="01"
+                        icon={<FolderOpen className="w-5 h-5" />}
+                        title="AI-Link Design の準備"
+                        description="「新規作成」から保存先フォルダを指定して開始します。Antigravity でそのフォルダを開き、Customizationメニューで以下のワークフローを設定します。"
+                        color="bg-blue-500"
+                    >
+                        <div className="mt-4">
+                            <button
+                                onClick={() => setShowWorkflow(!showWorkflow)}
+                                className="flex items-center gap-2 text-xs font-bold text-blue-400 hover:text-blue-300 transition-colors bg-blue-500/10 px-3 py-1.5 rounded-full border border-blue-500/20 group"
+                            >
+                                <Terminal className="w-3.5 h-3.5" />
+                                <span>AI 連携用ワークフロープロンプト</span>
+                                {showWorkflow ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5 group-hover:translate-y-0.5 transition-transform" />}
+                            </button>
 
-                    <section className="space-y-3">
-                        <h3 className="text-xs font-bold text-green-400 uppercase tracking-widest border-b border-green-500/20 pb-1">AI 連携機能</h3>
-                        <div className="grid grid-cols-1 gap-3">
-                            <FeatureItem
-                                icon={<RefreshCw size={16} />}
-                                title="リアルタイム同期"
-                                description="AIがファイルを更新すると自動で検知。変更内容を比較検討し、承認・破棄を選択できます。"
-                            />
-                            <FeatureItem
-                                icon={<ImageIcon size={16} />}
-                                title="画像アセット管理"
-                                description="左側のサイドバーから画像をドラッグ＆ドロップして、デザイン内の画像を素早く差し替えられます。"
-                            />
+                            {showWorkflow && (
+                                <div className="mt-3 relative group animate-in slide-in-from-top-2 duration-300">
+                                    <div className="absolute top-3 right-3 z-10">
+                                        <button
+                                            onClick={handleCopy}
+                                            className="p-2 bg-white/5 hover:bg-white/10 rounded-lg transition-all border border-white/10 flex items-center gap-2 group/btn"
+                                        >
+                                            {copied ? (
+                                                <><Check className="w-3.5 h-3.5 text-green-400" /><span className="text-[10px] text-green-400 font-bold">COPIED</span></>
+                                            ) : (
+                                                <><Copy className="w-3.5 h-3.5 text-gray-400 group-hover/btn:text-white" /><span className="text-[10px] text-gray-400 group-hover/btn:text-white font-bold uppercase">Copy</span></>
+                                            )}
+                                        </button>
+                                    </div>
+                                    <pre className="bg-black/50 border border-white/5 rounded-xl p-5 pt-12 overflow-x-auto text-[11px] leading-relaxed font-mono text-gray-300 CustomScrollbar transition-all group-hover:border-blue-500/30">
+                                        {workflowText}
+                                    </pre>
+                                    <div className="mt-2 text-[10px] text-gray-500 italic">
+                                        ※ 上記をコピーして Antigravity の workflow 設定に貼り付けてください。
+                                    </div>
+                                </div>
+                            )}
                         </div>
-                    </section>
+                    </StepItem>
 
-                    <section className="space-y-3">
-                        <h3 className="text-xs font-bold text-yellow-400 uppercase tracking-widest border-b border-yellow-500/20 pb-1">保存と書き出し</h3>
-                        <FeatureItem
-                            icon={<Save size={16} />}
-                            title="クリーンなHTML出力"
-                            description="エディタ専用の属性は保存時に自動除去。AIやブラウザに最適な純粋なHTMLを出力します。"
-                        />
-                    </section>
+                    {/* Step 2 */}
+                    <StepItem
+                        number="02"
+                        icon={<Zap className="w-5 h-5" />}
+                        title="AI によるデザイン生成"
+                        description="Antigravityでワークフローを指定し、デザイン指示を送ります。AI が生成した変更内容はエディタに同期され、「承認」または「破棄」を選択します。"
+                        color="bg-purple-500"
+                    />
+
+                    {/* Step 3 */}
+                    <StepItem
+                        number="03"
+                        icon={<Edit3 className="w-5 h-5" />}
+                        title="エディタでの編集"
+                        description="生成されたデザインをベースに、要素の移動・削除・編集を行い、直感的に仕上げていきます。imagesフォルダ内の画像やテキストボックスの新規挿入も可能です。"
+                        color="bg-emerald-500"
+                    />
+
+                    {/* Step 4 */}
+                    <StepItem
+                        number="04"
+                        icon={<Save className="w-5 h-5" />}
+                        title="デザインの保存"
+                        description="2,3を繰り返し、デザインが完成したら「画像として保存」を実行します。"
+                        color="bg-orange-500"
+                    />
                 </div>
 
-                <div className="p-4 bg-sidebar/30 flex justify-center border-t border-white/5">
+                {/* Footer */}
+                <div className="px-8 py-6 border-t border-white/5 bg-sidebar/30 flex justify-center">
                     <button
                         onClick={onClose}
-                        className="px-8 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-lg transition-all shadow-lg shadow-blue-500/20"
+                        className="px-12 py-3 bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold rounded-xl transition-all shadow-[0_10px_20px_rgba(37,99,235,0.2)] hover:shadow-[0_10px_25px_rgba(37,99,235,0.3)] hover:-translate-y-0.5 active:translate-y-0"
                     >
-                        閉じる
+                        エディタに戻る
                     </button>
                 </div>
             </div>
@@ -80,14 +141,39 @@ const HintDialog: React.FC<HintDialogProps> = ({ onClose }) => {
     );
 };
 
-const FeatureItem: React.FC<{ icon: React.ReactNode, title: string, description: string }> = ({ icon, title, description }) => (
-    <div className="flex gap-4 p-3 rounded-lg bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors group">
-        <div className="text-blue-400 group-hover:scale-110 transition-transform pt-0.5">
-            {icon}
+interface StepItemProps {
+    number: string;
+    icon: React.ReactNode;
+    title: string;
+    description: string;
+    children?: React.ReactNode;
+    color: string;
+}
+
+const StepItem: React.FC<StepItemProps> = ({ number, icon, title, description, children, color }) => (
+    <div className="relative pl-12 group">
+        {/* Timeline line */}
+        <div className="absolute left-6 top-10 bottom-[-32px] w-[1px] bg-gradient-to-b from-white/10 to-transparent group-last:hidden" />
+
+        {/* Number badge */}
+        <div className={cn("absolute left-0 top-0 w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110", color, "bg-opacity-10 text-white font-mono text-xs font-bold ring-1 ring-inset ring-white/10 shadow-lg")}>
+            <div className={cn("absolute inset-0 rounded-xl opacity-20", color)} />
+            <span className="relative z-10">{number}</span>
         </div>
-        <div>
-            <h4 className="text-sm font-bold text-gray-200 mb-1">{title}</h4>
-            <p className="text-xs text-gray-500 leading-relaxed">{description}</p>
+
+        <div className="space-y-2">
+            <div className="flex items-center gap-2">
+                <span className={cn("inline-block p-1 rounded-md mb-1", color, "bg-opacity-20 text-white transition-transform group-hover:rotate-12")}>
+                    {React.cloneElement(icon as React.ReactElement, { size: 14 })}
+                </span>
+                <h3 className="text-[15px] font-bold text-gray-100 tracking-tight group-hover:text-white transition-colors">
+                    {title}
+                </h3>
+            </div>
+            <p className="text-[13px] text-gray-400 leading-relaxed font-medium">
+                {description}
+            </p>
+            {children}
         </div>
     </div>
 );
