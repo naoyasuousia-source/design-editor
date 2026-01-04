@@ -84,7 +84,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectio
             <MenuHeader
                 id={displayTarget.id}
                 groupId={groupId}
-                isGrouped={isGrouped}
+                isGrouped={isGrouped && selectionMode === 'group'}
                 canGroup={canGroup}
                 onCopyId={handleCopyId}
                 onCopyGroupId={handleCopyGroupId}
