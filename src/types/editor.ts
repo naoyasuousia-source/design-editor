@@ -59,6 +59,8 @@ export type EditorState = {
     // UI状態
     showSaveToast: boolean;
     autoSelectId: string | null;
+    selectedIds: string[];
+    isLayerSidebarOpen: boolean;
     isImageCropMode: boolean;
     imageCropAspectRatio: number | null;
     croppingElementId: string | null;

@@ -11,6 +11,7 @@ import {
     ChevronDown,
     Plus,
     Brain,
+    Layers,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useEditorStore } from '@/store/useEditorStore';
@@ -63,7 +64,9 @@ const Navbar: React.FC = () => {
         zoom,
         setZoom,
         setImageSaveMode,
-        isImageSaveMode
+        isImageSaveMode,
+        isLayerSidebarOpen,
+        setLayerSidebarOpen,
     } = useEditorStore();
 
     const { handleNew, handleOpen, handleOverwrite } = useFileSystem();
@@ -156,6 +159,12 @@ const Navbar: React.FC = () => {
                         label="上書き保存"
                         onClick={handleSave}
                         disabled={isImageSaveMode}
+                    />
+                    <NavButton
+                        icon={<Layers />}
+                        label="レイヤー"
+                        onClick={() => setLayerSidebarOpen(!isLayerSidebarOpen)}
+                        className={cn(isLayerSidebarOpen && "bg-primary/20 text-primary hover:bg-primary/30 hover:text-primary")}
                     />
 
                     {/* 挿入ドロップダウン */}

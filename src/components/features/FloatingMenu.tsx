@@ -6,9 +6,11 @@ import {
     Square,
     Scissors,
     Copy,
+    Layers,
 } from 'lucide-react';
 import { useAssets } from '@/hooks/useAssets';
 import { cn } from '@/utils/cn';
+import { useEditorStore } from '@/store/useEditorStore';
 import { useFloatingMenu } from '@/hooks/useFloatingMenu';
 import ColorPalette from '@/components/features/floating-menu/ColorPalette';
 import RadiusPicker from '@/components/features/floating-menu/RadiusPicker';
@@ -241,6 +243,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectio
                         )}
 
                         <div className="flex items-center gap-1 px-1">
+                            <button className="p-1.5 hover:bg-white/5 rounded text-gray-400 hover:text-white transition-all" onClick={() => useEditorStore.getState().setLayerSidebarOpen(true)} title="Show in Layers"><Layers size={14} /></button>
                             <button className="p-1.5 hover:bg-white/5 rounded text-gray-400 hover:text-white transition-all" onClick={handleDuplicate} title="Duplicate"><Copy size={14} /></button>
                             <button className="p-1.5 hover:bg-red-500/20 rounded text-gray-400 hover:text-red-400 transition-all" onClick={handleDelete} title="Delete"><Trash2 size={14} /></button>
                         </div>

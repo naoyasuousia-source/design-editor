@@ -34,7 +34,9 @@ interface EditorStore extends EditorState {
     setResponsiveResize: (enabled: boolean) => void;
     setShowSaveToast: (show: boolean) => void;
     setAutoSelectId: (id: string | null) => void;
+    setSelectedIds: (ids: string[]) => void;
     setImageCropMode: (enabled: boolean, elementId: string | null, aspectRatio?: number | null) => void;
+    setLayerSidebarOpen: (open: boolean) => void;
     reset: () => void;
 }
 
@@ -87,9 +89,11 @@ const initialState: EditorState & {
     isResponsiveResize: false,
     showSaveToast: false,
     autoSelectId: null,
+    selectedIds: [],
     isImageCropMode: false,
     imageCropAspectRatio: null,
     croppingElementId: null,
+    isLayerSidebarOpen: false,
 };
 
 export const useEditorStore = create<EditorStore>((set, get) => ({
@@ -259,6 +263,8 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     setResponsiveResize: (isResponsiveResize) => set({ isResponsiveResize }),
     setShowSaveToast: (showSaveToast) => set({ showSaveToast }),
     setAutoSelectId: (autoSelectId) => set({ autoSelectId }),
+    setSelectedIds: (selectedIds) => set({ selectedIds }),
     setImageCropMode: (enabled, elementId, aspectRatio = null) => set({ isImageCropMode: enabled, croppingElementId: elementId, imageCropAspectRatio: aspectRatio, isLocked: enabled }),
+    setLayerSidebarOpen: (isLayerSidebarOpen) => set({ isLayerSidebarOpen }),
     reset: () => set(initialState),
 }));

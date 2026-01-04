@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import type { RefObject } from 'react';
+import { useEditorStore } from '@/store/useEditorStore';
 
 export type SelectionMode = 'none' | 'group' | 'individual';
 
@@ -14,6 +15,7 @@ export const useSelection = (canvasRef: RefObject<HTMLDivElement | null>, conten
             const next = typeof newTargets === 'function' ? newTargets(prev) : newTargets;
             prev.forEach(el => el.classList.remove('moveable-target-active'));
             next.forEach(el => el.classList.add('moveable-target-active'));
+            useEditorStore.getState().setSelectedIds(next.map(el => el.id));
             return next;
         });
     }, []);
