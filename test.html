@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="ja">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,12 +11,12 @@
     これらのルールに反する変更は「絶対的な禁止事項」です。
 
     0. CANVAS DIMENSIONS (ABSOLUTE CONSTRAINT)
-    - Current Canvas Size: Square 1:1 (800 x 800px)
-    - [CRITICAL] All elements MUST be placed WITHIN these boundaries.
-    - [PROHIBITION] Never set positions or sizes exceeding these limits.
+- Current Canvas Size: Square 1:1 (800 x 800px)
+- [CRITICAL] All elements MUST be placed WITHIN these boundaries.
+- [PROHIBITION] Never set positions or sizes exceeding these limits.
     -->
     <!-- FIXED_RULES_START -->
-
+    
     <!-- FIXED_RULES_END -->
 
     <!-- 
@@ -42,15 +41,17 @@
     3. COMPONENT CONSTRAINTS
     - **Elements**: テキストボックス、画像、図形の3種類のみ使用。
     - **IDs**: すべての要素に一意のID（id="el-..."）を付与し、独立した要素として扱うこと。
-    - **Group IDs**: 既存の要素に付与されている `data-group-id` は「絶対に」変更したり削除したりしないでください。
+    - **[PROHIBITION] No Nesting**: **親子構造（要素の中に別の要素を入れること）は一切禁止**です。すべての要素は必ず `.DesignSurface` の「直下」にフラットに配置してください。
+    - **Group IDs**: 関連する要素（例：背景、ロゴ、見出しなど）には、共通の data-group-id="group-..." を付与してください。
+    - **Group ID Management**: 既存の要素に付与されている data-group-id は「絶対に」変更しないでください。新要素追加時は他のグループと被らない新しいIDを生成してください。
+    - **No Flex/Grid**: 全要素を position: absolute で配置してください。FlexboxやGridによるレイアウトは使用せず、中央揃え等は left と width または text-align で実現してください。
     - **Appending**: 新しく要素を追加する場合は、必ず `<!-- DESIGN_START -->` 内の既存要素の「一番最後」に追記してください。
     - **No Nesting in Text**: 「テキストボックス内」に子要素（span等）を配置することは厳禁。
     - **Image Paths**: 画像は必ず ./images/ フォルダ内のファイルを参照すること。
 
     4. DESIGN & STYLING
     - **Fonts (EXCLUSIVE LIST)**: 以下の15種類からのみ選択すること。
-    Noto Sans JP, Noto Serif JP, 游ゴシック (Yu Gothic), 游明朝 (Yu Mincho), メイリオ (Meiryo), M PLUS 1p, Zen 角ゴシック New, Inter,
-    Montserrat, Roboto, Playfair Display, Oswald, Poppins, JetBrains Mono, Times New Roman
+        Noto Sans JP, Noto Serif JP, 游ゴシック (Yu Gothic), 游明朝 (Yu Mincho), メイリオ (Meiryo), M PLUS 1p, Zen 角ゴシック New, Inter, Montserrat, Roboto, Playfair Display, Oswald, Poppins, JetBrains Mono, Times New Roman
     - **Colors**: メイン、サブ、アクセントの3色構成を基本とし、一貫性を保つこと。
     - **Consistency**: 共通の配色は各要素のインラインスタイルに直接記述してください。
 
@@ -61,35 +62,10 @@
     <!-- AI_METADATA_END -->
 
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html,
-        body {
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-        }
-
-        body {
-            background: #1a1a1a;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            min-height: 100vh;
-        }
-
-        .DesignSurface {
-            position: relative;
-            background: white;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            min-width: 400px;
-            min-height: 400px;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { width: 100%; height: 100%; overflow: auto; }
+        body { background: #1a1a1a; display: flex; align-items: center; justify-content: center; padding: 20px; min-height: 100vh; }
+        .DesignSurface { position: relative; background: white; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); min-width: 400px; min-height: 400px; }
     </style>
     <script id="ai-link-metadata" type="application/json">
         <!-- USER_REQUIREMENT_START -->
@@ -103,21 +79,15 @@
   },
   "pageSize": "SQUARE"
 }
-    <!-- USER_REQUIREMENT_END -->
+        <!-- USER_REQUIREMENT_END -->
     </script>
 </head>
-
 <body>
     <!-- DESIGN_START -->
     <div class="DesignSurface" style="position: relative; width: 100%; height: 100%; overflow: hidden;">
-        <div id="el-title" data-group-id="group-3diocuzk3"
-            style="position: absolute; top: 280px; left: 160px; width: 480px; font-family: 'Playfair Display', serif; font-size: 64px; color: #1a1a1a; text-align: center; font-weight: bold;">
-            TITLE HERE</div>
-        <div id="el-desc" data-group-id="group-3diocuzk3"
-            style="position: absolute; top: 400px; left: 160px; width: 480px; font-family: 'Montserrat', sans-serif; font-size: 24px; color: #666; text-transform: uppercase; letter-spacing: 0.1em; text-align: center;">
-            Description here</div>
+        <div id="el-t9k177e7z" data-group-id="group-qbw0iqms3" style="position: absolute; top: 280px; left: 160px; width: 480px; font-family: 'Playfair Display', serif; font-size: 64px; color: #1a1a1a; text-align: center; font-weight: bold;">TITLE HERE</div>
+                <div id="el-n4yh4bmsr" data-group-id="group-qbw0iqms3" style="position: absolute; top: 400px; left: 160px; width: 480px; font-family: 'Montserrat', sans-serif; font-size: 24px; color: #666; text-transform: uppercase; letter-spacing: 0.1em; text-align: center;">Description here</div>
     </div>
     <!-- DESIGN_END -->
 </body>
-
 </html>

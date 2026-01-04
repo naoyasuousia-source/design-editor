@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import type { EditorState, PageSize } from '@/types/editor';
 import { PAGE_SIZES } from '@/types/editor';
 import { DEFAULT_PAGE_SIZE } from '@/constants/editor';
-import { parseMetaMessage, extractDesignContent, constructFullHTML, extractCustomCss, flattenHTML } from '@/utils/htmlProcessing';
+import { parseMetaMessage, extractDesignContent, constructFullHTML, extractCustomCss } from '@/utils/htmlProcessing';
 
 interface EditorStore extends EditorState {
     setPageSize: (size: PageSize) => void;
@@ -144,17 +144,14 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
         const designContent = extractDesignContent(newFullContent);
         const newCustomCss = extractCustomCss(newFullContent);
 
-        // フラット化の適用
-        const flattenedContent = flattenHTML(designContent, newCustomCss);
-
         set({
             hasPendingChanges: true,
             isLocked: true,
             isApplyingUpdate: true,
             prePendingContent: content,
-            content: flattenedContent,
+            content: designContent,
             customCss: newCustomCss,
-            pendingContent: flattenedContent,
+            pendingContent: designContent,
             pendingSnapshot: snapshot,
             metaMessage: meta || get().metaMessage,
             pageSize: (meta && meta.pageSize) ? meta.pageSize : get().pageSize,
@@ -169,8 +166,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
         // 承認した場合は、すでに反映されている content をファイルに保存する
         if (currentFileHandle) {
             const { fileSystemService } = await import('@/services/fileSystem');
-            const { customCss } = get();
-            const fullHtml = constructFullHTML(content, customCss, metaMessage);
+            const fullHtml = constructFullHTML(content, '', metaMessage);
             await fileSystemService.saveToCurrentFile(currentFileHandle, fullHtml);
         }
 
@@ -192,8 +188,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
         // 破棄した場合は、退避しておいた prePendingContent に戻して上書き保存。
         if (currentFileHandle) {
             const { fileSystemService } = await import('@/services/fileSystem');
-            const { customCss } = get();
-            const fullHtml = constructFullHTML(prePendingContent, customCss, metaMessage);
+            const fullHtml = constructFullHTML(prePendingContent, '', metaMessage);
             await fileSystemService.saveToCurrentFile(currentFileHandle, fullHtml);
         }
 

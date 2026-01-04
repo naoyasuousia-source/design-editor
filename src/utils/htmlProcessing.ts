@@ -1,4 +1,4 @@
-import { type MetaMessage, PAGE_SIZES } from '@/types/editor';
+import { type MetaMessage } from '@/types/editor';
 
 /**
  * HTML からメタメッセージ（JSON）を抽出する
@@ -148,108 +148,8 @@ export const cleanHTML = (html: string): string => {
 };
 
 /**
- * 入れ子構造のHTMLを、絶対座標のフラットな構造に変換する
- * ルール:
- * 1. すべての要素を .DesignSurface の直下に配置
- * 2. 入れ子だった要素は、親のオフセットを加算して absolute 座標に変換
- * 3. スタイルを持つ親要素は「背面の図形」として維持、持たないコンテナは削除
- * 4. 元の親子関係を data-group-id で紐付け
+ * (廃止) 入れ子構造のHTMLをフラットにする処理は、AIに最初からフラットに書かせる方針に変更したため削除。
  */
-export const flattenHTML = (nestedHtml: string, customCss?: string): string => {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(`
-        <div id="__flatten_root__">
-            <style>${customCss || ''}</style>
-            <div class="DesignSurface" style="position: relative; width: 2000px; height: 2000px;">
-                ${nestedHtml}
-            </div>
-        </div>
-    `, 'text/html');
-
-    const container = doc.getElementById('__flatten_root__');
-    if (!container) return nestedHtml;
-
-    // 実際にレイアウトを計算するために一時的にDOMに追加（隠し要素）
-    const hiddenDiv = document.createElement('div');
-    hiddenDiv.style.position = 'fixed';
-    hiddenDiv.style.top = '-10000px';
-    hiddenDiv.style.left = '-10000px';
-    hiddenDiv.style.visibility = 'hidden';
-    hiddenDiv.innerHTML = container.innerHTML;
-    document.body.appendChild(hiddenDiv);
-
-    const surface = hiddenDiv.querySelector('.DesignSurface') as HTMLElement;
-    const surfaceRect = surface.getBoundingClientRect();
-    const flatElements: HTMLElement[] = [];
-
-    // 元の親子関係を特定するためのIDを発行（なければ）
-    const generateGroupId = () => `group-${Math.random().toString(36).substring(2, 9)}`;
-
-    function collect(el: HTMLElement, parentGroupId?: string) {
-        const children = Array.from(el.children) as HTMLElement[];
-        const rect = el.getBoundingClientRect();
-
-        // 有効な要素（IDがある、またはスタイル/テキストがある）
-        const isDesignSurface = el.classList.contains('DesignSurface');
-        const hasId = !!el.id;
-        const style = window.getComputedStyle(el);
-        const hasVisibleStyle = style.backgroundColor !== 'rgba(0, 0, 0, 0)' ||
-            style.borderWidth !== '0px' ||
-            style.backgroundImage !== 'none';
-        const hasText = el.childNodes.length > 0 && Array.from(el.childNodes).some(n => n.nodeType === 3 && n.textContent?.trim());
-
-        let currentGroupId = parentGroupId;
-
-        if (!isDesignSurface && (hasId || hasVisibleStyle || hasText)) {
-            // クローンを作成し、絶対座標を付与
-            const clone = el.cloneNode(false) as HTMLElement;
-            if (!clone.id) clone.id = `el-${Math.random().toString(36).substring(2, 9)}`;
-
-            // 親が子を持っている場合、自身をグループIDとして子に継承
-            if (children.length > 0 && !currentGroupId) {
-                currentGroupId = generateGroupId();
-            }
-            if (currentGroupId) {
-                clone.setAttribute('data-group-id', currentGroupId);
-            }
-
-            // スタイルの書き換え
-            clone.style.position = 'absolute';
-            clone.style.top = `${rect.top - surfaceRect.top}px`;
-            clone.style.left = `${rect.left - surfaceRect.left}px`;
-            clone.style.width = `${rect.width}px`;
-            clone.style.height = `${rect.height}px`;
-            clone.style.margin = '0';
-
-            // Flex/Grid などのレイアウトプロパティは不要になるのでクリア
-            clone.style.display = (hasText && !hasVisibleStyle) ? 'block' : style.display;
-            clone.style.flexDirection = '';
-            clone.style.justifyContent = '';
-            clone.style.alignItems = '';
-            clone.style.gap = '';
-
-            // テキストノードの同期
-            if (hasText) {
-                // 子要素以外のテキストのみを抽出して追加（簡易的）
-                const textClone = el.cloneNode(true) as HTMLElement;
-                Array.from(textClone.children).forEach(c => c.remove());
-                clone.innerHTML = textClone.innerHTML;
-            }
-
-            flatElements.push(clone);
-        }
-
-        children.forEach(child => collect(child, currentGroupId));
-    }
-
-    collect(surface);
-
-    // 掃除
-    document.body.removeChild(hiddenDiv);
-
-    // フラットなHTMLを組み立て
-    return flatElements.map(el => el.outerHTML).join('\n');
-};
 
 export const constructFullHTML = (content: string, _customCss: string, meta: MetaMessage): string => {
     const cleanContent = cleanHTML(content);
@@ -325,7 +225,10 @@ export const constructFullHTML = (content: string, _customCss: string, meta: Met
     3. COMPONENT CONSTRAINTS
     - **Elements**: テキストボックス、画像、図形の3種類のみ使用。
     - **IDs**: すべての要素に一意のID（id="el-..."）を付与し、独立した要素として扱うこと。
-    - **Group IDs**: 既存の要素に付与されている \`data-group-id\` は「絶対に」変更したり削除したりしないでください。
+    - **[PROHIBITION] No Nesting**: **親子構造（要素の中に別の要素を入れること）は一切禁止**です。すべての要素は必ず \`.DesignSurface\` の「直下」にフラットに配置してください。
+    - **Group IDs**: 関連する要素（例：背景、ロゴ、見出しなど）には、共通の data-group-id="group-..." を付与してください。
+    - **Group ID Management**: 既存の要素に付与されている data-group-id は「絶対に」変更しないでください。新要素追加時は他のグループと被らない新しいIDを生成してください。
+    - **No Flex/Grid**: 全要素を position: absolute で配置してください。FlexboxやGridによるレイアウトは使用せず、中央揃え等は left と width または text-align で実現してください。
     - **Appending**: 新しく要素を追加する場合は、必ず \`<!-- DESIGN_START -->\` 内の既存要素の「一番最後」に追記してください。
     - **No Nesting in Text**: 「テキストボックス内」に子要素（span等）を配置することは厳禁。
     - **Image Paths**: 画像は必ず ./images/ フォルダ内のファイルを参照すること。
