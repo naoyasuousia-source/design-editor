@@ -144,8 +144,8 @@
 
     /* カスタムスクロールバー */
     .CustomScrollbar::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
+        width: 16px;
+        height: 16px;
     }
 
     .CustomScrollbar::-webkit-scrollbar-track {
@@ -153,13 +153,13 @@
     }
 
     .CustomScrollbar::-webkit-scrollbar-thumb {
-        background: rgba(255, 255, 255, 0.3);
-        border-radius: 4px;
+        background: rgba(255, 255, 255, 0.45);
+        border-radius: 8px;
         transition: background 0.2s;
     }
 
     .CustomScrollbar::-webkit-scrollbar-thumb:hover {
-        background: rgba(255, 255, 255, 0.45);
+        background: rgba(255, 255, 255, 0.3);
     }
 
     /* プレミアムな遷移アニメーション */
