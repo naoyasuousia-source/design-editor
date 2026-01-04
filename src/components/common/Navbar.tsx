@@ -12,7 +12,6 @@ import {
     Plus,
     Brain,
     Layers,
-    ArrowUp,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useEditorStore } from '@/store/useEditorStore';
