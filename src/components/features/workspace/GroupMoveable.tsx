@@ -64,7 +64,6 @@ const GroupMoveable: React.FC<GroupMoveableProps> = ({
             throttleDrag={1}
             throttleResize={1}
             zoom={1 / zoom}
-            hideChildMoveableControls={false}
             className="moveable-group-selection"
             onDragStart={e => {
                 targets.forEach(el => {

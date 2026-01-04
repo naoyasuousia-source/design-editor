@@ -33,7 +33,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectio
     const menuRef = useRef<HTMLDivElement>(null);
 
     const {
-        rect, target, targetType, isGrouped, canGroup, groupId,
+        rect, target, isGrouped, canGroup, groupId,
         showImagePicker, setShowImagePicker,
         showColorPalette, setShowColorPalette,
         showBorderPalette, setShowBorderPalette,
@@ -80,7 +80,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectio
     const isText = currentType === 'text';
     const isImage = currentType === 'image';
     const isShape = currentType === 'shape';
-    const isGroupSelection = targets.length > 1 || (targets.length > 0 && targets[0].hasAttribute('data-group-id'));
+
 
     return (
         <div

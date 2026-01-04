@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback, useRef } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import { cn } from '@/utils/cn';
 import type { SelectionMode } from '@/hooks/moveable/useSelection';
 import GroupMoveable from './GroupMoveable';
@@ -66,6 +66,39 @@ const MoveableManager: React.FC<MoveableManagerProps> = (props) => {
         return `${selectionMode}-${targets.map(t => (t.id || 'no-id')).join('-')}`;
     }, [selectionMode, targets]);
 
+    // 複数選択時（canGroup状態）に、選択された要素内の既存グループを抽出
+    const existingGroupBoundsMap = useMemo(() => {
+        const gid = targets[0]?.getAttribute('data-group-id');
+        const isAllSameGroup = targets.length > 1 && gid !== null && targets.every(el => el.getAttribute('data-group-id') === gid);
+        const canGroup = targets.length > 1 && !isAllSameGroup;
+
+        if (!canGroup) return [];
+
+        // 選択要素を持つグループIDごとにグループ化
+        const groupMap = new Map<string, HTMLElement[]>();
+        targets.forEach(el => {
+            const groupId = el.getAttribute('data-group-id');
+            if (groupId) {
+                if (!groupMap.has(groupId)) {
+                    groupMap.set(groupId, []);
+                }
+                groupMap.get(groupId)!.push(el);
+            }
+        });
+
+        // 各グループのバウンディングボックスを計算
+        const result: { groupId: string; bounds: { left: number; top: number; width: number; height: number } }[] = [];
+        groupMap.forEach((_elements, groupId) => {
+            // グループの全要素を取得（選択されていない要素も含むため、DOMから再取得）
+            const allGroupElements = Array.from(canvasRef.current?.querySelectorAll(`[data-group-id="${groupId}"]`) || []) as HTMLElement[];
+            const bounds = calculateGroupBounds(allGroupElements, canvasRef.current, zoom);
+            if (bounds) {
+                result.push({ groupId, bounds });
+            }
+        });
+        return result;
+    }, [targets, canvasRef, zoom]);
+
     return (
         <>
             {/* ホバーオーバーレイ */}
@@ -80,6 +113,20 @@ const MoveableManager: React.FC<MoveableManagerProps> = (props) => {
                     }}
                 />
             )}
+
+            {/* 複数選択時: 既存グループのオレンジ枠を常時表示 */}
+            {existingGroupBoundsMap.map(({ groupId, bounds }) => (
+                <div
+                    key={`existing-group-${groupId}`}
+                    className="absolute pointer-events-none border-2 border-orange-500 z-[9997] existing-group-overlay"
+                    style={{
+                        left: bounds.left,
+                        top: bounds.top,
+                        width: bounds.width,
+                        height: bounds.height,
+                    }}
+                />
+            ))}
 
             {/* グループ選択オーバーレイ */}
             {isGroupActive && groupBounds && (

@@ -118,7 +118,11 @@ export const useFloatingMenu = (
         const id = `group-${Math.random().toString(36).substr(2, 9)}`;
         targets.forEach(el => el.setAttribute('data-group-id', id));
         onUpdate();
-    }, [targets, onUpdate]);
+        // グループ化直後に新グループを自動選択する
+        if (targets.length > 0 && targets[0].id) {
+            setAutoSelectId(targets[0].id);
+        }
+    }, [targets, onUpdate, setAutoSelectId]);
 
     const handleUngroup = useCallback(() => {
         targets.forEach(el => el.removeAttribute('data-group-id'));
