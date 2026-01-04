@@ -29,20 +29,26 @@
 
 <requirement>
 <content>
-既存グループと、単独要素をシフトで選択してグループ化する際の挙動を修正する。
-    - 既存グループは、複数要素選択メニューが表示されている間、常に既存グループ外枠のオレンジ枠のみを表示する。（新グループのオレンジ枠はこの段階では表示しない）
-    - グループ化直後、新グループを選択状態にする。（新グループの外枠のオレンジ枠と、四隅ポイントが表示されていて、そのまま拡大縮小や移動が可能）
-</content>
-<current-situation>
-- 現在は、複数要素選択メニューが表示されている間、シフト選択されてる既存グループは、ホバー時のみオレンジ枠が表示される。
-- 現在、グループ化直後、新グループ選択状態にすぐならない。</current-situation>
+二回目クリックでグループ内の個別要素選択状態のとき、グループ内のほかの個別要素がクリックされたら、個別要素選択状態を解除し、グループ選択状態に戻す。</content>
+<current-situation>個別要素は解除されるが、グループ選択状態が一瞬で終わり、クリックした個別要素の個別メニューになってしまう。もう一度クリックするまでは、個別要素メニューに遷移しないようにしてほしい。</current-situation>
 <remarks></remarks>
-<permission-to-move>OK</permission-to-move>
+<permission-to-move>NG</permission-to-move>
 </requirement>
 
 
 
+
+
 ## 2. 未解決要件に関するコード変更履歴（目的、変更内容、変更日時）
+
+- **グループ内個別選択からグループ選択への復帰ロジックの再強化（透過判定の広域化）**
+    - 目的: 「なにも改善していない」との指摘を受け、個別選択モード時に同じグループ内の別要素をクリックしても正しくグループ選択に戻らない問題を根本から解決するため。
+    - 内容:
+        - `src/hooks/moveable/useMoveableHandlers.ts`: 
+            - `handleCanvasClick` および `handleMouseUp` において、`elementFromPoint` を使用した透過クリック判定の対象に `querySelectorAll('.moveable-control-box')` 等の全Moveable UIを含めるように拡張。これにより、青いハンドルやオレンジの枠が邪魔をしてクリックが背後の要素に届かない問題を解消。
+            - ターゲット要素の特定ロジックを `closest` と `while` ループの組み合わせで共通化し、テキスト等の子要素をクリックした場合でも正確に `data-group-id` を持つ親を特定できるように修正。
+            - 個別選択モード中、別の要素がクリックされた場合に `setSelectionMode('group')` を確実に実行し、`activeSubTarget` をクリアするロジックを維持。
+    - 日時: 2026-01-04 19:10
 
 - **グループ化直後の新グループ自動選択機能の実装**
     - 目的: グループ化ボタン押下後、新しく作成されたグループを自動的に選択状態にし、すぐに移動・リサイズ操作や解除操作ができるようにするため。
@@ -263,6 +269,12 @@
 - **inline styleの!importantは無効**: HTMLの `style` 属性に `!important` を書いても効果がない。CSSの仕様上の制約であり、`!important` はスタイルシート内でのみ有効。
 - **CSS継承の競合**: `body` に `text-white` が設定されており、DesignSurface内に明示的な `color` を設定しないと白文字が継承されてテキストが見えなくなる。
 - **ブラウザのデフォルト選択挙動**: キャンバス風のUIでは、要素のドラッグ操作がブラウザによってテキスト選択として解釈されることがある。これを防ぐには `user-select: none` の制御が不可欠。
+- **個別選択モードからの復帰ロジックの分析**:
+    - 現状の `handleCanvasClick` と `handleMouseUp` の組み合わせでは、ステート更新（`setSelectionMode`）が非同期であるため、同一クリックサイクル内の `MouseUp` 時点では `selectionMode` が古い値（`individual`）を参照している。
+    - また、クリックされた要素の判定において、`getAttribute('data-group-id')` を持つ最上位の親を確実に特定するためのループ処理（`while` ループ）が必要。
+    - 複数の `Moveable` インスタンス（Group用とIndividual用）が同時に表示される場合、クリックイベントが意図しないオーバーレイによって遮断される可能性があるため、`elementFromPoint` による「透過クリック」判定の対象を広げる必要がある。
+    - `IndividualMoveable` のハンドル操作中（リサイズ等）に誤って選択モードが切り替わらないよう、移動量のしきい値判定や、ハンドル要素の除外判定が重要。
+
 - **!important の使い分け**: HTMLのインラインスタイルでは `!important` は無効だが、CSSファイル内（特に `[contenteditable]` 等の状態上書き）では、他のライブラリや動的スタイルの干渉を防ぐために有効。
 
 
@@ -292,6 +304,10 @@
 - **グループ選択時のオレンジ枠・ポイントのみ表示**
     - 要件: グループを1回クリック時、オレンジ枠とオレンジポイントのみを表示し、グループ専用メニュー（解除、削除、ID表示、コピー）を表示する。
     - 解決方法: `FloatingMenu.tsx` を修正し、`selectionMode === 'group'` の場合はグループ専用メニューのみ表示するように条件分岐を追加。`MoveableManager.tsx` に `key` を導入し、ワンクリック時にポイントが即座に描画されるよう再マウントを強制。`index.css` でポイントの可視性を `!important` で保持。
+
+- **既存グループを含む複数選択時のビジュアル改善とグループ化後の自動選択**
+    - 要件: 既存グループと単独要素をシフト選択した際、既存グループのオレンジ枠を常時表示し、グループ化直後に新グループを自動選択状態にする。
+    - 解決方法: `MoveableManager.tsx` に `existingGroupBoundsMap` を導入し、複数選択中の既存グループの範囲を常時オレンジ枠で描画。`useFloatingMenu.ts` の `handleGroup` 内で `setAutoSelectId` を呼び出し、`useMoveable.ts` の副作用で新グループを即座に選択状態にするロジックを実装した。
 
 - **個別選択時のテキスト/画像/シェイプメニュー表示**
     - 要件: グループ内の個別要素をクリック時、オレンジ枠を維持しつつ水色枠とテキストメニュー等を表示する。
@@ -328,6 +344,7 @@
 - `src/store/useEditorStore.ts`: エディタの状態管理（コンテンツ、座標拡張など）を行うZustandストア。
 - `src/components/features/workspace/MoveableManager.tsx`: オレンジ枠（グループ用）と水色枠（個別用）の2段階選択UIを管理する核心コンポーネント。
 - `src/hooks/moveable/useSelection.ts`: 選択モード（none, group, individual）の状態遷移を管理する。
+- `src/hooks/moveable/useMoveableHandlers.ts`: キャンバス上のクリック、マウスアップ、移動などの低レイヤーイベントを処理し、選択状態を制御する核心ロジック。
 - `src/hooks/useMoveable.ts`: Moveable関連のフックを統合し、ドラッグ/リサイズ後のDOM状態をストアに反映する。
 
 
