@@ -60,15 +60,32 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectio
         if (groupId) navigator.clipboard.writeText(groupId);
     };
 
-    const isText = targetType === 'text';
-    const isImage = targetType === 'image';
-    const isShape = targetType === 'shape';
+    const getTargetType = (el: HTMLElement) => {
+        const tagName = el.tagName.toLowerCase();
+        const isImage = tagName === 'img' || (el.style.backgroundImage && el.style.backgroundImage.includes('url'));
+        if (isImage) return 'image';
+
+        const textContent = el.textContent?.trim() || '';
+        const isText = textContent !== '' &&
+            (el.children.length === 0 ||
+                Array.from(el.children).every(c =>
+                    ['br', 'span'].includes(c.tagName.toLowerCase()) ||
+                    (['div', 'p'].includes(c.tagName.toLowerCase()) && !c.id)
+                ));
+        return isText ? 'text' : 'shape';
+    };
+
+    const currentType = getTargetType(displayTarget);
+    const isText = currentType === 'text';
+    const isImage = currentType === 'image';
+    const isShape = currentType === 'shape';
+    const isGroupSelection = targets.length > 1 || (targets.length > 0 && targets[0].hasAttribute('data-group-id'));
 
     return (
         <div
             ref={menuRef}
             className={cn(
-                "fixed z-[100] bg-sidebar border border-white/10 rounded-lg shadow-2xl p-1 flex flex-col gap-1",
+                "fixed z-[10001] bg-sidebar border border-white/10 rounded-lg shadow-2xl p-1 flex flex-col gap-1",
                 "animate-in fade-in zoom-in-95 duration-200 min-w-[200px] translate-x-[-50%]"
             )}
             style={{

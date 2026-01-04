@@ -88,9 +88,10 @@ export const useFloatingMenu = (targets: HTMLElement[], onUpdate: () => void, on
         return isText ? 'text' : 'shape';
     }, [target]);
 
-    const isGrouped = targets.length > 1 && targets.every(el => el.getAttribute('data-group-id') === targets[0].getAttribute('data-group-id'));
+    const gid = targets[0]?.getAttribute('data-group-id');
+    const isGrouped = targets.length > 1 && gid !== null && targets.every(el => el.getAttribute('data-group-id') === gid);
     const canGroup = targets.length > 1 && !isGrouped;
-    const groupId = isGrouped ? targets[0].getAttribute('data-group-id') : null;
+    const groupId = isGrouped ? gid : null;
 
     const applyStyle = useCallback((property: keyof CSSStyleDeclaration, value: string, shouldUpdateStore = true) => {
         targets.forEach(el => {

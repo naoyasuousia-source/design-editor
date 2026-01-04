@@ -34,7 +34,7 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
         handleDoubleClick,
         finishEditing,
         updateContentFromDOM
-    } = useTextEditing(canvasRef, isLocked, setContent);
+    } = useTextEditing(canvasRef, isLocked, setContent, isTextBox);
 
     const {
         keepRatio,
@@ -46,8 +46,24 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
     const handleCanvasClick = useCallback((e: MouseEvent) => {
         if (isLocked) return;
 
-        const target = e.target as HTMLElement;
+        let target = e.target as HTMLElement;
         const isShift = e.shiftKey;
+
+        // オーバーレイ（グループ枠など）がクリックされた場合、背後にある実際の要素を特定する
+        if (!target.closest('.DesignSurface')) {
+            const originalPointerEvents = target.style.pointerEvents;
+            target.style.pointerEvents = 'none';
+            const underlying = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement;
+            target.style.pointerEvents = originalPointerEvents;
+
+            if (underlying && underlying.closest('.DesignSurface')) {
+                target = underlying;
+            } else {
+                // 背後にも要素がない場合は選択解除
+                if (!isShift) selectNone();
+                return;
+            }
+        }
 
         // ダブルクリック検知 (e.detail === 2)
         if (e.detail === 2) {

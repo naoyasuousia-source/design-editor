@@ -6,7 +6,8 @@ const keyDownListeners = new WeakMap<HTMLElement, (e: KeyboardEvent) => void>();
 export const useTextEditing = (
     canvasRef: RefObject<HTMLDivElement | null>,
     isLocked: boolean,
-    setContent: (content: string) => void
+    setContent: (content: string) => void,
+    isTextBox: (el: HTMLElement) => boolean
 ) => {
     const editingElementRef = useRef<HTMLElement | null>(null);
     const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -50,6 +51,9 @@ export const useTextEditing = (
 
         const target = e.target as HTMLElement;
         if (target.classList.contains('DesignSurface')) return;
+
+        // テキストボックスでない場合は編集を開始しない
+        if (!isTextBox(target)) return;
 
         if (isEditingRef.current && editingElementRef.current === target) return;
 

@@ -69,7 +69,7 @@ const MoveableManager: React.FC<MoveableManagerProps> = (props) => {
         let overlay = groupOverlay;
         if (!overlay) {
             overlay = document.createElement('div');
-            overlay.className = "absolute pointer-events-none hidden z-[9999]";
+            overlay.className = "absolute hidden z-[9999]";
             canvasRef.current.appendChild(overlay);
             setGroupOverlay(overlay);
         }
@@ -82,6 +82,11 @@ const MoveableManager: React.FC<MoveableManagerProps> = (props) => {
                 overlay.style.top = `${b.top}px`;
                 overlay.style.width = `${b.width}px`;
                 overlay.style.height = `${b.height}px`;
+                if (selectionMode === 'group') {
+                    overlay.classList.remove('pointer-events-none');
+                } else {
+                    overlay.classList.add('pointer-events-none');
+                }
             }
         } else {
             overlay.style.display = 'none';
