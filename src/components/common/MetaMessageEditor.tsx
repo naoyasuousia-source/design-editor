@@ -9,7 +9,7 @@ interface MetaMessageEditorProps {
 }
 
 const COLOR_KITS: Record<string, { label: string; main: string; sub: string; accent: string }> = {
-    custom: { label: 'カスタム', main: '#3b82f6', sub: '#1f2937', accent: '#fbbf24' },
+    custom: { label: 'カスタム', main: 'none', sub: 'none', accent: 'none' },
     business: { label: 'ビジネス', main: '#1a365d', sub: '#f8fafc', accent: '#3b82f6' },
     natural: { label: 'ナチュラル', main: '#3f6212', sub: '#fefce8', accent: '#84cc16' },
     pop: { label: 'ポップ', main: '#db2777', sub: '#ffffff', accent: '#facc15' },

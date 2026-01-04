@@ -63,10 +63,11 @@ export const parseMetaMessage = (html: string): MetaMessage | null => {
             collaborativeRules: '',
             designConcept: '',
             colors: {
-                main: '#3b82f6',
-                sub: '#1f2937',
-                accent: '#fbbf24',
-            }
+                main: 'none',
+                sub: 'none',
+                accent: 'none',
+            },
+            colorKit: 'custom'
         };
 
         // 1. FIXED_RULES_START から固定ルールを抽出
