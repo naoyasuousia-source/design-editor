@@ -36,7 +36,7 @@
 - また、一番上のレイヤーは、ほかのドラッグレイヤーが自分より下で被っているときは下辺を青くし、自分より上で被っているときは、枠の上辺を青く光らせることで、一番上のレイヤーへの移動も可能にする。</content>
 <current-situation></current-situation>
 <remarks></remarks>
-<permission-to-move>NG</permission-to-move>
+<permission-to-move>OK</permission-to-move>
 </requirement>
 
 
