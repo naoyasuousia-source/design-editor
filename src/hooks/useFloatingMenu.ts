@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useEditorStore } from '@/store/useEditorStore';
 import type { SelectionMode } from '@/hooks/moveable/useSelection';
-
-export type MenuType = 'text' | 'image' | 'shape';
+import { getTargetType, applyElementStyle } from '@/utils/domUtils';
+import type { TargetType } from '@/utils/domUtils';
 
 interface EyeDropper {
     open: () => Promise<{ sRGBHex: string }>;
@@ -82,20 +82,8 @@ export const useFloatingMenu = (
         };
     }, [targets, selectionMode, activeSubTarget]);
 
-    const targetType = useMemo((): MenuType => {
-        const t = effectiveTarget;
-        if (!t) return 'shape';
-        const tagName = t.tagName.toLowerCase();
-        const isImage = tagName === 'img' || (t.style.backgroundImage && t.style.backgroundImage.includes('url'));
-        if (isImage) return 'image';
-
-        const isText = t.textContent?.trim() !== '' &&
-            (t.children.length === 0 ||
-                Array.from(t.children).every(c =>
-                    ['br', 'span'].includes(c.tagName.toLowerCase()) ||
-                    (['div', 'p'].includes(c.tagName.toLowerCase()) && !c.id)
-                ));
-        return isText ? 'text' : 'shape';
+    const targetType = useMemo((): TargetType => {
+        return getTargetType(effectiveTarget);
     }, [effectiveTarget]);
 
     const gid = targets[0]?.getAttribute('data-group-id');
@@ -104,13 +92,7 @@ export const useFloatingMenu = (
     const groupId = isGrouped ? gid : null;
 
     const applyStyle = useCallback((property: keyof CSSStyleDeclaration, value: string, shouldUpdateStore = true) => {
-        targets.forEach(el => {
-            let cssProperty = (property as string).replace(/[A-Z]/g, m => `-${m.toLowerCase()}`);
-            if (cssProperty.startsWith('webkit-')) {
-                cssProperty = `-${cssProperty}`;
-            }
-            el.style.setProperty(cssProperty, value);
-        });
+        applyElementStyle(targets, property as string, value);
         if (shouldUpdateStore) onUpdate();
     }, [targets, onUpdate]);
 

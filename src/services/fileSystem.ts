@@ -151,13 +151,14 @@ export const fileSystemService = {
     ): Promise<void> {
         try {
             // 書き込み権限を確認・再要求
-            // @ts-ignore - queryPermission と requestPermission は File System Access API の拡張
-            if (fileHandle.queryPermission && fileHandle.requestPermission) {
-                // @ts-ignore
-                const permission = await fileHandle.queryPermission({ mode: 'readwrite' });
+            if ('queryPermission' in fileHandle && 'requestPermission' in fileHandle) {
+                const fh = fileHandle as unknown as {
+                    queryPermission: (opt: { mode: string }) => Promise<PermissionState>,
+                    requestPermission: (opt: { mode: string }) => Promise<PermissionState>
+                };
+                const permission = await fh.queryPermission({ mode: 'readwrite' });
                 if (permission !== 'granted') {
-                    // @ts-ignore
-                    const newPermission = await fileHandle.requestPermission({ mode: 'readwrite' });
+                    const newPermission = await fh.requestPermission({ mode: 'readwrite' });
                     if (newPermission !== 'granted') {
                         throw new Error('ファイルへの書き込み権限が拒否されました');
                     }

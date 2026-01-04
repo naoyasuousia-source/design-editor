@@ -16,10 +16,10 @@ import { cn } from '@/utils/cn';
 import { useEditorStore } from '@/store/useEditorStore';
 import { useFileSystem } from '@/hooks/useFileSystem';
 import { useElementInsertion } from '@/hooks/useElementInsertion';
-import MetaMessageEditor from './MetaMessageEditor';
-import HintDialog from './HintDialog';
-import ZoomControl from './ZoomControl';
-import ImagePicker from './ImagePicker';
+import MetaMessageEditor from '@/components/common/MetaMessageEditor';
+import HintDialog from '@/components/common/HintDialog';
+import ZoomControl from '@/components/common/ZoomControl';
+import ImagePicker from '@/components/common/ImagePicker';
 import type { PageSize } from '@/types/editor';
 import { PAGE_SIZES } from '@/types/editor';
 

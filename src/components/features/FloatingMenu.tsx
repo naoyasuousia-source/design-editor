@@ -10,15 +10,17 @@ import {
 import { useAssets } from '@/hooks/useAssets';
 import { cn } from '@/utils/cn';
 import { useFloatingMenu } from '@/hooks/useFloatingMenu';
-import ColorPalette from './floating-menu/ColorPalette';
-import RadiusPicker from './floating-menu/RadiusPicker';
-import ImageReplacePanel from './floating-menu/ImageReplacePanel';
-import TextSettings from './floating-menu/TextSettings';
-import ParagraphSettings from './floating-menu/ParagraphSettings';
-import EffectSettings from './floating-menu/EffectSettings';
-import MenuHeader from './floating-menu/MenuHeader';
-import GroupActions from './floating-menu/GroupActions';
+import ColorPalette from '@/components/features/floating-menu/ColorPalette';
+import RadiusPicker from '@/components/features/floating-menu/RadiusPicker';
+import ImageReplacePanel from '@/components/features/floating-menu/ImageReplacePanel';
+import TextSettings from '@/components/features/floating-menu/TextSettings';
+import ParagraphSettings from '@/components/features/floating-menu/ParagraphSettings';
+import EffectSettings from '@/components/features/floating-menu/EffectSettings';
+import MenuHeader from '@/components/features/floating-menu/MenuHeader';
+import GroupActions from '@/components/features/floating-menu/GroupActions';
 import type { SelectionMode } from '@/hooks/moveable/useSelection';
+import { getTargetType } from '@/utils/domUtils';
+import type { TargetType } from '@/utils/domUtils';
 
 interface FloatingMenuProps {
     targets: HTMLElement[];
@@ -61,22 +63,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectio
         if (groupId) navigator.clipboard.writeText(groupId);
     };
 
-    const getTargetType = (el: HTMLElement) => {
-        const tagName = el.tagName.toLowerCase();
-        const isImage = tagName === 'img' || (el.style.backgroundImage && el.style.backgroundImage.includes('url'));
-        if (isImage) return 'image';
-
-        const textContent = el.textContent?.trim() || '';
-        const isText = textContent !== '' &&
-            (el.children.length === 0 ||
-                Array.from(el.children).every(c =>
-                    ['br', 'span'].includes(c.tagName.toLowerCase()) ||
-                    (['div', 'p'].includes(c.tagName.toLowerCase()) && !c.id)
-                ));
-        return isText ? 'text' : 'shape';
-    };
-
-    const currentType = getTargetType(displayTarget);
+    const currentType: TargetType = getTargetType(displayTarget);
     const isText = currentType === 'text';
     const isImage = currentType === 'image';
     const isShape = currentType === 'shape';

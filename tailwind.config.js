@@ -38,5 +38,16 @@ export default {
       }
     },
   },
-  plugins: [],
+  plugins: [
+    function ({ addUtilities }) {
+      addUtilities({
+        '.glass': {
+          '@apply bg-white/5 backdrop-blur-md border border-white/10 shadow-xl': {},
+        },
+        '.glass-dark': {
+          '@apply bg-black/40 backdrop-blur-xl border border-white/5 shadow-2xl': {},
+        },
+      })
+    }
+  ],
 }
