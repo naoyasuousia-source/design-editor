@@ -78,6 +78,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked, isHome }) => {
                         isLocked={isLocked}
                         config={config}
                         canvasRef={canvasRef}
+                        isHome={isHome}
                         handleCanvasClick={handleCanvasClick}
                         handleMouseUp={handleMouseUp}
                         handleMouseMove={handleMouseMove}

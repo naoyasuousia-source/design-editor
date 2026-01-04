@@ -12,6 +12,7 @@ interface DesignAreaProps {
     handleMouseMove: (e: React.MouseEvent) => void;
     handleMouseLeave: () => void;
     updateContentFromDOM: () => void;
+    isHome?: boolean;
     children?: React.ReactNode;
 }
 
@@ -56,6 +57,7 @@ const DesignArea: React.FC<DesignAreaProps> = ({
     handleMouseMove,
     handleMouseLeave,
     updateContentFromDOM,
+    isHome,
     children
 }) => {
     const isApplyingUpdate = useEditorStore(state => state.isApplyingUpdate);
@@ -65,8 +67,10 @@ const DesignArea: React.FC<DesignAreaProps> = ({
         <div
             ref={canvasRef}
             className={cn(
-                "w-full h-full bg-white text-black relative",
-                isLocked && "brightness-75 grayscale-[0.2]"
+                "w-full h-full relative",
+                !isHome && "bg-white text-black",
+                (isLocked && !isHome) && "brightness-75 grayscale-[0.2]",
+                isHome && "pointer-events-none"
             )}
             onMouseDown={handleCanvasClick}
             onMouseUp={handleMouseUp}
