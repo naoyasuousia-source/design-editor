@@ -5,6 +5,7 @@ import { getAvailableZoomLevels, getNextZoomLevel, getPreviousZoomLevel } from '
 interface ZoomControlProps {
     zoom: number;
     onZoomChange: (zoom: number) => void;
+    disabled?: boolean;
 }
 
 /**
@@ -12,7 +13,7 @@ interface ZoomControlProps {
  * - +/- ボタンで次の倍率に変更
  * - 倍率表示をクリックするとドロップダウンで全倍率を表示
  */
-const ZoomControl: React.FC<ZoomControlProps> = ({ zoom, onZoomChange }) => {
+const ZoomControl: React.FC<ZoomControlProps> = ({ zoom, onZoomChange, disabled }) => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -50,7 +51,10 @@ const ZoomControl: React.FC<ZoomControlProps> = ({ zoom, onZoomChange }) => {
 
     return (
         <div className="relative" ref={dropdownRef}>
-            <div className="flex items-center gap-1 px-2 py-1 bg-white/5 rounded-md border border-white/10">
+            <div className={cn(
+                "flex items-center gap-1 px-2 py-1 bg-white/5 rounded-md border border-white/10 transition-opacity",
+                disabled && "opacity-20 pointer-events-none"
+            )}>
                 {/* 縮小ボタン */}
                 <button
                     onClick={handleZoomOut}

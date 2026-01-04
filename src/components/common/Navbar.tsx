@@ -125,10 +125,10 @@ const Navbar: React.FC = () => {
                         <button
                             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                             className={cn(
-                                "flex items-center gap-2 px-3 py-1.5 rounded-md transition-all duration-200",
-                                "text-sm font-medium transition-all duration-500",
+                                "flex items-center gap-2 px-3 py-1.5 rounded-md transition-all duration-300",
+                                "text-sm font-medium transition-all duration-700",
                                 !currentFileHandle
-                                    ? "text-blue-400 bg-blue-500/10 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.3)] animate-pulse"
+                                    ? "text-white bg-white/10 border border-white/20 shadow-[0_0_20px_rgba(255,255,255,0.15)] ring-1 ring-white/20"
                                     : "text-gray-300 hover:text-white hover:bg-white/10",
                                 isDropdownOpen && "bg-white/10 text-white"
                             )}
@@ -158,7 +158,7 @@ const Navbar: React.FC = () => {
                         label="開く"
                         onClick={handleOpen}
                         className={cn(
-                            !currentFileHandle && "text-purple-400 bg-purple-500/10 border border-purple-500/30 shadow-[0_0_15px_rgba(168,85,247,0.3)] animate-pulse delay-700"
+                            !currentFileHandle && "text-white bg-white/10 border border-white/20 shadow-[0_0_20px_rgba(255,255,255,0.15)] ring-1 ring-white/20 delay-300"
                         )}
                     />
                     <NavButton
@@ -226,7 +226,7 @@ const Navbar: React.FC = () => {
                         onClick={() => setImageSaveMode(true)}
                         disabled={isImageSaveMode || !currentFileHandle}
                     />
-                    <ZoomControl zoom={zoom} onZoomChange={setZoom} />
+                    <ZoomControl zoom={zoom} onZoomChange={setZoom} disabled={!currentFileHandle} />
                 </div>
 
                 <div className="flex flex-wrap items-center gap-1 border-l border-white/10 pl-4">
@@ -258,8 +258,8 @@ const Navbar: React.FC = () => {
                         icon={<HelpCircle />}
                         label="ヒント"
                         className={cn(
-                            "p-1 min-w-0 transition-all duration-500",
-                            !currentFileHandle && "text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.3)] animate-pulse delay-1000"
+                            "p-1 min-w-0 transition-all duration-700",
+                            !currentFileHandle && "text-white bg-white/10 border border-white/20 shadow-[0_0_20px_rgba(255,255,255,0.15)] ring-1 ring-white/20 delay-500"
                         )}
                         onClick={() => setShowHint(true)}
                     />
