@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import Navbar from '@/components/common/Navbar';
-import Workspace from '@/components/features/Workspace';
-import ComparisonView from '@/components/features/ComparisonView';
+import Workspace from '@/components/features/workspace/Workspace';
+import ComparisonView from '@/components/features/comparison/ComparisonView';
 import TemporaryBar from '@/components/common/TemporaryBar';
-import ImageSaveWizard from '@/components/features/ImageSaveWizard';
+import ImageSaveWizard from '@/components/features/image-save/ImageSaveWizard';
 import SaveToast from '@/components/common/SaveToast';
-import LayerSidebar from '@/components/features/LayerSidebar';
+import LayerSidebar from '@/components/features/layer/LayerSidebar';
+import Home from '@/components/features/home/Home';
 import { useHotkeys } from '@/hooks/useHotkeys';
 import { useBeforeUnload } from '@/hooks/useBeforeUnload';
 import { useEditorStore } from '@/store/useEditorStore';
@@ -20,7 +21,8 @@ const App: React.FC = () => {
         pendingContent,
         isImageSaveMode,
         showSaveToast,
-        setShowSaveToast
+        setShowSaveToast,
+        currentFileHandle
     } = useEditorStore();
 
     const [showComparison, setShowComparison] = useState(false);
@@ -29,6 +31,11 @@ const App: React.FC = () => {
     useHotkeys();
     // 終了警告の有効化
     useBeforeUnload();
+
+    // フォルダ・ファイルが選択されていない場合はホーム画面を表示
+    if (!currentFileHandle) {
+        return <Home />;
+    }
 
     return (
         <div className="flex flex-col h-screen w-screen bg-background overflow-hidden relative">

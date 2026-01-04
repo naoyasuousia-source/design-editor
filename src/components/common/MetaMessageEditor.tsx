@@ -3,6 +3,7 @@ import { X, Ban, Brain } from 'lucide-react';
 import { useEditorStore } from '@/store/useEditorStore';
 import { useFileSystem } from '@/hooks/useFileSystem';
 import { cn } from '@/utils/cn';
+import type { ColorKit } from '@/types/editor';
 
 interface MetaMessageEditorProps {
     onClose: () => void;
@@ -171,7 +172,7 @@ const MetaMessageEditor: React.FC<MetaMessageEditorProps> = ({ onClose }) => {
                                                 onClick={() => {
                                                     setLocalMeta({
                                                         ...localMeta,
-                                                        colorKit: key as any,
+                                                        colorKit: key as ColorKit,
                                                         colors: key === 'custom' ? localMeta.colors : { main: kit.main, sub: kit.sub, accent: kit.accent }
                                                     });
                                                 }}

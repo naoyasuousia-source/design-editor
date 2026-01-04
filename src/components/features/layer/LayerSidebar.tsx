@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useEditorStore } from '@/store/useEditorStore';
 import { useLayers } from '@/hooks/useLayers';
-import { LayerItem } from './layer/LayerItem';
+import { LayerItem } from '@/components/features/layer/LayerItem';
 import { X, Layers as LayersIcon } from 'lucide-react';
 import { cn } from '@/utils/cn';
 

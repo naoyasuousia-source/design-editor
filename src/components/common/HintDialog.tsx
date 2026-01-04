@@ -133,7 +133,7 @@ const HintDialog: React.FC<HintDialogProps> = ({ onClose }) => {
 
 interface StepItemProps {
     number: string;
-    icon: React.ReactNode;
+    icon: React.ReactElement;
     title: string;
     description: string;
     children?: React.ReactNode;
@@ -154,7 +154,7 @@ const StepItem: React.FC<StepItemProps> = ({ number, icon, title, description, c
         <div className="space-y-2">
             <div className="flex items-center gap-2">
                 <span className={cn("inline-block p-1 rounded-md mb-1", color, "bg-opacity-20 text-white transition-transform group-hover:rotate-12")}>
-                    {React.cloneElement(icon as any, { size: 14 })}
+                    {React.cloneElement(icon, { size: 14 } as any)}
                 </span>
                 <h3 className="text-[15px] font-bold text-gray-100 tracking-tight group-hover:text-white transition-colors">
                     {title}

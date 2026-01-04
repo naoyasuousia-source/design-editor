@@ -3,11 +3,11 @@ import { useEditorStore } from '@/store/useEditorStore';
 import { PAGE_SIZES } from '@/types/editor';
 import { useAutoSync } from '@/hooks/useAutoSync';
 import { useMoveable } from '@/hooks/useMoveable';
-import FloatingMenu from '@/components/features/FloatingMenu';
+import FloatingMenu from '@/components/features/floating-menu/FloatingMenu';
 import DesignArea from '@/components/features/workspace/DesignArea';
 import MoveableManager from '@/components/features/workspace/MoveableManager';
 import ImageCropOverlay from '@/components/features/workspace/ImageCropOverlay';
-import ImageSaveWizard from '@/components/features/ImageSaveWizard';
+import ImageSaveWizard from '@/components/features/image-save/ImageSaveWizard';
 
 interface WorkspaceProps {
     isLocked: boolean;
