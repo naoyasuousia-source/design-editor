@@ -159,6 +159,13 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
     const handleMouseUp = useCallback((e: MouseEvent) => {
         if (isLocked || !lastMouseDownPos.current) return;
 
+        // Shiftキー押下時や、既に複数要素（グループではない）が選択されている場合は、
+        // handleCanvasClick (MouseDown) での選択状態を維持し、個別切り替えをスキップする。
+        if (e.shiftKey || (targets.length > 1 && selectionMode === 'individual')) {
+            lastMouseDownPos.current = null;
+            return;
+        }
+
         const dx = e.clientX - lastMouseDownPos.current.x;
         const dy = e.clientY - lastMouseDownPos.current.y;
         const distance = Math.sqrt(dx * dx + dy * dy);

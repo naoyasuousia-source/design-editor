@@ -66,15 +66,34 @@ const GroupMoveable: React.FC<GroupMoveableProps> = ({
             zoom={1 / zoom}
             hideChildMoveableControls={false}
             className="moveable-group-selection"
-            onDrag={e => {
-                e.target.style.transform = e.transform;
-                const deltaX = e.delta[0];
-                const deltaY = e.delta[1];
+            onDragStart={e => {
                 targets.forEach(el => {
-                    const currentLeft = parseFloat(el.style.left) || el.offsetLeft;
-                    const currentTop = parseFloat(el.style.top) || el.offsetTop;
-                    el.style.left = `${currentLeft + deltaX}px`;
-                    el.style.top = `${currentTop + deltaY}px`;
+                    el.setAttribute('data-start-l', (parseFloat(el.style.left) || el.offsetLeft).toString());
+                    el.setAttribute('data-start-t', (parseFloat(el.style.top) || el.offsetTop).toString());
+                });
+                const overlayEl = e.target as HTMLElement;
+                overlayEl.setAttribute('data-start-l', (parseFloat(overlayEl.style.left) || overlayEl.offsetLeft).toString());
+                overlayEl.setAttribute('data-start-t', (parseFloat(overlayEl.style.top) || overlayEl.offsetTop).toString());
+            }}
+            onDrag={e => {
+                const overlayTarget = e.target as HTMLElement;
+                const { beforeTranslate } = e;
+                const startL = parseFloat(overlayTarget.getAttribute('data-start-l') || '0');
+                const startT = parseFloat(overlayTarget.getAttribute('data-start-t') || '0');
+                const newL = startL + beforeTranslate[0];
+                const newT = startT + beforeTranslate[1];
+
+                overlayTarget.style.left = `${newL}px`;
+                overlayTarget.style.top = `${newT}px`;
+
+                const deltaX = beforeTranslate[0];
+                const deltaY = beforeTranslate[1];
+
+                targets.forEach(el => {
+                    const elStartL = parseFloat(el.getAttribute('data-start-l') || '0');
+                    const elStartT = parseFloat(el.getAttribute('data-start-t') || '0');
+                    el.style.left = `${elStartL + deltaX}px`;
+                    el.style.top = `${elStartT + deltaY}px`;
                 });
 
                 let maxR = 0, maxB = 0;
@@ -87,14 +106,10 @@ const GroupMoveable: React.FC<GroupMoveableProps> = ({
                     }
                 });
                 if (maxR > 0 || maxB > 0) expandCanvas(maxR, maxB);
-                updateOverlayBounds();
             }}
             onDragEnd={() => {
-                if (groupOverlay) {
-                    groupOverlay.style.transform = '';
-                    updateOverlayBounds();
-                }
                 updateContentFromDOM();
+                updateOverlayBounds();
             }}
             onResizeStart={e => {
                 targets.forEach(el => {
@@ -158,14 +173,10 @@ const GroupMoveable: React.FC<GroupMoveableProps> = ({
                     }
                 });
                 if (maxR > 0 || maxB > 0) expandCanvas(maxR, maxB);
-                updateOverlayBounds();
             }}
             onResizeEnd={() => {
-                if (groupOverlay) {
-                    groupOverlay.style.transform = '';
-                    updateOverlayBounds();
-                }
                 updateContentFromDOM();
+                updateOverlayBounds();
             }}
         />
     );

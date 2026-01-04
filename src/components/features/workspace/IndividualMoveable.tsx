@@ -32,8 +32,17 @@ const IndividualMoveable: React.FC<IndividualMoveableProps> = ({
     updateOverlayBounds,
     handleResizeStart
 }) => {
+    const moveableRef = React.useRef<Moveable>(null);
+
+    React.useEffect(() => {
+        if (moveableRef.current) {
+            moveableRef.current.updateRect();
+        }
+    }, [target]);
+
     return (
         <Moveable
+            ref={moveableRef}
             target={target}
             container={canvasRef.current || undefined}
             draggable={true}

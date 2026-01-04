@@ -16,7 +16,7 @@
 <content></content>
 <current-situation></current-situation>
 <remarks></remarks>
-<permission-to-move>OK</permission-to-move>
+<permission-to-move>NGs</permission-to-move>
 </requirement>
 
 </uneditable>
@@ -30,8 +30,8 @@
 <requirement>
 <content>テキストボックス要素、図形要素、画像要素、グループのすべてのメニューに「複製」ボタンを追加する。複製を選択すると、複製元と少しずらして、同じものをレンダリングする。（コード上は一番最後尾に追加する）（idのみ変える）</content>
 <current-situation></current-situation>
-<remarks></remarks>
-<permission-to-move>OK</permission-to-move>
+<remarks>複数要素選択メニューには複製は追加しない！</remarks>
+<permission-to-move>NG</permission-to-move>
 </requirement>
 
 
