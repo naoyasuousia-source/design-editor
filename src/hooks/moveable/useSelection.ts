@@ -15,10 +15,18 @@ export const useSelection = (canvasRef: RefObject<HTMLDivElement | null>, conten
             const next = typeof newTargets === 'function' ? newTargets(prev) : newTargets;
             prev.forEach(el => el.classList.remove('moveable-target-active'));
             next.forEach(el => el.classList.add('moveable-target-active'));
-            useEditorStore.getState().setSelectedIds(next.map(el => el.id));
             return next;
         });
     }, []);
+
+    // グローバルな選択状態（レイヤー同期用）の更新
+    useEffect(() => {
+        const ids = targets.map(el => el.id);
+        if (activeSubTarget && activeSubTarget.id && !ids.includes(activeSubTarget.id)) {
+            ids.push(activeSubTarget.id);
+        }
+        useEditorStore.getState().setSelectedIds(ids);
+    }, [targets, activeSubTarget]);
 
     // デザインの更新に合わせて DOM 要素を再取得する
     useEffect(() => {
