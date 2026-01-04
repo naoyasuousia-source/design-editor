@@ -25,15 +25,15 @@ export const HOME_AD_HTML = `
     <!-- Branding Area (Immersive Bottom Left) -->
     <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 60%; padding: 8% 10%; display: flex; flex-direction: column; justify-content: flex-end;">
         <div class="animate-home-full" style="position: relative;">
-            <div style="font-size: clamp(14px, 1.2vw, 21px); letter-spacing: 0.6em; color: #3b82f6; font-weight: 700; margin-bottom: 24px; text-transform: uppercase;">
+            <div style="font-size: clamp(18px, 0.4vw + 14px, 22px); letter-spacing: 0.6em; color: #3b82f6; font-weight: 700; margin-bottom: 24px; text-transform: uppercase;">
                 Project Alpha
             </div>
-            <h1 style="font-size: clamp(60px, 8vw, 120px); font-weight: 900; line-height: 0.85; color: #ffffff; letter-spacing: -0.04em; margin: 0; white-space: nowrap;">
+            <h1 style="font-size: clamp(86px, 4vw + 62px, 120px); font-weight: 900; line-height: 0.85; color: #ffffff; letter-spacing: -0.04em; margin: 0; white-space: nowrap;">
                 AI Link<br/>
                 <span style="color: rgba(255,255,255,0.45);">Design</span>
             </h1>
-            <div style="margin-top: 48px; width: clamp(40px, 5vw, 100px); height: 3px; background: #ffffff; opacity: 0.8;"></div>
-            <p style="margin-top: 32px; font-size: clamp(16px, 1.5vw, 24px); color: rgba(255,255,255,0.6); line-height: 1.5; max-width: 600px; font-weight: 300; letter-spacing: -0.01em;">
+            <div style="margin-top: 48px; width: clamp(60px, 5vw, 100px); height: 3px; background: #ffffff; opacity: 0.8;"></div>
+            <p style="margin-top: 32px; font-size: clamp(22px, 0.8vw + 16px, 26px); color: rgba(255,255,255,0.6); line-height: 1.5; max-width: 700px; font-weight: 300; letter-spacing: -0.01em;">
                 Constructing the future of visual communication through intelligent synthesis.
             </p>
         </div>
