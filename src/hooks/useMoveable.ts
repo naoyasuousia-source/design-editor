@@ -43,6 +43,7 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
     } = useTransform(canvasRef, targets, zoom, isTextBox);
 
     const lastMouseDownPos = useRef<{ x: number, y: number } | null>(null);
+    const wasAlreadySelectedRef = useRef<boolean>(false);
 
     // クリックによる要素選択
     const handleCanvasClick = useCallback((e: MouseEvent) => {
@@ -109,6 +110,7 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
                 : [el];
 
             if (isShift) {
+                wasAlreadySelectedRef.current = false;
                 // シフト押下時：要素の重複を排除しながら追加/削除
                 const hasAll = groupElements.every(el => targets.includes(el));
                 const nextTargets = hasAll
@@ -131,6 +133,8 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
                     const isAlreadyGroupSelected = targets.length === groupElements.length &&
                         targets.every(t => t.getAttribute('data-group-id') === groupId);
 
+                    wasAlreadySelectedRef.current = isAlreadyGroupSelected && selectionMode === 'group';
+
                     if (isAlreadyGroupSelected && selectionMode === 'group') {
                         // すでにグループ選択されている場合は、MouseDownでは何もしない（ドラッグを優先）
                         // 個別選択への切り替えは handleMouseUp で行う
@@ -142,6 +146,7 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
                         setActiveSubTarget(null);
                     }
                 } else {
+                    wasAlreadySelectedRef.current = false;
                     // グループなし要素
                     setTargets([el]);
                     setSelectionMode('individual');
@@ -198,8 +203,8 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
             const isTargetInCurrentGroup = targets.length === groupElements.length &&
                 targets.every(t => t.getAttribute('data-group-id') === groupId);
 
-            if (isTargetInCurrentGroup && selectionMode === 'group') {
-                // すでに同じグループ全体を選択している場合 -> クリックした個別要素を選択
+            if (isTargetInCurrentGroup && selectionMode === 'group' && wasAlreadySelectedRef.current) {
+                // MouseDown時点で既にこのグループが選択されていた場合のみ -> 個別要素を選択
                 setSelectionMode('individual');
                 setActiveSubTarget(el);
             } else if (!isTargetInCurrentGroup) {
