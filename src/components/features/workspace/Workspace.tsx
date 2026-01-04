@@ -60,25 +60,28 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked, isHome }) => {
             "h-full w-full relative flex select-none",
             isHome ? "overflow-hidden" : "overflow-auto CustomScrollbar"
         )}>
-            {/* 視覚的なサイズを確保するラッパー（スクロールと中央寄せ用） */}
+            {/* 視覚的なサイズを確保するラッパー（ホーム時はフルスクリーン） */}
             <div
                 className={cn(
-                    "relative shrink-0 shadow-2xl mx-auto",
-                    isHome ? "m-auto" : "m-auto my-16"
+                    "relative shrink-0 mx-auto",
+                    isHome ? "w-full h-full blur-none" : "shadow-2xl m-auto my-16"
                 )}
-                style={{
+                style={!isHome ? {
                     width: `${currentWidth * zoom}px`,
                     height: `${currentHeight * zoom}px`,
-                }}
+                } : undefined}
             >
-                {/* スケールコンテナ */}
+                {/* スケールコンテナ（ホーム時はスケールなしのフル） */}
                 <div
-                    className="absolute top-0 left-0 origin-top-left"
-                    style={{
+                    className={cn(
+                        "absolute top-0 left-0",
+                        isHome ? "w-full h-full" : "origin-top-left"
+                    )}
+                    style={!isHome ? {
                         width: `${currentWidth}px`,
                         height: `${currentHeight}px`,
                         transform: `scale(${zoom})`,
-                    }}
+                    } : undefined}
                 >
                     <DesignArea
                         content={content}
