@@ -13,8 +13,8 @@ export const PAGE_SIZES: Record<PageSize, PageConfig> = {
 };
 
 export interface MetaMessage {
-    fixedRules: string[];
-    collaborativeRules: string[];
+    fixedRules: string;
+    collaborativeRules: string;
     designConcept: string;
     colors: {
         main: string | 'none';

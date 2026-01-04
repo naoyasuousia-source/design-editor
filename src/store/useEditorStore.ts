@@ -73,8 +73,8 @@ const initialState: EditorState & {
     prePendingContent: '',
     pendingSnapshot: null,
     metaMessage: {
-        fixedRules: [],
-        collaborativeRules: [],
+        fixedRules: '',
+        collaborativeRules: '',
         designConcept: '',
         colors: {
             main: '#3b82f6',

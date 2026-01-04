@@ -7,8 +7,8 @@ import { type MetaMessage, PAGE_SIZES } from '@/types/editor';
 export const parseMetaMessage = (html: string): MetaMessage | null => {
     try {
         let meta: MetaMessage = {
-            fixedRules: [],
-            collaborativeRules: [],
+            fixedRules: '',
+            collaborativeRules: '',
             designConcept: '',
             colors: {
                 main: '#3b82f6',
@@ -20,7 +20,7 @@ export const parseMetaMessage = (html: string): MetaMessage | null => {
         // 1. FIXED_RULES_START から固定ルールを抽出
         const fixedMatch = html.match(/<!-- FIXED_RULES_START -->([\s\S]*?)<!-- FIXED_RULES_END -->/);
         if (fixedMatch && fixedMatch[1]) {
-            meta.fixedRules = fixedMatch[1].trim().split('\n').map(line => line.replace(/^[*-]\s*/, '').trim()).filter(line => line !== '');
+            meta.fixedRules = fixedMatch[1].trim();
         }
 
         // 2. USER_REQUIREMENT_START から JSON を抽出
@@ -40,6 +40,14 @@ export const parseMetaMessage = (html: string): MetaMessage | null => {
                 if (json.colors && json.colors.primary) {
                     json.colors.main = json.colors.primary;
                     json.colors.sub = json.colors.secondary;
+                }
+
+                // 配列形式だった場合の互換性維持
+                if (Array.isArray(json.fixedRules)) {
+                    json.fixedRules = json.fixedRules.join('\n');
+                }
+                if (Array.isArray(json.collaborativeRules)) {
+                    json.collaborativeRules = json.collaborativeRules.join('\n');
                 }
 
                 return { ...meta, ...json };
@@ -275,7 +283,7 @@ export const constructFullHTML = (content: string, customCss: string, meta: Meta
     これらのルールに反する変更は「絶対的な禁止事項」です。
     -->
     <!-- FIXED_RULES_START -->
-    ${(meta.fixedRules || []).map(r => `* ${r}`).join('\n')}
+    ${meta.fixedRules || ''}
     <!-- FIXED_RULES_END -->
 
     <!-- 
