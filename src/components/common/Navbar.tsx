@@ -95,6 +95,7 @@ const Navbar: React.FC = () => {
     const [showHint, setShowHint] = useState(false);
     const [isInsertOpen, setIsInsertOpen] = useState(false);
     const [showImagePicker, setShowImagePicker] = useState(false);
+    const [hasInteracted, setHasInteracted] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const insertRef = useRef<HTMLDivElement>(null);
 
@@ -117,6 +118,7 @@ const Navbar: React.FC = () => {
     const handleNewProject = (size: PageSize) => {
         handleNew(size);
         setIsDropdownOpen(false);
+        setHasInteracted(true);
     };
 
     // 保存前にテキスト編集を確定
@@ -164,7 +166,10 @@ const Navbar: React.FC = () => {
                     {/* 新規作成ドロップダウン */}
                     <div className="relative" ref={dropdownRef}>
                         <button
-                            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                            onClick={() => {
+                                setIsDropdownOpen(!isDropdownOpen);
+                                setHasInteracted(true);
+                            }}
                             className={cn(
                                 "flex items-center gap-2 px-3 py-1.5 rounded-md transition-all duration-300",
                                 "text-sm font-medium transition-all duration-700",
@@ -178,7 +183,7 @@ const Navbar: React.FC = () => {
                             <span>新規作成</span>
                             <ChevronDown className={cn("w-3 h-3 transition-transform", isDropdownOpen && "rotate-180")} />
                         </button>
-                        {!currentFileHandle && <GuideArrow />}
+                        {!currentFileHandle && !hasInteracted && <GuideArrow />}
 
                         {isDropdownOpen && (
                             <div className="absolute top-full left-0 mt-1 w-48 bg-sidebar border border-white/10 rounded-lg shadow-2xl py-2 z-[70] animate-in fade-in slide-in-from-top-2">
@@ -198,12 +203,15 @@ const Navbar: React.FC = () => {
                     <NavButton
                         icon={<FolderOpen />}
                         label="開く"
-                        onClick={handleOpen}
+                        onClick={() => {
+                            handleOpen();
+                            setHasInteracted(true);
+                        }}
                         className={cn(
                             !currentFileHandle && "text-white bg-white/10 border border-white/20 shadow-[0_0_20px_rgba(255,255,255,0.15)] ring-1 ring-white/20 delay-300"
                         )}
                     >
-                        {!currentFileHandle && <GuideArrow />}
+                        {!currentFileHandle && !hasInteracted && <GuideArrow />}
                     </NavButton>
                     <NavButton
                         icon={<Save />}
