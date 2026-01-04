@@ -14,9 +14,15 @@
     
     <!-- FIXED_RULES_END -->
 
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@400;700&family=M+PLUS+1p:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Montserrat:wght@400;500;700&family=Roboto:wght@400;500;700&family=Playfair+Display:wght@400;700&family=Oswald:wght@400;500;700&family=Poppins:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" crossorigin="anonymous">
+
     <!-- 
     0. CANVAS DIMENSIONS (ABSOLUTE CONSTRAINT)
-- Current Canvas Size: Square 1:1 (800 x 800px)
+- Current Canvas Size: Vertical 9:16 (630 x 1120px)
+- Width: 630px, Height: 1120px
 - [CRITICAL] All elements MUST be placed WITHIN these boundaries.
 - [PROHIBITION] Never set positions or sizes exceeding these limits.
     [NOTICE] 万が一計算ミスではみ出した場合、システムにより自動的にキャンバス内に押し戻されますが、デザイナーとして最初からこの範囲内に収まるよう厳密に計算してください。
@@ -66,9 +72,25 @@
 
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        html, body { width: 100%; height: 100%; overflow: auto; }
-        body { background: #1a1a1a; display: flex; align-items: center; justify-content: center; padding: 20px; min-height: 100vh; }
-        .DesignSurface { position: relative; background: white; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); min-width: 400px; min-height: 400px; }
+        html, body { width: 100%; height: 100%; overflow: auto; background: #000; }
+        body { 
+            display: flex; 
+            justify-content: center; 
+            padding: 80px 40px; 
+            min-height: 100vh;
+        }
+        
+        .DesignSurface { 
+            position: relative; 
+            background: white; 
+            width: 630px; 
+            height: 1120px; 
+            min-width: 630px; 
+            min-height: 1120px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+    
     </style>
     <script id="ai-link-metadata" type="application/json">
         <!-- USER_REQUIREMENT_START -->
@@ -80,16 +102,19 @@
     "sub": "#1f2937",
     "accent": "#fbbf24"
   },
-  "pageSize": "SQUARE"
+  "pageSize": "9:16"
 }
         <!-- USER_REQUIREMENT_END -->
     </script>
 </head>
-<body>
+<body class="bg-black">
     <!-- DESIGN_START -->
     <div class="DesignSurface" style="position: relative; width: 100%; height: 100%; overflow: hidden;">
-        <div id="el-g4go9is6k" data-group-id="group-iz1ydei2i" style="position: absolute; top: 280px; left: 160px; width: 480px; font-family: 'Playfair Display', serif; font-size: 64px; color: #1a1a1a; text-align: center; font-weight: bold;">TITLE HERE</div>
-                <div id="el-7iedsuvm8" data-group-id="group-iz1ydei2i" style="position: absolute; top: 400px; left: 160px; width: 480px; font-family: 'Montserrat', sans-serif; font-size: 24px; color: #666; text-transform: uppercase; letter-spacing: 0.1em; text-align: center;">Description here</div>
+        <div id="el-y2uqgyryy" data-group-id="group-2ion0utxi" style="position: absolute; top: 220px; left: 63px; width: 504px; font-family: 'Oswald', sans-serif; font-size: 64px; color: #3b82f6; text-transform: uppercase; line-height: 1; font-weight: bold;">Fresh<br>Design</div>
+                <div id="el-12uic0v1m" data-group-id="group-2ion0utxi" style="position: absolute; top: 360px; left: 63px; width: 50px; height: 4px; background: #3b82f6;"></div>
+                <div id="el-ahppuizk0" data-group-id="group-2ion0utxi" style="position: absolute; top: 390px; left: 63px; width: 504px; font-family: 'Inter', sans-serif; font-size: 16px; color: #4b5563;">
+                    Vertical content for mobile or stories.
+                </div>
     </div>
     <!-- DESIGN_END -->
 </body>

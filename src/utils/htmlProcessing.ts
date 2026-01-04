@@ -209,6 +209,10 @@ export const cleanHTML = (html: string): string => {
     cleaned = cleaned.replace(/\sspellcheck="[^"]*"/g, '');
     // エディタ用の一時的な data 属性を除去 (data-group-id は維持)
     cleaned = cleaned.replace(/\sdata-(?!group-id|group-type)[a-zA-Z0-9-]+="[^"]*"/g, '');
+    // デザイン領域のクラスをクリーンアップ (absolute inset-0 などを消す)
+    cleaned = cleaned.replace(/class="[^"]*DesignSurface[^"]*"/g, 'class="DesignSurface"');
+    // デザイン領域のスタイルを一部リセット
+    cleaned = cleaned.replace(/style="[^"]*DesignSurface[^"]*"/g, 'style="position: relative; width: 100%; height: 100%; overflow: hidden;"');
     // 空の style 属性の除去
     cleaned = cleaned.replace(/\sstyle=""/g, '');
     return cleaned.trim();
@@ -238,6 +242,7 @@ export const constructFullHTML = (content: string, _customCss: string, meta: Met
 
     // キャンバスサイズに応じた告知メッセージ（セクション0）
     const pageSize = meta.pageSize || 'SQUARE';
+    const config = PAGE_SIZES[pageSize];
     let sizeInfo = '';
     switch (pageSize) {
         case 'A4': sizeInfo = 'A4 (794 x 1123px)'; break;
@@ -248,9 +253,24 @@ export const constructFullHTML = (content: string, _customCss: string, meta: Met
     const sizeMessage = `
 0. CANVAS DIMENSIONS (ABSOLUTE CONSTRAINT)
 - Current Canvas Size: ${sizeInfo}
+- Width: ${config.width}px, Height: ${config.height}px
 - [CRITICAL] All elements MUST be placed WITHIN these boundaries.
 - [PROHIBITION] Never set positions or sizes exceeding these limits.
 `.trim();
+
+    // プレビュー用のスタイル（固定サイズ）
+    const surfaceStyles = `
+        .DesignSurface { 
+            position: relative; 
+            background: white; 
+            width: ${config.width}px; 
+            height: ${config.height}px; 
+            min-width: ${config.width}px; 
+            min-height: ${config.height}px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+    `;
 
     return `<!DOCTYPE html>
 <html lang="ja">
@@ -267,6 +287,11 @@ export const constructFullHTML = (content: string, _customCss: string, meta: Met
     <!-- FIXED_RULES_START -->
     ${meta.fixedRules || ''}
     <!-- FIXED_RULES_END -->
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@400;700&family=M+PLUS+1p:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Montserrat:wght@400;500;700&family=Roboto:wght@400;500;700&family=Playfair+Display:wght@400;700&family=Oswald:wght@400;500;700&family=Poppins:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" crossorigin="anonymous">
 
     <!-- 
     ${sizeMessage}
@@ -317,9 +342,14 @@ export const constructFullHTML = (content: string, _customCss: string, meta: Met
 
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        html, body { width: 100%; height: 100%; overflow: auto; }
-        body { background: #1a1a1a; display: flex; align-items: center; justify-content: center; padding: 20px; min-height: 100vh; }
-        .DesignSurface { position: relative; background: white; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); min-width: 400px; min-height: 400px; }
+        html, body { width: 100%; height: 100%; overflow: auto; background: #000; }
+        body { 
+            display: flex; 
+            justify-content: center; 
+            padding: 80px 40px; 
+            min-height: 100vh;
+        }
+        ${surfaceStyles}
     </style>
     <script id="ai-link-metadata" type="application/json">
         <!-- USER_REQUIREMENT_START -->
@@ -327,7 +357,7 @@ export const constructFullHTML = (content: string, _customCss: string, meta: Met
         <!-- USER_REQUIREMENT_END -->
     </script>
 </head>
-<body>
+<body class="bg-black">
     <!-- DESIGN_START -->
     ${wrappedContent}
     <!-- DESIGN_END -->
