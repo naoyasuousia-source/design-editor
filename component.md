@@ -28,15 +28,14 @@
 ## 1. 未解決要件（移動許可がNGの要件は絶対に移動・編集しないこと）（勝手に移動許可をOKに書き換えないこと）
 
 <requirement>
-<content>現在、複数要素選択時、単独要素は水色枠が常時表示で期待通りだが、既存グループを選択した場合は、オレンジ枠が安定せず、ホバー時のみ表示される。既存グループも単独要素と同じように、複数要素選択時は、常にオレンジ枠を表示するようにする。</content>
-<current-situation></current-situation>
-<remarks></remarks>
-<permission-to-move>NG</permission-to-move>
-</requirement>
-
-<requirement>
-<content>グループ化直後、そのグループを選択してる状態にする。</content>
-<current-situation>現在は、グループ化直後、オレンジ枠は表示されるものの、グループ選択状態となっておらず、そのまま、拡大縮小や移動ができない。</current-situation>
+<content>
+既存グループと、単独要素をシフトで選択してグループ化する際の挙動を修正する。
+    - 既存グループは、複数要素選択メニューが表示されている間、常に既存グループ外枠のオレンジ枠のみを表示する。（新グループのオレンジ枠はこの段階では表示しない）
+    - グループ化直後、新グループを選択状態にする。（新グループの外枠のオレンジ枠と、四隅ポイントが表示されていて、そのまま拡大縮小や移動が可能）
+</content>
+<current-situation>
+- 現在は、複数要素選択メニューが表示されている間、シフト選択されてる既存グループは、ホバー時のみオレンジ枠が表示される。
+- 現在、グループ化直後、新グループ選択状態にすぐならない。</current-situation>
 <remarks></remarks>
 <permission-to-move>NG</permission-to-move>
 </requirement>
