@@ -49,10 +49,10 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked }) => {
     useAutoSync();
 
     return (
-        <div className="relative flex-1 overflow-auto CustomScrollbar flex">
+        <div className="h-full w-full relative overflow-auto CustomScrollbar flex select-none">
             {/* 視覚的なサイズを確保するラッパー（スクロールと中央寄せ用） */}
             <div
-                className="relative shrink-0 shadow-2xl m-auto my-8"
+                className="relative shrink-0 shadow-2xl m-auto my-16 mx-auto"
                 style={{
                     width: `${currentWidth * zoom}px`,
                     height: `${currentHeight * zoom}px`,

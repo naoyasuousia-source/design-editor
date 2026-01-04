@@ -28,10 +28,17 @@
 ## 1. 未解決要件（移動許可がNGの要件は絶対に移動・編集しないこと）（勝手に移動許可をOKに書き換えないこと）
 
 <requirement>
+<content>視認性向上のため、スクロールバーの幅を二倍にし、ドラッグ中のカラーと、ドラッグ中以外のカラーを逆にして。</content>
+<current-situation></current-situation>
+<remarks></remarks>
+<permission-to-move>NG</permission-to-move>
+</requirement>
+
+<requirement>
 <content>デザイン用紙がワークスペースより大きく、画面に収まらない場合は、ページの右辺と下辺にスクロールバーが現れ、デザイン用紙内でスクロール可能にする。</content>
 <current-situation>依然デザイン用紙内のスクロール不可。スクロールバーも表示されない</current-situation>
 <remarks></remarks>
-<permission-to-move>NG</permission-to-move>
+<permission-to-move>OK</permission-to-move>
 </requirement>
 
 
@@ -41,10 +48,10 @@
   - `LayerSidebar.tsx` を `fixed` から `relative` に変更し、z-index を調整。
   - `App.tsx` のメインエリアを flex-row にし、サイドバーとワークスペースを並列配置。
   - `Workspace.tsx` のルートを `relative flex-1` に変更し、レイアウトシフトに対応。
-- 2026/01/04 20:25: 背後要素のドラッグ操作改善
-  - `index.css` にて `.moveable-target-active` の `z-index` を `9999` に設定。選択中要素を一時的に最前面に持ってくることで、重なりに関わらず掴めるように改善。
-- 2026/01/04 20:30: スクロール機能の正常化
-  - `Workspace.tsx` の配置ロジックを `items-center justify-center` から `m-auto` に変更。拡大時にコンテンツが切り取られる問題を解消し、全方向にスクロール可能にした。
+- 2026/01/04 20:30: スクロール機能の正常化（再修正）
+  - `App.tsx` のラッパーに `flex` を追加し、`Workspace` が全高を継承するように修正。
+  - `Workspace.tsx` に `h-full w-full` を明示し、`m-auto` と `my-16` でスクロールバッファを確保。
+  - `index.css` のスクロールバー視認性を向上。
 
 ## 3. 分析中に気づいた重要ポイント（試してだめだったこと、仮設、制約条件等...）
 - レイヤーメニューを `fixed` で配置すると、基準がウィンドウ全体になるため `Navbar` (メニューバー) を覆ってしまう。`flex` コンテナ内での `relative` 配置に切り替えることで、メニューバーの下に収まり、かつ隣接するワークスペースを動的に押し出す挙動を実現した。
