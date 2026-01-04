@@ -13,15 +13,14 @@ export const PAGE_SIZES: Record<PageSize, PageConfig> = {
 };
 
 export interface MetaMessage {
-    requirements: string[];
-    notes: string[];
-    concept: string;
+    fixedRules: string[];
+    collaborativeRules: string[];
+    designConcept: string;
     colors: {
-        primary: string;
-        secondary: string;
-        accent: string;
+        main: string | 'none';
+        sub: string | 'none';
+        accent: string | 'none';
     };
-    remarks: string;
     pageSize?: PageSize;
 }
 

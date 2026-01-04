@@ -6,29 +6,56 @@ import { type MetaMessage, PAGE_SIZES } from '@/types/editor';
  */
 export const parseMetaMessage = (html: string): MetaMessage | null => {
     try {
-        // AI_METADATA_START ブロックを無視するために、まずそれを取り除くか、
-        // 後方のマッチを優先する
+        let meta: MetaMessage = {
+            fixedRules: [],
+            collaborativeRules: [],
+            designConcept: '',
+            colors: {
+                main: '#3b82f6',
+                sub: '#1f2937',
+                accent: '#fbbf24',
+            }
+        };
+
+        // 1. FIXED_RULES_START から固定ルールを抽出
+        const fixedMatch = html.match(/<!-- FIXED_RULES_START -->([\s\S]*?)<!-- FIXED_RULES_END -->/);
+        if (fixedMatch && fixedMatch[1]) {
+            meta.fixedRules = fixedMatch[1].trim().split('\n').map(line => line.replace(/^[*-]\s*/, '').trim()).filter(line => line !== '');
+        }
+
+        // 2. USER_REQUIREMENT_START から JSON を抽出
         const matches = Array.from(html.matchAll(/<!-- USER_REQUIREMENT_START -->([\s\S]*?)<!-- USER_REQUIREMENT_END -->/g));
 
-        // 複数ある場合は最後の方（実際のデータ領域）から試行する
         for (let i = matches.length - 1; i >= 0; i--) {
             const content = matches[i][1].trim();
             try {
-                return JSON.parse(content);
+                const json = JSON.parse(content);
+                // レガシーなフィールドの移行
+                if (json.requirements && !json.collaborativeRules) {
+                    json.collaborativeRules = json.requirements;
+                }
+                if (json.concept && !json.designConcept) {
+                    json.designConcept = json.concept;
+                }
+                if (json.colors && json.colors.primary) {
+                    json.colors.main = json.colors.primary;
+                    json.colors.sub = json.colors.secondary;
+                }
+
+                return { ...meta, ...json };
             } catch (e) {
-                // 指示文などの非JSONはスキップして次（前）を探す
                 continue;
             }
         }
 
-        // 2. 従来の script タグからの抽出を試行（念のため）
+        // 3. 従来の script タグからの抽出を試行（念のため）
         const scriptMatch = html.match(/<script id="ai-link-metadata" type="application\/json">([\s\S]*?)<\/script>/);
         if (scriptMatch && scriptMatch[1]) {
             let jsonText = scriptMatch[1].trim();
-            // コメントタグが残っている可能性を除去
             jsonText = jsonText.replace(/<!-- USER_REQUIREMENT_START -->/g, '');
             jsonText = jsonText.replace(/<!-- USER_REQUIREMENT_END -->/g, '');
-            return JSON.parse(jsonText.trim());
+            const json = JSON.parse(jsonText.trim());
+            return { ...meta, ...json };
         }
     } catch (e) {
         console.error('Failed to parse meta message from HTML:', e);
@@ -264,6 +291,7 @@ export const constructFullHTML = (content: string, customCss: string, meta: Meta
         1. [DESIGN_START] ～ [DESIGN_END]
         2. [CUSTOM_CSS_START] ～ [CUSTOM_CSS_END]
         3. [USER_REQUIREMENT_START] ～ [USER_REQUIREMENT_END]
+    - **注意**: [FIXED_RULES_START] ～ [FIXED_RULES_END] は編集禁止です。
     - 注意: [ ] は実際の HTML コメントタグ <!-- ... --> に置き換えて認識してください。
 
     3. COMPONENT CONSTRAINTS
@@ -287,6 +315,11 @@ export const constructFullHTML = (content: string, customCss: string, meta: Meta
     - <!-- USER_REQUIREMENT_START --> 内は、毎回必ず、すべての項目を最新に更新し、必ず「日本語」で記述すること。
     -->
     <!-- AI_METADATA_END -->
+    
+    <!-- FIXED_RULES_START -->
+    ${(meta.fixedRules || []).map(r => `* ${r}`).join('\n')}
+    <!-- FIXED_RULES_END -->
+
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body { width: 100%; height: 100%; overflow: auto; }

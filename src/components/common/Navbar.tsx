@@ -241,7 +241,7 @@ const Navbar: React.FC = () => {
                         className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium text-blue-400 bg-blue-500/5 hover:bg-blue-500/10 hover:text-blue-300 border border-blue-500/10 transition-all group"
                     >
                         <Brain className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                        <span>AI要件</span>
+                        <span>AIへの指示</span>
                     </button>
                     <NavButton
                         icon={<HelpCircle />}

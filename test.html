@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="ja">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,10 +11,10 @@
     [IMPORTANT] あなたは一流のデザイナーとして、以下のルールを「厳格に」順守してHTMLデザインを生成してください。
 
     0. CANVAS DIMENSIONS
-    - **Current Size**: 9:16 (9:16 (Story))
-    - **Width**: 630px
-    - **Height**: 1120px
-    - **Note**: スマートフォンでの閲覧を前提とした、縦長でインパクトのあるモバイル/ストーリー用レイアウトに最適化してください。
+    - **Current Size**: SQUARE (正方形 (1:1))
+    - **Width**: 800px
+    - **Height**: 800px
+    - **Note**: SNS投稿等に適した、中央配置が美しく映える正方形（1:1）のレイアウトに最適化してください。
 
     1. MISSION
     - **Mission**: ユーザーの要求を完璧に反映したデザインを作成する。
@@ -26,6 +25,7 @@
         1. [DESIGN_START] ～ [DESIGN_END]
         2. [CUSTOM_CSS_START] ～ [CUSTOM_CSS_END]
         3. [USER_REQUIREMENT_START] ～ [USER_REQUIREMENT_END]
+    - **注意**: [FIXED_RULES_START] ～ [FIXED_RULES_END] は編集禁止です。
     - 注意: [ ] は実際の HTML コメントタグ <!-- ... --> に置き換えて認識してください。
 
     3. COMPONENT CONSTRAINTS
@@ -39,8 +39,7 @@
 
     4. DESIGN & STYLING
     - **Fonts (EXCLUSIVE LIST)**: 以下の15種類からのみ選択すること。
-    Noto Sans JP, Noto Serif JP, 游ゴシック (Yu Gothic), 游明朝 (Yu Mincho), メイリオ (Meiryo), M PLUS 1p, Zen 角ゴシック New, Inter,
-    Montserrat, Roboto, Playfair Display, Oswald, Poppins, JetBrains Mono, Times New Roman
+        Noto Sans JP, Noto Serif JP, 游ゴシック (Yu Gothic), 游明朝 (Yu Mincho), メイリオ (Meiryo), M PLUS 1p, Zen 角ゴシック New, Inter, Montserrat, Roboto, Playfair Display, Oswald, Poppins, JetBrains Mono, Times New Roman
     - **Layout**: CSS Gridを積極的に活用し、モダンな黄金比を意識すること。
     - **Colors**: メイン、サブ、アクセントの3色構成を基本とし、一貫性を保つこと。
     - **Smart CSS**: <!-- CUSTOM_CSS_START --> 内でCSS変数を定義し、保守性の高いスタイルを構築すること。
@@ -50,75 +49,43 @@
     - <!-- USER_REQUIREMENT_START --> 内は、毎回必ず、すべての項目を最新に更新し、必ず「日本語」で記述すること。
     -->
     <!-- AI_METADATA_END -->
+    
+    <!-- FIXED_RULES_START -->
+    
+    <!-- FIXED_RULES_END -->
+
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html,
-        body {
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-        }
-
-        body {
-            background: #1a1a1a;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            min-height: 100vh;
-        }
-
-        .DesignSurface {
-            position: relative;
-            background: white;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            min-width: 400px;
-            min-height: 400px;
-        }
-
-        < !-- CUSTOM_CSS_START -->< !-- CUSTOM_CSS_END -->
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { width: 100%; height: 100%; overflow: auto; }
+        body { background: #1a1a1a; display: flex; align-items: center; justify-content: center; padding: 20px; min-height: 100vh; }
+        .DesignSurface { position: relative; background: white; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); min-width: 400px; min-height: 400px; }
+        
+        <!-- CUSTOM_CSS_START -->
+        
+        <!-- CUSTOM_CSS_END -->
     </style>
     <script id="ai-link-metadata" type="application/json">
-        ええ
+        <!-- USER_REQUIREMENT_START -->
         {
-  "requirements": [
-    "要求"
-  ],
-  "notes": [],
-  "concept": "かっこよく",
+  "fixedRules": [],
+  "collaborativeRules": [],
+  "designConcept": "",
   "colors": {
-    "primary": "#2d4976",
-    "secondary": "#1f2937",
+    "main": "none",
+    "sub": "#1f2937",
     "accent": "#fbbf24"
   },
-  "remarks": "備考",
-  "pageSize": "9:16"
+  "pageSize": "SQUARE"
 }
         <!-- USER_REQUIREMENT_END -->
     </script>
 </head>
-
 <body>
     <!-- DESIGN_START -->
     <div class="DesignSurface" style="position: relative; width: 100%; height: 100%; overflow: hidden;">
-        <div id="el-869s8mziv" data-group-id="group-iw90fc7mn"
-            style="position: absolute; top: 136px; left: 64px; width: 504px; font-family: Oswald, sans-serif; font-size: 64px; color: rgb(59, 130, 246); text-transform: uppercase; line-height: 1; font-weight: bold;"
-            class="">Fresh<br>Design</div>
-        <div id="el-2tc4xd97j" data-group-id="group-iw90fc7mn"
-            style="position: absolute; top: 276px; left: 64px; width: 50px; height: 4px; background: rgb(59, 130, 246);"
-            class=""></div>
-        <div id="el-tfd1sa41y" data-group-id="group-iw90fc7mn"
-            style="position: absolute; top: 306px; left: 64px; width: 504px; font-family: Inter, sans-serif; font-size: 16px; color: rgb(75, 85, 99);"
-            class="">
-            Vertical content for mobile or stories.
-        </div>
+        <div id="el-fkrvgdz7i" data-group-id="group-tp2tduweh" style="position: absolute; top: 280px; left: 160px; width: 480px; font-family: 'Playfair Display', serif; font-size: 64px; color: #1a1a1a; text-align: center; font-weight: bold;">TITLE HERE</div>
+                <div id="el-2ahjpjzvo" data-group-id="group-tp2tduweh" style="position: absolute; top: 400px; left: 160px; width: 480px; font-family: 'Montserrat', sans-serif; font-size: 24px; color: #666; text-transform: uppercase; letter-spacing: 0.1em; text-align: center;">Description here</div>
     </div>
     <!-- DESIGN_END -->
 </body>
-
 </html>
