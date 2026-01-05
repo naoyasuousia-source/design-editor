@@ -1,4 +1,5 @@
 import React from 'react';
+import { RefreshCw } from 'lucide-react';
 
 interface ImageReplacePanelProps {
     imageFiles: string[];
@@ -32,7 +33,13 @@ const ImageReplacePanel: React.FC<ImageReplacePanelProps> = ({
                         onUpdate();
                     }}
                 >
-                    <img src={imageUrls[file]} alt={file} className="w-full h-full object-contain" />
+                    {imageUrls[file] ? (
+                        <img src={imageUrls[file]} alt={file} className="w-full h-full object-contain" />
+                    ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-black/10">
+                            <RefreshCw className="w-4 h-4 text-gray-700 animate-spin" />
+                        </div>
+                    )}
                 </button>
             ))}
             {imageFiles.length === 0 && (

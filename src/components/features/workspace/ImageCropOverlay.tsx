@@ -14,7 +14,7 @@ const ImageCropOverlay: React.FC = () => {
     } = useEditorStore();
 
     const [target, setTarget] = useState<HTMLElement | null>(null);
-    const [targetImageUrl, setTargetImageUrl] = useState<string>('');
+    const [targetImageUrl, setTargetImageUrl] = useState<string | null>(null);
     const [naturalSize, setNaturalSize] = useState({ width: 0, height: 0 });
     const [cropRect, setCropRect] = useState({ x: 0, y: 0, width: 0, height: 0 });
     const [screenPos, setScreenPos] = useState({ top: 0, left: 0 });
@@ -136,7 +136,7 @@ const ImageCropOverlay: React.FC = () => {
             }
         } else {
             setTarget(null);
-            setTargetImageUrl('');
+            setTargetImageUrl(null);
         }
     }, [isImageCropMode, croppingElementId, loadImageInfo, zoom]);
 
@@ -266,7 +266,9 @@ const ImageCropOverlay: React.FC = () => {
 
             {/* 背景ガイド（全体の完全静止画像） */}
             <div className="absolute pointer-events-none opacity-30 blur-[0.5px]" style={{ left: screenPos.left, top: screenPos.top, width: fullW, height: fullH }}>
-                <img src={targetImageUrl} className="w-full h-full object-fill" style={copiedStyle} alt="" />
+                {targetImageUrl && (
+                    <img src={targetImageUrl} className="w-full h-full object-fill" style={copiedStyle} alt="" />
+                )}
             </div>
 
             <div className="absolute pointer-events-none" style={{ left: screenPos.left, top: screenPos.top, width: fullW, height: fullH }}>
@@ -277,7 +279,9 @@ const ImageCropOverlay: React.FC = () => {
                     onMouseDown={(e) => { e.stopPropagation(); isDragging.current = true; dragType.current = 'move'; dragStart.current = { mouseX: e.clientX, mouseY: e.clientY, startRect: { ...cropRect } }; }}
                 >
                     {/* 内部画像: 親の outline (2px) に干渉されないよう、純粋なオフセットで配置 */}
-                    <img src={targetImageUrl} className="absolute pointer-events-none" style={{ left: -cropRect.x * zoom, top: -cropRect.y * zoom, width: fullW, height: fullH, maxWidth: 'none', maxHeight: 'none', ...copiedStyle, objectFit: 'fill' }} alt="" />
+                    {targetImageUrl && (
+                        <img src={targetImageUrl} className="absolute pointer-events-none" style={{ left: -cropRect.x * zoom, top: -cropRect.y * zoom, width: fullW, height: fullH, maxWidth: 'none', maxHeight: 'none', ...copiedStyle, objectFit: 'fill' }} alt="" />
+                    )}
                     <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 opacity-30 pointer-events-none">
                         {[...Array(9)].map((_, i) => <div key={i} className="border-[0.5px] border-white" />)}
                     </div>
