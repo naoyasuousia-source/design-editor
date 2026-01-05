@@ -1,69 +1,42 @@
+import type { CropRect } from '@/utils/image/cropUtils';
+
 /**
- * Logic/Services層: トリミングに関する純粋な計算と物理DOM操作を担当
- * rules.md に基づき、React のライフサイクルから独立して動作する。
+ * Action層: 命令的な DOM 操作（副作用）を担当。
+ * 計算自体は utils/ から取得した結果を適用するのみとする。
  */
-
-export interface CropRect {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-}
-
-export interface ImageInfo {
-    url: string;
-    width: number;
-    height: number;
-}
-
 export const imageCropService = {
     /**
-     * 表示用の背景スタイルを計算する
+     * 既存の img 要素を div 要素に変換し、属性を引き継ぐ
      */
-    calculateBackgroundStyles(params: {
-        cropRect: CropRect;
-        naturalSize: { width: number; height: number };
-        elementSize: { width: number; height: number };
-        url: string;
-    }) {
-        const { cropRect, naturalSize, elementSize, url } = params;
-        const scale = elementSize.width / naturalSize.width;
-
-        return {
-            backgroundImage: `url("${url}")`,
-            backgroundSize: `${naturalSize.width * scale}px ${naturalSize.height * scale}px`,
-            backgroundPosition: `${-cropRect.x}px ${-cropRect.y}px`,
-            backgroundRepeat: 'no-repeat',
-            width: `${cropRect.width}px`,
-            height: `${cropRect.height}px`
-        };
+    convertImgToDiv(img: HTMLImageElement): HTMLDivElement {
+        const div = document.createElement('div');
+        Array.from(img.attributes).forEach(attr => {
+            if (attr.name !== 'src' && attr.name !== 'style') {
+                div.setAttribute(attr.name, attr.value);
+            }
+        });
+        img.parentNode?.replaceChild(div, img);
+        return div;
     },
 
     /**
-     * 確定時の物理DOM変換と最終的なスタイル文字列の生成
+     * トリミング結果を要素に適用する
      */
-    applyCropToElement(params: {
+    applyFinalCrop(params: {
         target: HTMLElement;
         styles: any;
         initialOffsets: { offX: number; offY: number };
         cropRect: CropRect;
-    }) {
+    }): HTMLElement {
         const { target, styles, initialOffsets, cropRect } = params;
         let finalTarget = target;
 
-        // img を div に変換 (imgタグは背景画像を保持できないため)
-        if (target.tagName.toLowerCase() === 'img') {
-            const div = document.createElement('div');
-            Array.from(target.attributes).forEach(attr => {
-                if (attr.name !== 'src' && attr.name !== 'style') {
-                    div.setAttribute(attr.name, attr.value);
-                }
-            });
-            target.parentNode?.replaceChild(div, target);
-            finalTarget = div;
+        // img を div に変換 (背景画像を持てるようにするため)
+        if (target instanceof HTMLImageElement) {
+            finalTarget = this.convertImgToDiv(target);
         }
 
-        // transform (位置) の計算
+        // transform (位置) の適用。既存の transform を維持しつつ移動分を加算。
         const moveX = cropRect.x + initialOffsets.offX;
         const moveY = cropRect.y + initialOffsets.offY;
 
@@ -79,12 +52,42 @@ export const imageCropService = {
             transStr = `${transStr} translate(${moveX}px, ${moveY}px)`.trim();
         }
 
-        // スタイルの物理適用
+        // 物理的なスタイルの適用
         Object.assign(finalTarget.style, styles);
         finalTarget.style.transform = transStr;
         finalTarget.style.objectFit = '';
         finalTarget.style.objectPosition = '';
 
         return finalTarget;
+    },
+
+    /**
+     * Temporary UI の更新 (高頻度なドラッグ中の描画など)
+     */
+    updatePreview(params: {
+        cropBox: HTMLElement;
+        previewImg: HTMLImageElement;
+        resizeHandle: HTMLElement;
+        cropRect: CropRect;
+        fullSize: { width: number; height: number };
+        zoom: number;
+    }) {
+        const { cropBox, previewImg, resizeHandle, cropRect, fullSize, zoom } = params;
+
+        // 枠の更新
+        cropBox.style.left = `${cropRect.x * zoom}px`;
+        cropBox.style.top = `${cropRect.y * zoom}px`;
+        cropBox.style.width = `${cropRect.width * zoom}px`;
+        cropBox.style.height = `${cropRect.height * zoom}px`;
+
+        // プレビュー画像の更新（枠内での位置合わせ）
+        previewImg.style.left = `${-cropRect.x * zoom}px`;
+        previewImg.style.top = `${-cropRect.y * zoom}px`;
+        previewImg.style.width = `${fullSize.width * zoom}px`;
+        previewImg.style.height = `${fullSize.height * zoom}px`;
+
+        // リサイズハンドルの更新
+        resizeHandle.style.left = `${(cropRect.x + cropRect.width) * zoom - 12}px`;
+        resizeHandle.style.top = `${(cropRect.y + cropRect.height) * zoom - 12}px`;
     }
 };

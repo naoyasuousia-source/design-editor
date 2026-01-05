@@ -11,41 +11,50 @@ const ImageCropOverlay: React.FC = () => {
         targetImageUrl,
         cropRect,
         screenPos,
-        elementSize,
+        fullSize,
         copiedStyle,
         imageCropAspectRatio,
         croppingElementId,
         zoom,
         handleApply,
         handleMouseDown,
-        setImageCropMode
+        setImageCropMode,
+        cropBoxRef,
+        previewImgRef,
+        resizeHandleRef
     } = useImageCrop();
 
     if (!isImageCropMode || !target) return null;
 
-    const fullW = elementSize.width * zoom;
-    const fullH = elementSize.height * zoom;
+    const { width: fullW, height: fullH } = fullSize;
 
     return createPortal(
         <div className="fixed inset-0 z-[200] pointer-events-none">
             <div className="absolute inset-0 bg-black/40 pointer-events-auto" onClick={() => setImageCropMode(false, null)} />
 
             {/* 背景ガイド */}
-            <div className="absolute pointer-events-none opacity-30 blur-[0.5px]" style={{ left: screenPos.left, top: screenPos.top, width: fullW, height: fullH }}>
+            <div className="absolute pointer-events-none opacity-30 blur-[0.5px]" style={{ left: screenPos.left, top: screenPos.top, width: fullW * zoom, height: fullH * zoom }}>
                 {targetImageUrl && (
                     <img src={targetImageUrl} className="w-full h-full object-fill" style={copiedStyle} alt="" />
                 )}
             </div>
 
-            <div className="absolute pointer-events-none" style={{ left: screenPos.left, top: screenPos.top, width: fullW, height: fullH }}>
+            <div className="absolute pointer-events-none" style={{ left: screenPos.left, top: screenPos.top, width: fullW * zoom, height: fullH * zoom }}>
                 {/* 選択枠 */}
                 <div
+                    ref={cropBoxRef}
                     className="absolute cursor-move pointer-events-auto outline outline-2 outline-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.6)]"
                     style={{ left: cropRect.x * zoom, top: cropRect.y * zoom, width: cropRect.width * zoom, height: cropRect.height * zoom, overflow: 'hidden', boxShadow: '0 0 0 9999px rgba(0,0,0,0.6)' }}
                     onMouseDown={(e) => handleMouseDown(e, 'move')}
                 >
                     {targetImageUrl && (
-                        <img src={targetImageUrl} className="absolute pointer-events-none" style={{ left: -cropRect.x * zoom, top: -cropRect.y * zoom, width: fullW, height: fullH, maxWidth: 'none', maxHeight: 'none', ...copiedStyle, objectFit: 'fill' }} alt="" />
+                        <img
+                            ref={previewImgRef}
+                            src={targetImageUrl}
+                            className="absolute pointer-events-none"
+                            style={{ left: -cropRect.x * zoom, top: -cropRect.y * zoom, width: fullW * zoom, height: fullH * zoom, maxWidth: 'none', maxHeight: 'none', ...copiedStyle, objectFit: 'fill' }}
+                            alt=""
+                        />
                     )}
                     <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 opacity-30 pointer-events-none">
                         {[...Array(9)].map((_, i) => <div key={i} className="border-[0.5px] border-white" />)}
@@ -54,6 +63,7 @@ const ImageCropOverlay: React.FC = () => {
 
                 {/* リサイズハンドル */}
                 <div
+                    ref={resizeHandleRef}
                     className="absolute w-6 h-6 bg-blue-500 border-2 border-white rounded-full shadow-lg cursor-nwse-resize pointer-events-auto flex items-center justify-center hover:scale-125 transition-transform z-10"
                     style={{ left: (cropRect.x + cropRect.width) * zoom - 12, top: (cropRect.y + cropRect.height) * zoom - 12 }}
                     onMouseDown={(e) => handleMouseDown(e, 'resize')}
