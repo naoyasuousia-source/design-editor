@@ -67,6 +67,10 @@ export type EditorState = {
     imageCropAspectRatio: number | null;
     croppingElementId: string | null;
     isDeselectTriggered: boolean;
+    // アセット管理用
+    imageUrls: Record<string, string>;
+    imageFiles: string[];
+    htmlFiles: string[];
 }
 
 export const _REFRESH_FIX = Date.now();

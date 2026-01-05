@@ -41,6 +41,16 @@
 
 
 ## 2. 未解決要件に関するコード変更履歴（目的、変更内容、変更日時）
+- **目的**: 無限ループ（Maximum update depth exceeded）の解消とアセット管理の安定化。
+- **変更内容**:
+    - `src/types/editor.ts`, `src/store/useEditorStore.ts`: アセット情報（`imageUrls`, `imageFiles`, `htmlFiles`）をグローバルストアに移動。各コンポーネントで個別に Blob URL を生成するのを防ぎ、不整合を解消。
+    - `src/hooks/useAssets.ts`: ストアの情報を参照・更新する方式に変更。多重更新を防ぐフラグと既存 URL 再利用ロジックを導入。
+    - `src/components/features/workspace/DesignArea.tsx`: `DesignContent` を `React.memo` で再定義。`content` と `imageUrls` が変わらない限り DOM の再構築を行わないようにし、`useSelection` との競合による無限ループを解消。
+- **変更日時**: 2026-01-05 19:55 (JST)
+- **目的**: 新しい画像の即時反映の修正。
+- **変更内容**:
+    - `src/components/features/workspace/DesignArea.tsx`: `DesignContent` コンポーネントの `React.memo` を削除（※後に上記修正で適切に再導入）。これにより `imageUrls` (Blob URL マップ) が更新された際に、デザイン領域が即座に再レンダリングされ、新しく追加された画像がリロードなしで表示されるように修正。
+- **変更日時**: 2026-01-05 19:40 (JST)
 - **目的**: テキストボックスのハンドル操作仕様の改善。
 - **変更内容**:
     - `src/components/features/workspace/IndividualMoveable.tsx`: `onResize` イベント内で `direction` を判定し、テキストボックスの左右ハンドル操作時にはフォントサイズを維持、コーナーハンドル操作時のみフォントサイズをスケーリングするように変更。
@@ -60,7 +70,9 @@
 ## 3. 分析中に気づいた重要ポイント（試してだめだったこと、仮設、制約条件等...）
 - **要件1（枠線カラー）について**: `FloatingMenu.tsx` 内で、枠線がオフからオンに切り替わる際に `#ffffff` がハードコードされている箇所を発見。これを `#000000` に変更することで解決可能。
 - **要件2（レイヤー順序）について**: `index.css` の `.moveable-target-active` に対して `z-index: 9999 !important` が設定されているため、選択時に最前面に表示されてしまっている。これを削除することで、本来のレイヤー構造に従ったレンダリングを維持できる。ただし、背後の要素を直接クリックで選択しにくくなる可能性があるが、レイヤーパネルからの選択や、handlesの操作は可能。
-- **新規要件（選択解除）について**: エディタ外の領域をクリックした際に選択を解除するため、Zustand store を介したメッセージング方式を採用。これにより `Workspace` や `Navbar` など、`useMoveable` フックの外にいるコンポーネントからも安全に選択解除を要求できる。
+- **新規画像が即座に反映されない問題について**: `DesignContent` コンポーネントが `React.memo` で、`content` の変更のみを監視していたため、画像フォルダに追加された新ファイルに対して生成された `imageUrls` (Blob URL) の更新がレンダリングに反映されていなかった。メモ化を解除することで、アセットの更新に追従可能となった。
+- **無限ループ（Maximum update depth exceeded）について**: `DesignContent` のメモ化を解除したことで、ストアの更新（選択状態の変更など）が走るたびに `IndividualMoveable` の `target` である DOM 要素が `dangerouslySetInnerHTML` によって再生成され、それを `useSelection` が検知して再度ストアを更新するという循環参照が発生していた。`imageUrls` を prop として渡しつつ適切にメモ化し直すことで、不必要な DOM 再生成を抑制し解決した。
+- **アセット管理の一元化について**: 複数のコンポーネントで `useAssets` を呼んでいたため、それぞれが異なる Blob URL を生成し、保存時のパス復元に失敗するなどのリスクがあった。これをグローバルストアに持たせることで解決した。
 
 ## 4. 解決済み要件とその解決方法
 <requirement>

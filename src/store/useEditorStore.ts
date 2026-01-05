@@ -39,6 +39,7 @@ interface EditorStore extends EditorState {
     setLayerSidebarOpen: (open: boolean) => void;
     triggerDeselect: () => void;
     resetDeselectTrigger: () => void;
+    setAssets: (assets: { imageUrls: Record<string, string>, imageFiles: string[], htmlFiles: string[] }) => void;
     reset: () => void;
 }
 
@@ -91,6 +92,9 @@ const initialState: EditorState = {
     croppingElementId: null,
     isLayerSidebarOpen: false,
     isDeselectTriggered: false,
+    imageUrls: {},
+    imageFiles: [],
+    htmlFiles: [],
 };
 
 export const useEditorStore = create<EditorStore>((set, get) => ({
@@ -260,5 +264,6 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     setLayerSidebarOpen: (isLayerSidebarOpen) => set({ isLayerSidebarOpen }),
     triggerDeselect: () => set({ isDeselectTriggered: true }),
     resetDeselectTrigger: () => set({ isDeselectTriggered: false }),
+    setAssets: (assets) => set({ ...assets }),
     reset: () => set(initialState),
 }));

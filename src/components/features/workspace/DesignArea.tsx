@@ -1,6 +1,7 @@
 import React from 'react';
 import { cn } from '@/utils/cn';
 import { useEditorStore } from '@/store/useEditorStore';
+import { useAssets } from '@/hooks/useAssets';
 
 interface DesignAreaProps {
     content: string;
@@ -16,10 +17,9 @@ interface DesignAreaProps {
     children?: React.ReactNode;
 }
 
-import { useAssets } from '@/hooks/useAssets';
-
 export const DesignContent = React.memo(({
     content,
+    imageUrls,
     onMouseDown,
     onPaste,
     onMouseMove,
@@ -28,6 +28,7 @@ export const DesignContent = React.memo(({
     onDrop
 }: {
     content: string;
+    imageUrls: Record<string, string>;
     onMouseDown: (e: React.MouseEvent) => void;
     onPaste: (e: React.ClipboardEvent) => void;
     onMouseMove: (e: React.MouseEvent) => void;
@@ -35,8 +36,6 @@ export const DesignContent = React.memo(({
     onDragOver: (e: React.DragEvent) => void;
     onDrop: (e: React.DragEvent) => void;
 }) => {
-    const { imageUrls } = useAssets();
-
     // パスの置換処理
     const processedContent = React.useMemo(() => {
         let text = content;
@@ -65,7 +64,9 @@ export const DesignContent = React.memo(({
             onDrop={onDrop}
         />
     );
-}, (prev, next) => prev.content === next.content);
+}, (prev, next) => {
+    return prev.content === next.content && prev.imageUrls === next.imageUrls;
+});
 
 const DesignArea: React.FC<DesignAreaProps> = ({
     content,
@@ -100,6 +101,7 @@ const DesignArea: React.FC<DesignAreaProps> = ({
             <style>{customCss}</style>
             <DesignContent
                 content={content}
+                imageUrls={imageUrls}
                 onMouseDown={handleCanvasClick}
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
