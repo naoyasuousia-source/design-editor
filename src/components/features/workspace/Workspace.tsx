@@ -56,10 +56,17 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked, isHome }) => {
     useAutoSync();
 
     return (
-        <div className={cn(
-            "h-full w-full relative flex select-none",
-            isHome ? "overflow-hidden" : "overflow-auto CustomScrollbar"
-        )}>
+        <div
+            className={cn(
+                "h-full w-full relative flex select-none",
+                isHome ? "overflow-hidden" : "overflow-auto CustomScrollbar"
+            )}
+            onMouseDown={(e) => {
+                if (e.target === e.currentTarget) {
+                    useEditorStore.getState().triggerDeselect();
+                }
+            }}
+        >
             {/* 視覚的なサイズを確保するラッパー（ホーム時はフルスクリーン） */}
             <div
                 className={cn(
@@ -70,6 +77,11 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked, isHome }) => {
                     width: `${currentWidth * zoom}px`,
                     height: `${currentHeight * zoom}px`,
                 } : undefined}
+                onMouseDown={(e) => {
+                    if (e.target === e.currentTarget) {
+                        useEditorStore.getState().triggerDeselect();
+                    }
+                }}
             >
                 {/* スケールコンテナ（ホーム時はスケールなしのフル） */}
                 <div

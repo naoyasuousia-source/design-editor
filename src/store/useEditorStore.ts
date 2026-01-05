@@ -37,6 +37,8 @@ interface EditorStore extends EditorState {
     setSelectedIds: (ids: string[]) => void;
     setImageCropMode: (enabled: boolean, elementId: string | null, aspectRatio?: number | null) => void;
     setLayerSidebarOpen: (open: boolean) => void;
+    triggerDeselect: () => void;
+    resetDeselectTrigger: () => void;
     reset: () => void;
 }
 
@@ -94,6 +96,7 @@ const initialState: EditorState & {
     imageCropAspectRatio: null,
     croppingElementId: null,
     isLayerSidebarOpen: false,
+    isDeselectTriggered: false,
 };
 
 export const useEditorStore = create<EditorStore>((set, get) => ({
@@ -261,5 +264,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     setSelectedIds: (selectedIds) => set({ selectedIds }),
     setImageCropMode: (enabled, elementId, aspectRatio = null) => set({ isImageCropMode: enabled, croppingElementId: elementId, imageCropAspectRatio: aspectRatio, isLocked: enabled }),
     setLayerSidebarOpen: (isLayerSidebarOpen) => set({ isLayerSidebarOpen }),
+    triggerDeselect: () => set({ isDeselectTriggered: true }),
+    resetDeselectTrigger: () => set({ isDeselectTriggered: false }),
     reset: () => set(initialState),
 }));

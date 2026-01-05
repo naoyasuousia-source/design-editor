@@ -19,52 +19,6 @@ export const useSelection = (canvasRef: RefObject<HTMLDivElement | null>, conten
         });
     }, []);
 
-    // グローバルな選択状態（レイヤー同期用）の更新
-    useEffect(() => {
-        const ids = targets.map(el => el.id);
-        if (activeSubTarget && activeSubTarget.id && !ids.includes(activeSubTarget.id)) {
-            ids.push(activeSubTarget.id);
-        }
-        useEditorStore.getState().setSelectedIds(ids);
-    }, [targets, activeSubTarget]);
-
-    // デザインの更新に合わせて DOM 要素を再取得する
-    useEffect(() => {
-        if (targets.length === 0) return;
-
-        const surface = canvasRef.current?.querySelector('.DesignSurface');
-        if (!surface) return;
-
-        const nextTargets: HTMLElement[] = [];
-        let hasChanged = false;
-
-        targets.forEach(target => {
-            if (document.body.contains(target)) {
-                nextTargets.push(target);
-            } else if (target.id) {
-                const refreshed = surface.querySelector(`[id="${target.id}"]`);
-                if (refreshed instanceof HTMLElement) {
-                    nextTargets.push(refreshed);
-                    hasChanged = true;
-                }
-            }
-        });
-
-        if (hasChanged) {
-            setTargets(nextTargets);
-        }
-
-        // activeSubTarget の更新
-        if (activeSubTarget && !document.body.contains(activeSubTarget) && activeSubTarget.id) {
-            const refreshedSub = surface.querySelector(`[id="${activeSubTarget.id}"]`);
-            if (refreshedSub instanceof HTMLElement) {
-                setActiveSubTarget(refreshedSub);
-            } else {
-                setActiveSubTarget(null);
-            }
-        }
-    }, [content, canvasRef, activeSubTarget]);
-
     // 選択解除を含めたセット関数
     const selectNone = useCallback(() => {
         setTargets([]);
@@ -106,6 +60,63 @@ export const useSelection = (canvasRef: RefObject<HTMLDivElement | null>, conten
         }
         return ["nw", "ne", "sw", "se", "w", "e", "n", "s"];
     }, [targets, selectionMode, activeSubTarget, isTextBox]);
+
+    // グローバルな選択状態（レイヤー同期用）の更新
+    useEffect(() => {
+        const ids = targets.map(el => el.id);
+        if (activeSubTarget && activeSubTarget.id && !ids.includes(activeSubTarget.id)) {
+            ids.push(activeSubTarget.id);
+        }
+        useEditorStore.getState().setSelectedIds(ids);
+    }, [targets, activeSubTarget]);
+
+    // グローバルな選択解除リクエストへの対応
+    const isDeselectTriggered = useEditorStore(state => state.isDeselectTriggered);
+    const resetDeselectTrigger = useEditorStore(state => state.resetDeselectTrigger);
+    useEffect(() => {
+        if (isDeselectTriggered) {
+            selectNone();
+            resetDeselectTrigger();
+        }
+    }, [isDeselectTriggered, selectNone, resetDeselectTrigger]);
+
+
+    // デザインの更新に合わせて DOM 要素を再取得する
+    useEffect(() => {
+        if (targets.length === 0) return;
+
+        const surface = canvasRef.current?.querySelector('.DesignSurface');
+        if (!surface) return;
+
+        const nextTargets: HTMLElement[] = [];
+        let hasChanged = false;
+
+        targets.forEach(target => {
+            if (document.body.contains(target)) {
+                nextTargets.push(target);
+            } else if (target.id) {
+                const refreshed = surface.querySelector(`[id="${target.id}"]`);
+                if (refreshed instanceof HTMLElement) {
+                    nextTargets.push(refreshed);
+                    hasChanged = true;
+                }
+            }
+        });
+
+        if (hasChanged) {
+            setTargets(nextTargets);
+        }
+
+        // activeSubTarget の更新
+        if (activeSubTarget && !document.body.contains(activeSubTarget) && activeSubTarget.id) {
+            const refreshedSub = surface.querySelector(`[id="${activeSubTarget.id}"]`);
+            if (refreshedSub instanceof HTMLElement) {
+                setActiveSubTarget(refreshedSub);
+            } else {
+                setActiveSubTarget(null);
+            }
+        }
+    }, [content, canvasRef, activeSubTarget]);
 
     return {
         targets,

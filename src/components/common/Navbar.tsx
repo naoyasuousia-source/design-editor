@@ -148,8 +148,22 @@ const Navbar: React.FC = () => {
     }, []);
 
     return (
-        <nav className="w-full bg-toolbar border-b border-white/5 p-2 z-[60] shadow-premium">
-            <div className="container mx-auto flex flex-wrap items-center gap-x-4 gap-y-2">
+        <nav
+            className="w-full bg-toolbar border-b border-white/5 p-2 z-[60] shadow-premium"
+            onMouseDown={(e) => {
+                if (e.target === e.currentTarget) {
+                    useEditorStore.getState().triggerDeselect();
+                }
+            }}
+        >
+            <div
+                className="container mx-auto flex flex-wrap items-center gap-x-4 gap-y-2"
+                onMouseDown={(e) => {
+                    if (e.target === e.currentTarget) {
+                        useEditorStore.getState().triggerDeselect();
+                    }
+                }}
+            >
                 {/* ロゴエリア */}
                 <div className="flex items-center gap-2 mr-4 py-1">
                     <div className="p-1.5 bg-primary rounded-lg">
