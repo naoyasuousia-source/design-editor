@@ -40,13 +40,15 @@ export const DesignContent = React.memo(({
     const processedContent = React.useMemo(() => {
         let text = content;
         // 1. src="./images/xxx" の置換
-        text = text.replace(/src=["']\.\/images\/(.+?)["']/g, (match, fileName) => {
+        // より広範な表記ゆれに対応するため、正規表現を強化
+        text = text.replace(/src=["'](?:\.\/)?images\/(.+?)["']/g, (match, fileName) => {
             const blobUrl = imageUrls[fileName];
             return blobUrl ? `src="${blobUrl}"` : match;
         });
-        // 2. background-image: url('./images/xxx') の置換
-        text = text.replace(/url\(["']?\.\/images\/(.+?)["']?\)/g, (match, fileName) => {
-            const blobUrl = imageUrls[fileName];
+        // 2. background-image: url(...) の置換 (Reactによる再描画を確実に成功させる)
+        text = text.replace(/url\(['"]?(?:\.\/)?images\/([^'"\)]+)['"]?\)/gi, (match, fileName) => {
+            const cleanFileName = fileName.trim();
+            const blobUrl = imageUrls[cleanFileName];
             return blobUrl ? `url('${blobUrl}')` : match;
         });
         return text;
@@ -64,9 +66,10 @@ export const DesignContent = React.memo(({
             onDrop={onDrop}
         />
     );
-}, (prev, next) => {
-    return prev.content === next.content && prev.imageUrls === next.imageUrls;
-});
+}, (prev, next) => (
+    prev.content === next.content &&
+    prev.imageUrls === next.imageUrls
+));
 
 const DesignArea: React.FC<DesignAreaProps> = ({
     content,
@@ -83,7 +86,7 @@ const DesignArea: React.FC<DesignAreaProps> = ({
 }) => {
     const isApplyingUpdate = useEditorStore(state => state.isApplyingUpdate);
     const customCss = useEditorStore(state => state.customCss);
-    const { imageUrls } = useAssets();
+    const { imageUrls } = useAssets(); // useAssetsをDesignArea側で一括して呼び出す
 
     return (
         <div

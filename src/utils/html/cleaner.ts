@@ -23,12 +23,15 @@ export const cleanHTML = (html: string): string => {
  */
 export const restoreRelativePaths = (html: string, imageUrls: Record<string, string>): string => {
     let restored = html;
-    // imageUrls は { "ファイル名": "blob:..." }
-    Object.entries(imageUrls).forEach(([fileName, blobUrl]) => {
-        // Blob URL をエスケープして正規表現を作成
-        const escapedBlobUrl = blobUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const regex = new RegExp(escapedBlobUrl, 'g');
-        restored = restored.replace(regex, `./images/${fileName}`);
-    });
+    if (!imageUrls || Object.keys(imageUrls).length === 0) return html;
+
+    // 長いURLから順にソート（部分一致での誤爆を防ぐため）
+    const sortedEntries = Object.entries(imageUrls).sort((a, b) => b[1].length - a[1].length);
+
+    for (const [fileName, blobUrl] of sortedEntries) {
+        if (!blobUrl) continue;
+        // 文字列置換を繰り返す。RegExp よりも確実でエスケープも不要。
+        restored = restored.split(blobUrl).join(`./images/${fileName}`);
+    }
     return restored;
 };

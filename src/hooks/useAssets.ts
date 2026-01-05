@@ -55,6 +55,21 @@ export const useAssets = () => {
                         urls[img] = await fileSystemService.getFileUrl(imagesHandle, img);
                     }
                 } catch (e) {
+                    // 注意: URL.revokeObjectURL を即座に呼ぶと、現在描画中の画像が消える（白飛び）の原因になる。
+                    // 特にトリミング操作中などは古いURLがDOMに残っているため、新しいURLが完全に反映されるまで破棄を待つ必要がある。
+                    // ここでは安全のため、即時の破棄を避ける。
+                    /*
+                    setImageUrls(prev => {
+                        Object.values(prev).forEach(url => {
+                            try {
+                                URL.revokeObjectURL(url);
+                            } catch (e) {
+                                // ignore
+                            }
+                        });
+                        return {};
+                    });
+                    */
                     console.warn(`Failed to get URL for ${img}`, e);
                 }
             }
