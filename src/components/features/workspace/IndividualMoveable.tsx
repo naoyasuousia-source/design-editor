@@ -76,7 +76,7 @@ const IndividualMoveable: React.FC<IndividualMoveableProps> = ({
             }}
             onResize={e => {
                 const el = e.target as HTMLElement;
-                const { width, height, drag } = e;
+                const { width, height, drag, direction } = e;
                 const isText = isTextBox(el);
 
                 el.style.width = `${width}px`;
@@ -84,11 +84,15 @@ const IndividualMoveable: React.FC<IndividualMoveableProps> = ({
                 el.style.transform = drag.transform;
 
                 if (isText) {
-                    const startW = parseFloat(el.getAttribute('data-start-w') || '0');
-                    if (startW > 0) {
-                        const ratio = width / startW;
-                        const startFs = parseFloat(el.getAttribute('data-start-fs') || window.getComputedStyle(el).fontSize);
-                        el.style.fontSize = `${startFs * ratio}px`;
+                    const isCorner = direction[0] !== 0 && direction[1] !== 0;
+                    if (isCorner) {
+                        const startW = parseFloat(el.getAttribute('data-start-w') || '0');
+                        if (startW > 0) {
+                            const ratio = width / startW;
+                            const startFsAttr = el.getAttribute('data-start-fs');
+                            const startFs = startFsAttr ? parseFloat(startFsAttr) : parseFloat(window.getComputedStyle(el).fontSize);
+                            el.style.fontSize = `${startFs * ratio}px`;
+                        }
                     }
                     el.style.height = `${el.scrollHeight}px`;
                 }
