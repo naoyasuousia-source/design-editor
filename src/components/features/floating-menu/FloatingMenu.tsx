@@ -169,7 +169,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectio
                                         const n = cur === '0px' ? '2px' : '0px';
                                         applyStyle('borderStyle', 'solid');
                                         applyStyle('borderWidth', n);
-                                        if (!displayTarget.style.borderColor) applyStyle('borderColor', '#ffffff');
+                                        if (!displayTarget.style.borderColor) applyStyle('borderColor', '#000000');
                                     }}
                                     title="Border Toggle"
                                 >
@@ -203,7 +203,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectio
                                         const n = cur === '0px' ? '2px' : '0px';
                                         applyStyle('borderStyle', 'solid');
                                         applyStyle('borderWidth', n);
-                                        if (!displayTarget.style.borderColor) applyStyle('borderColor', '#ffffff');
+                                        if (!displayTarget.style.borderColor) applyStyle('borderColor', '#000000');
                                     }}
                                     title="Border Toggle"
                                 >

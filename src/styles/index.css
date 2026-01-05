@@ -103,10 +103,10 @@
         outline: none !important;
     }
 
-    /* 選択中の要素を一時的に最前面に持ってきて、他要素の下にあってもドラッグ可能にする */
-    .moveable-target-active {
+    /* 以前は選択中の要素を一時的に最前面に持ってきていたが、レイヤー順序を維持する要件に基づき削除 */
+    /* .moveable-target-active {
         z-index: 9999 !important;
-    }
+    } */
 
     /* DesignSurface内のデフォルトテキストカラーを黒に設定（bodyのtext-whiteを上書き） */
     .DesignSurface {
