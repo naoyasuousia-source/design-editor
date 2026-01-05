@@ -10,7 +10,8 @@
 ## 2. Quick Reference（Essential Rules）
 
 - **Dead Code Cleanup:** 修正・リファクタリングの過程で未使用となった変数、インポート、関数、ファイルは、検知した瞬間に即座に削除せよ。
-- **4-Layer Architecture:** UI, Hooks, Services, Utils を厳密に分離せよ。UI での DOM 操作や複雑なロジック記述は厳禁。
+- **Strict Logic-UI Separation:** UI, Hooks, Services, Utils を厳密に分離せよ。UIでの複雑なロジック記述は厳禁。
+- **Hooks Call:** 外部ライブラリや独自ロジックが hooks を経由せず、直接 DOM 操作をするのは厳禁。
 - **Styling:** 原則 **Tailwind CSS のみ**を使用せよ。インラインスタイル（`style` 属性）は動的に計算される数値を除いて禁止。
 - **300-Line Limit:** 1ファイル300行以内を厳守せよ。
 - **No Placeholders:** `// TODO` や `// 実装予定` 等を残さず、全ての関数を完全に実装せよ。
@@ -40,7 +41,8 @@ src/
 ### ファイル記述ルール
 - **定数と設定の分離**: 
     - 業務的な定数（固定文言など）は `constants/` に集約せよ。
-    - ライブラリ固有の設定値（初期化オプション等）は `lib/` 内に定義せよ。
+    - 外部ライブラリの初期化、インスタンス作成、固有設定は `lib/` 内に定義せよ。
+
 ---
 
 ## 4. Functional Design Standards
@@ -52,55 +54,91 @@ src/
 
 ### Unidirectional Data Flow via Bridge Layer
 
-#### 🔄 Standard Data Flow Pipeline
-AI は常に以下のサイクルに従ってコードを生成せよ。
+#### Standard Data Flow Pipeline
+機能は常に以下のサイクルに従うように設計せよ。
 1. **UI Detection**: Component がユーザーイベント（Click, Drag, Input等）を検知。
 2. **Hooks Call**: Component は即座に Bridge層 (Hooks) の関数を呼び出し、入力を委譲する。
 3. **External Logic**: Hooks は Logic層 (Utils/Services) を起動し、React の管理外で計算や非同期処理を実行。
 4. **React Synchronization**: 処理完了後、Hooks が結果を受け取り、`store` (Zustand) や Local State を更新することで React のレンダリングを同期する。
 
-#### 💾 ステート管理
+**重要**: 
+- 外部ライブラリや独自ロジックが hooks を経由せず、直接 DOM 操作をすることを禁止する。
+- utils内のロジックが直接DOM操作をしている間は、Stateを更新しないこと。
+
+#### Temporary UI Elements
+- 高頻度で更新される一時的な描画（ドラッグ中のプレビュー等）は、`useRef` を介して React の外側で制御せよ。
+    - **Existing DOM Manipulation**: 既存の `ref.current`（画像等）に対し、直接 `style.transform` や `style.opacity` を書き換えて一時的な視覚効果を与える。
+    - **Dynamic Element Generation**: `document.createElement` 等で生成した DOM を `appendChild` せよ。複数要素を扱う場合は `DocumentFragment` を活用して一括反映すること。
+    - **Final Result Sync**: 操作中は React State を一切更新せず、**操作終了時の最終確定データのみを Hooks を通じて Store や Local State へ同期せよ。**
+    - **Cleanup**: 同期完了後、Temporary UI Elements は即座に `remove`（破棄）し、React の宣言的 UI と実 DOM の整合性を完全に確保せよ。
+
+#### State Management
 - **Minimal State**: 基本は Local State で完結させ、共有が必要な場合のみ `store/` (Zustand 等) へ昇格させよ。
 - **Derived Data**: `useEffect` によるステート同期を厳禁とする。 派生データはレンダリング中に計算するか、`useMemo` を使用せよ。
 - **Computational Memoization**: コストの高い加工（フィルタリング、ソート等）は必ず `useMemo` を使い、依存配列を厳密に管理せよ。
-
-#### ⚙️ 副作用と非同期処理の安全性
 - **useEffect の限定利用**: 外部ライブラリの同期、Socket、DOM 操作の微調整にのみ使用せよ。
 - **Cleanup Pattern**: `useEffect` では必ずクリーンアップ関数（`return () => ...`）を記述し、メモリリークを確実に防止せよ。
 - **Race Condition**: 非同期処理では古いリクエストを無視する等のクリーンアップを徹底せよ。
-- **Ref Safety**: `useRef` による直接的な DOM 操作は、操作中（ドラッグ中等）のパフォーマンス確保に限定し、React の宣言的 UI と衝突しないよう最小限に留めよ。
 
 ### Strict Logic-UI Separation
 
-UI層とロジック層を完全に隔離し、AIによる自動生成時でも保守性と型安全性を担保する。
+1. **UI (components)**
+    - **役割**: 描画と表現、ユーザーイベントの検知に専念する。
+    - **コンポーネント内に書くこと**:
+        - **見た目の制御**: 「開閉フラグに基づいて表示文言を切り替える」「特定条件でCSSクラスを付与する」などのUI表現。
+        - **軽量な派生データ計算**: 渡された `props` や `state` から表示に必要な形に変換する程度の Pure な計算（10行以内厳守）。
+        - **useMemo の利用**: 上記の処理が再レンダリングで重くなる場合のメモ化。
+    - **コンポーネント内に書かないこと**: 
+        - **10行以上のロジック**： 必ず`utils/` へ抽出し、 `hooks/` を経由して呼び出せ。
+        - **Reactに依存しない計算・整形などの純粋関数**： 行数にかかわらず`utils/` へ抽出せよ。
 
-1. **Logic (utils / lib)**
-    - **utils**: React に依存しない純粋関数。計算、フォーマット、変換など。
-    - **lib**: 外部ライブラリ（Tiptap, Supabase 等）の**初期化、インスタンス作成、ライブラリ固有の設定**。
-2. **External Actions (services)**
-    - API 通信、SDK の直接操作、外部データとのやり取り。
-    - React のステートを持たず、純粋な非同期処理（Promise の返却）に徹する。
-3. **Bridge (hooks)**
+2. **Logic (utils)**
+    - **役割**: アプリ内のビジネスロジックの集約。
+    - **注意**: 外部ライブラリ、Reactライブラリのロジック内の、React に依存しない計算・整形などの純粋関数は`utils/` に記述せよ。
+
+3. **External Actions (services)**
+    - **役割**: API 通信、SDK の直接操作、外部データとのやり取り。
+    - **注意**: React のステートを持たず、純粋な非同期処理（Promise の返却）に徹せよ。
+    
+4. **Bridge (hooks)**
     - **役割**: UI と Logic/Services を仲介する唯一の場所。
     - **使用条件**: `useState`, `useEffect`, `useContext` などの React ステートやライフサイクルが必要な場合。
-    - **Bridge層 (Hooks) へ逃がすべきこと (Domain Logic)**:
-        - **ビジネスルールの適用**: 「体温が37.5度以上ならアラートフラグを立てる」といった、アプリの仕様に関わる判定。
-        - **複数の State を跨ぐ計算**: 2つ以上のステートを組み合わせて新しいデータを作る場合。
-        - **外部依存**: APIからの取得データ（Services）を画面用に整形する処理。
-    - **重要**: 外部ライブラリや独自ロジックが hooks を経由せず、直接 DOM 操作をすることを禁止する。
-4. **UI (components)**
-    - **役割**: 描画と表現、ユーザーイベントの検知に専念する。
-    - **コンポーネント内に書いても良いこと (UI Logic)**:
-        - **見た目の制御**: 「開閉フラグに基づいて表示文言を切り替える」「特定条件でCSSクラスを付与する」など。
-        - **軽量な派生データ計算**: 渡された `props` や `state` から、表示に必要な形に変換する程度の pure な計算（10行以内目安）。
-        - **useMemo の利用**: 上記の処理が再レンダリングで重くなる場合のメモ化。
-    - **プレミアムなデザイン実装**: 単に動くだけでなく、適切な余白、洗練された配色、滑らかなマイクロアニメーション（Hover, Transition）を積極的に導入し、プレミアムなユーザー体験（UX）を構築せよ。
-    - **禁止事項**: 複雑なビジネスロジックの混入、直接的な API 通信ロジックの記述。これらの Domain Logic は必ず Hooks へ委ねること。
+
+5. **State (store)**
+    - **役割**: 複数のコンポーネント間で共有が必要なグローバルステートの管理。
 
 ---
 
-## 4. バグ防止
-### ファイルと命名規則
+## 5. Styling rules
+
+### Tailwind CSS
+- **Tailwind Exclusive**: 原則として Tailwind クラスのみを使用せよ。
+- **index.css rule**: 基本は `@tailwind` 3行のみ。例外として、外部ライブラリ（ProseMirror 等）の内部クラス上書きや、Tailwind で記述困難な複雑な擬似要素（`::before` 等）のみ許可する。
+- **Dynamic Styles**: `style` 属性の使用は、JS で動的に計算される数値（座標、進捗率、色変化等）に限定せよ。それ以外の静的なスタイル、またはクラスで容易に定義可能なスタイルでの使用は禁止。
+
+### UI Components
+- **Shadcn/ui**: 第一選択の UI コンポーネント群とする。`src/components/ui/` は直接編集してプロジェクトに最適化して良い。
+- **Class Management**: 動的なクラス結合には必ず `cn()` (tailwind-merge) を使用せよ。
+- **Design Tokens**: マジックナンバー（`h-[32px]` 等）を避け、`tailwind.config.ts` に定義したブランドカラーやサイズを使用せよ。
+
+### Premium Design & UX Excellence
+単に動くだけでなく、あらゆる環境で「プロレベルの品質」を感じさせる最高品質のユーザー体験（UX）を構築せよ。
+- **Visual & Space**: 
+    - モダンなタイポグラフィ（Inter 等）と洗練された配色、一貫したデザイントークンを適用せよ。
+    - 適切な余白（Spacing）を徹底し、情報の密度をコントロールすることで「プレミアムな質感」を実現せよ。
+- **Motion & Feedback**: 
+    - 滑らかなマイクロアニメーション（Hover, Transition）を積極的に導入し、ユーザー操作に対する直感的なフィードバックを返せ。
+- **Multi-Environment Adaptation**: 
+    - **Responsive**: 画面幅（Desktop/Tablet/Mobile）に応じた最適化はもちろん、1024px〜1920px以上の広い画面でもレイアウトが崩れないよう設計せよ。
+    - **Performance**: 低速回線やモバイル環境を考慮した軽量な実装を行い、どのようなコンディションでも快適な操作を提供せよ。
+- **Inclusion & Accessibility (A11y)**: 
+    - WAI-ARIA、適切な `aria-label`、キーボード操作の完全保証をシニアレベルで徹底し、誰もが迷わず利用できるアクセシブルな設計とせよ。
+
+---
+
+## 6. Bug Prevention
+
+### File and Naming Conventions
 - **Path Alias**: すべて `@/` を使用せよ。相対パス（`../`）は禁止。
 - **Naming Conventions**:
     - **ディレクトリ名**: `kebab-case` （例: `user-profile`, `common-ui`）
@@ -108,37 +146,18 @@ UI層とロジック層を完全に隔離し、AIによる自動生成時でも�
     - **それ以外のファイル（hooks, utils, services 等）**: `camelCase` （例: `useAuth.ts`, `formatDate.ts`）
 - **Early Return**: 早期リターンを徹底し、コードのネストを最小限に抑えよ。
 
-### 型安全の徹底
-- **No `any`**: `any` の使用を禁止。`unknown` と型ガードを活用せよ。
-- **Zod Validation**: API レスポンス等の外部データ境界には必ず **Zod** を使用し、バリデーションと型定義をセットでカプセル化せよ。
+### Type Safety
+- **No `any`**: `any`および型アサーション（as Type）の使用を原則禁止せよ。型が不明な場合は `unknown`と型ガードを徹底せよ。
+- **Zod Validation**: 外部データ境界には Zod を使用せよ。型定義は `z.infer` を用いてスキーマから抽出し、二重管理を防止せよ。
 
-### エッジケース想定 (Edge Case Considerations)
+### Edge Case Considerations
 「普通じゃないことが起こったらどうなるか」を常に考え、堅牢な実装を行え。
 - **異常系データ**: ユーザーが異常なデータを入力した、データ量が想定の10倍になった、などの極端な状況下でもシステムがクラッシュしない対策を立てよ。
 - **通信トラブル**: 通信が途中で切断された、APIがタイムアウトした、などの予期せぬトラブルを想定し、適切なローディング表示やリトライ・エラーリカバリ処理を実装せよ。
 
 ---
 
-## 5. 🎨 スタイリングと UI 標準
-
-### Tailwind CSS の運用
-- **Tailwind Exclusive**: 原則として Tailwind クラスのみを使用せよ。
-- **index.css の役割**: 基本は `@tailwind` 3行のみ。例外として、外部ライブラリ（ProseMirror 等）の内部クラス上書きや、Tailwind で記述困難な複雑な擬似要素（`::before` 等）のみ許可する。
-- **Dynamic Styles**: `style` 属性の使用は、JS で動的に計算される数値（座標、進捗率、色変化等）に限定せよ。それ以外の静的なスタイル、またはクラスで容易に定義可能なスタイルでの使用は禁止。
-- **Design Excellence**: モダンなタイポグラフィ（Inter, Roboto 等）、一貫したデザイントークン、アクセシビリティ（WAI-ARIA）を融合させ、「プロレベルの品質」を維持せよ。
-
-### UI ライブラリとコンポーネント
-- **Shadcn/ui**: 第一選択の UI コンポーネント群とする。`src/components/ui/` は直接編集してプロジェクトに最適化して良い。
-- **Class Management**: 動的なクラス結合には必ず `cn()` (tailwind-merge) を使用せよ。
-- **Design Tokens**: マジックナンバー（`h-[32px]` 等）を避け、`tailwind.config.ts` に定義したブランドカラーやサイズを使用せよ。
-
-### レスポンシブとアクセシビリティ
-- **Multi-Environment Adaptation**: 画面幅（Desktop/Tablet/Mobile）だけでなく、OS、ブラウザ、通信速度などの「場合分け」を徹底せよ。1024px〜1920px以上の変化への追従はもちろん、低速回線やモバイル環境下でも最適なUI/UXを提供できるよう設計せよ。
-- **Accessibility (A11y)**: WAI-ARIA、適切な `aria-label`、キーボード操作の保証をシニアレベルで行え。
-
----
-
-## 7. 🔐 セキュリティとシークレット管理
+## 7. Security and Secret Management
 
 - **No Hardcoding**: API キーや秘密鍵をコード内にハードコードすることを厳禁とする。
 - **Environment Variables**:
@@ -148,7 +167,7 @@ UI層とロジック層を完全に隔離し、AIによる自動生成時でも�
 
 ---
 
-## 8. 🚀 Antigravity 最適化ワークフロー
+## 8. Antigravity Optimization Workflow
 
 AI 駆動開発ツールの特性を活かし、効率を最大化せよ。
 
