@@ -15,6 +15,7 @@ const ImageCropOverlay: React.FC = () => {
 
     const [target, setTarget] = useState<HTMLElement | null>(null);
     const [targetImageUrl, setTargetImageUrl] = useState<string | null>(null);
+    const [originalImageUrl, setOriginalImageUrl] = useState<string | null>(null);
     const [naturalSize, setNaturalSize] = useState({ width: 0, height: 0 });
     const [cropRect, setCropRect] = useState({ x: 0, y: 0, width: 0, height: 0 });
     const [screenPos, setScreenPos] = useState({ top: 0, left: 0 });
@@ -28,18 +29,30 @@ const ImageCropOverlay: React.FC = () => {
 
     const loadImageInfo = useCallback(async (el: HTMLElement) => {
         let url = '';
+        let originalUrl = '';
+
         if (el instanceof HTMLImageElement) {
             url = el.src;
+            originalUrl = el.getAttribute('src') || el.src;
         } else {
             const bg = window.getComputedStyle(el).backgroundImage;
             const match = bg.match(/url\(['"]?(.*?)['"]?\)/);
             if (match) url = match[1];
+
+            // インラインスタイルから元のパスを取得（相対パス維持のため）
+            const inlineBg = el.style.backgroundImage;
+            const inlineMatch = inlineBg.match(/url\(['"]?(.*?)['"]?\)/);
+            if (inlineMatch) {
+                originalUrl = inlineMatch[1];
+            } else {
+                originalUrl = url;
+            }
         }
         if (!url) return null;
-        return new Promise<{ url: string; width: number; height: number }>((resolve) => {
+        return new Promise<{ url: string; originalUrl: string; width: number; height: number }>((resolve) => {
             const img = new Image();
-            img.onload = () => resolve({ url, width: img.naturalWidth, height: img.naturalHeight });
-            img.onerror = () => resolve({ url, width: 0, height: 0 });
+            img.onload = () => resolve({ url, originalUrl, width: img.naturalWidth, height: img.naturalHeight });
+            img.onerror = () => resolve({ url, originalUrl, width: 0, height: 0 });
             img.src = url;
         });
     }, []);
@@ -129,6 +142,7 @@ const ImageCropOverlay: React.FC = () => {
                         }
                         setCropRect({ x: startX, y: startY, width: finalW, height: finalH });
                         setTargetImageUrl(info.url);
+                        setOriginalImageUrl(info.originalUrl);
                     }
                 });
 
@@ -137,6 +151,7 @@ const ImageCropOverlay: React.FC = () => {
         } else {
             setTarget(null);
             setTargetImageUrl(null);
+            setOriginalImageUrl(null);
         }
     }, [isImageCropMode, croppingElementId, loadImageInfo, zoom]);
 
@@ -240,7 +255,12 @@ const ImageCropOverlay: React.FC = () => {
         finalTarget.style.width = `${cropW}px`;
         finalTarget.style.height = `${cropH}px`;
         finalTarget.style.transform = transStr;
-        finalTarget.style.backgroundImage = `url('${targetImageUrl}')`;
+
+        // 相対パスを維持するために originalImageUrl を使用
+        // クォート処理: URLにクォートが含まれていないと仮定、もしくは正しくエスケープする
+        const cleanUrl = (originalImageUrl || targetImageUrl)?.replace(/['"]/g, '') || '';
+        finalTarget.style.backgroundImage = `url('${cleanUrl}')`;
+
         finalTarget.style.backgroundSize = `${bgSizeW}px ${bgSizeH}px`;
         finalTarget.style.backgroundPosition = `${bgPosX}px ${bgPosY}px`;
         finalTarget.style.backgroundRepeat = 'no-repeat';

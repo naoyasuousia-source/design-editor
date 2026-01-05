@@ -27,6 +27,17 @@
 
 ## 1. 未解決要件（移動許可がNGの要件は絶対に移動・編集しないこと）（勝手に移動許可をOKに書き換えないこと）
 
+<requirement>
+<content>
+トリミングの仕様を一新する。
+現在は、トリミング後はトリミング画像を生成し、一時パスで表示している。
+これを、トリミング後は、トリミングcssを適用し、相対パスのまま、トリミング後のレンダリングを行うようにする。
+これによって、外部ブラウザで開いた際も、トリミング後の画像を表示できるようにする。</content>
+<current-situation>実装完了。動作確認待ち。</current-situation>
+<remarks></remarks>
+<permission-to-move>NG</permission-to-move>
+</requirement>
+
 
 
 ## 2. 未解決要件に関するコード変更履歴（目的、変更内容、変更日時）
@@ -63,6 +74,7 @@
     - `handleApply` 中にターゲットを一時的に隠し、座標確定後に表示・同期することでジャンプを防止。
     - `index.css` への `image-rendering` 設定と `Math.round` による座標整数化で、サブピクセルレンダリングによるボケ（画質低下感）を解消。
     - Tailwind の `max-width: 100%` 干渉を `!important` で完封。
+- **トリミング時の相対パス維持** (2026-01-05): `ImageCropOverlay.tsx` を修正し、`originalUrl` を保持することで、トリミング適用後の `backgroundImage` css に絶対パスではなく元の相対パスがセットされるように変更。
 
 
 
