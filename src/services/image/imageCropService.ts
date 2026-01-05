@@ -1,4 +1,4 @@
-import type { CropRect } from '@/utils/image/cropUtils';
+import type { CropRect } from '@/types/image';
 
 /**
  * Action層: 命令的な DOM 操作（副作用）を担当。
@@ -11,7 +11,7 @@ export const imageCropService = {
     convertImgToDiv(img: HTMLImageElement): HTMLDivElement {
         const div = document.createElement('div');
         Array.from(img.attributes).forEach(attr => {
-            if (attr.name !== 'src' && attr.name !== 'style') {
+            if (attr.name !== 'src') { // style も含めて全ての属性を一旦引き継ぐ
                 div.setAttribute(attr.name, attr.value);
             }
         });

@@ -30,8 +30,11 @@ export const restoreRelativePaths = (html: string, imageUrls: Record<string, str
 
     for (const [fileName, blobUrl] of sortedEntries) {
         if (!blobUrl) continue;
-        // 文字列置換を繰り返す。RegExp よりも確実でエスケープも不要。
-        restored = restored.split(blobUrl).join(`./images/${fileName}`);
+        // 特殊文字をエスケープ
+        const escapedBlob = blobUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        // url('blob:...') の形式や src="blob:..." の形式に対応
+        const regex = new RegExp(escapedBlob, 'g');
+        restored = restored.replace(regex, `./images/${fileName}`);
     }
     return restored;
 };

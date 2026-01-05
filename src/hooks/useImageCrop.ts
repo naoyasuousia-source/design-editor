@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useEditorStore } from '@/store/useEditorStore';
 import { imageCropService } from '@/services/image/imageCropService';
 import { cropUtils } from '@/utils/image/cropUtils';
-import type { CropRect } from '@/utils/image/cropUtils';
+import type { CropRect } from '@/types/image';
 
 /**
  * Bridge (Hooks) 層: UI と Logic/Action/State を仲介し、React のライフサイクルを管理する。
@@ -171,19 +171,22 @@ export const useImageCrop = () => {
         }
     }, [isImageCropMode, handleMouseMove, handleMouseUp]);
 
-    const handleApply = useCallback(() => {
+    const handleApply = useCallback(async () => {
         if (!target || naturalSize.width === 0) return;
 
+        // ストア内の正規な Blob URL を特定
         const { imageUrls, setAutoSelectId } = useEditorStore.getState();
-        const relativePath = targetFileName ? `./images/${targetFileName}` : (targetImageUrl || '');
+        const fileName = targetFileName || Object.entries(imageUrls).find(([_, u]) => u === targetImageUrl)?.[0];
+        const officialBlobUrl = fileName ? imageUrls[fileName] : targetImageUrl;
         const finalRect = currentCropRect.current;
 
         // 1. Logic層で最終スタイルを計算
+        // DOM には常に現在の表示パス (Blob URL) を適用し、保存時のクリーンアップ層で相対パスに戻す
         const styles = cropUtils.generateBackgroundStyles({
             cropRect: finalRect,
             naturalSize,
             fullSize,
-            url: relativePath
+            url: officialBlobUrl || ''
         });
 
         // 2. Action層で物理的な DOM 変換を実行
@@ -194,11 +197,20 @@ export const useImageCrop = () => {
             cropRect: finalRect
         });
 
-        // 3. 終了合図と後処理
+        // 3. 即座に最新の DOM 状態をストアに同期する (React の再レンダリング待ちによる先祖返りを防ぐ)
+        const surface = target.closest('.DesignSurface');
+        if (surface) {
+            const { restoreRelativePaths } = await import('@/utils/html/cleaner');
+            const clone = surface.cloneNode(true) as HTMLElement;
+            // エディタ専用属性の除去などは cleaner の責務だが、ここでは最小限の同期を行う
+            const cleanHtml = restoreRelativePaths(clone.innerHTML, imageUrls);
+            useEditorStore.getState().setContent(cleanHtml, true); // 歴史には追加せず上書き
+        }
+
+        // 4. モード終了
         setImageCropMode(false, null);
 
         requestAnimationFrame(() => {
-            finalElement.setAttribute('style', finalElement.style.cssText);
             window.dispatchEvent(new CustomEvent('canvas-update'));
             if (finalElement.id) setAutoSelectId(finalElement.id);
         });

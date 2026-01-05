@@ -3,17 +3,7 @@
  * 副作用や DOM 操作は一切行わない。
  */
 
-export interface CropRect {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-}
-
-export interface Size {
-    width: number;
-    height: number;
-}
+import type { CropRect, Size } from '@/types/image';
 
 export const cropUtils = {
     /**
@@ -164,7 +154,7 @@ export const cropUtils = {
         const scale = fullSize.width / naturalSize.width;
 
         return {
-            backgroundImage: `url("${url}")`,
+            backgroundImage: `url('${url}')`,
             backgroundSize: `${naturalSize.width * scale}px ${naturalSize.height * scale}px`,
             backgroundPosition: `${-cropRect.x}px ${-cropRect.y}px`,
             backgroundRepeat: 'no-repeat',
