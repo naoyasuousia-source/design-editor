@@ -44,13 +44,7 @@ interface EditorStore extends EditorState {
 
 const MAX_HISTORY = 50;
 
-const initialState: EditorState & {
-    lastSaveTime: number;
-    // 画像保存ウィザード用
-    isImageSaveMode: boolean;
-    cropAspectRatio: number | 'free' | null;
-    showSaveToast: boolean;
-} = {
+const initialState: EditorState = {
     pageSize: DEFAULT_PAGE_SIZE,
     customWidth: null,
     customHeight: null,

@@ -66,6 +66,7 @@ export type EditorState = {
     isImageCropMode: boolean;
     imageCropAspectRatio: number | null;
     croppingElementId: string | null;
+    isDeselectTriggered: boolean;
 }
 
 export const _REFRESH_FIX = Date.now();

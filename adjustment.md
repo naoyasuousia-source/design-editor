@@ -28,12 +28,7 @@
 ## 1. 未解決要件（移動許可がNGの要件は絶対に移動・編集しないこと）（勝手に移動許可をOKに書き換えないこと）
 
 
-<requirement>
-<content>デザイン領域の外の黒い背景やメニューバーの余白部分を押した場合、要素選択状態をリセットする仕様にする。</content>
-<current-situation></current-situation>
-<remarks></remarks>
-<permission-to-move>OK</permission-to-move>
-</requirement>
+
 
 
 
@@ -48,6 +43,7 @@
     - `src/components/features/workspace/Workspace.tsx`: 背景領域クリック時に `triggerDeselect()` を呼び出すように変更。
     - `src/components/common/Navbar.tsx`: メニューバーの余白クリック時に `triggerDeselect()` を呼び出すように変更。
     - `src/hooks/moveable/useSelection.ts`: `selectNone` 等の定義位置を修正し、初期化順序エラー（ReferenceError: Cannot access 'selectNone' before initialization）を解消。
+    - `src/types/editor.ts`, `src/store/useEditorStore.ts`: `isDeselectTriggered` プロパティの型定義不足によるビルドエラーを修正。これにより GitHub デプロイワークフローのエラーを解消。
 - **変更日時**: 2026-01-05 18:25 (JST)
 
 ## 3. 分析中に気づいた重要ポイント（試してだめだったこと、仮設、制約条件等...）
@@ -66,6 +62,12 @@
 <content>重なっている要素のうち、下層の要素を選択した場合、編集、ドラッグ移動は可能だが、レンダリングはレイヤー構造通りにする。</content>
 <current-situation>解決済み</current-situation>
 <remarks>index.css での .moveable-target-active の z-index 引き上げを削除。</remarks>
+</requirement>
+
+<requirement>
+<content>デザイン領域の外の黒い背景やメニューバーの余白部分を押した場合、要素選択状態をリセットする仕様にする。</content>
+<current-situation>解決済み</current-situation>
+<remarks>Zustand store を介して Workspace や Navbar から選択解除をトリガーする仕組みを導入。</remarks>
 </requirement>
 
 ## 5. 要件に関連する全ファイルのファイル構成（それぞれの役割を1行で併記）
