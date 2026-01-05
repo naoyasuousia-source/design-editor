@@ -16,6 +16,8 @@ interface DesignAreaProps {
     children?: React.ReactNode;
 }
 
+import { useAssets } from '@/hooks/useAssets';
+
 export const DesignContent = React.memo(({
     content,
     onMouseDown,
@@ -33,10 +35,28 @@ export const DesignContent = React.memo(({
     onDragOver: (e: React.DragEvent) => void;
     onDrop: (e: React.DragEvent) => void;
 }) => {
+    const { imageUrls } = useAssets();
+
+    // パスの置換処理
+    const processedContent = React.useMemo(() => {
+        let text = content;
+        // 1. src="./images/xxx" の置換
+        text = text.replace(/src=["']\.\/images\/(.+?)["']/g, (match, fileName) => {
+            const blobUrl = imageUrls[fileName];
+            return blobUrl ? `src="${blobUrl}"` : match;
+        });
+        // 2. background-image: url('./images/xxx') の置換
+        text = text.replace(/url\(["']?\.\/images\/(.+?)["']?\)/g, (match, fileName) => {
+            const blobUrl = imageUrls[fileName];
+            return blobUrl ? `url('${blobUrl}')` : match;
+        });
+        return text;
+    }, [content, imageUrls]);
+
     return (
         <div
             className="absolute inset-0 w-full h-full DesignSurface"
-            dangerouslySetInnerHTML={{ __html: content }}
+            dangerouslySetInnerHTML={{ __html: processedContent }}
             onMouseDown={onMouseDown}
             onPaste={onPaste}
             onMouseMove={onMouseMove}
@@ -62,6 +82,7 @@ const DesignArea: React.FC<DesignAreaProps> = ({
 }) => {
     const isApplyingUpdate = useEditorStore(state => state.isApplyingUpdate);
     const customCss = useEditorStore(state => state.customCss);
+    const { imageUrls } = useAssets();
 
     return (
         <div
@@ -98,15 +119,19 @@ const DesignArea: React.FC<DesignAreaProps> = ({
                     e.preventDefault();
                     const imagePath = e.dataTransfer.getData('text/plain');
                     if (!imagePath || !imagePath.startsWith('./images/')) return;
+
+                    const fileName = imagePath.replace('./images/', '');
+                    const displayPath = imageUrls[fileName] || imagePath;
+
                     const element = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement;
                     if (!element) return;
                     const target = element.closest('.DesignSurface > *, .DesignSurface *') as HTMLElement;
                     if (!target) return;
 
                     if (target.tagName.toLowerCase() === 'img') {
-                        (target as HTMLImageElement).src = imagePath;
+                        (target as HTMLImageElement).src = displayPath;
                     } else {
-                        target.style.backgroundImage = `url('${imagePath}')`;
+                        target.style.backgroundImage = `url('${displayPath}')`;
                         target.style.backgroundSize = 'contain';
                         target.style.backgroundRepeat = 'no-repeat';
                         target.style.backgroundPosition = 'center';

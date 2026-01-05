@@ -17,3 +17,18 @@ export const cleanHTML = (html: string): string => {
     cleaned = cleaned.replace(/\sstyle=""/g, '');
     return cleaned.trim();
 };
+
+/**
+ * HTML 内の Blob URL を元の相対パス (./images/xxx) に書き戻す
+ */
+export const restoreRelativePaths = (html: string, imageUrls: Record<string, string>): string => {
+    let restored = html;
+    // imageUrls は { "ファイル名": "blob:..." }
+    Object.entries(imageUrls).forEach(([fileName, blobUrl]) => {
+        // Blob URL をエスケープして正規表現を作成
+        const escapedBlobUrl = blobUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(escapedBlobUrl, 'g');
+        restored = restored.replace(regex, `./images/${fileName}`);
+    });
+    return restored;
+};

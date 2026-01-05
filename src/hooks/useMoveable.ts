@@ -5,6 +5,7 @@ import { useSelection } from '@/hooks/moveable/useSelection';
 import { useTextEditing } from '@/hooks/moveable/useTextEditing';
 import { useTransform } from '@/hooks/moveable/useTransform';
 import { useMoveableHandlers } from '@/hooks/moveable/useMoveableHandlers';
+import { useAssets } from '@/hooks/useAssets';
 
 /**
  * デザイン領域内の要素を GUI 操作（Moveable）するためのフック
@@ -28,6 +29,8 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
         getRenderDirections
     } = useSelection(canvasRef, content);
 
+    const { imageUrls } = useAssets();
+
     const {
         isEditing,
         isEditingRef,
@@ -35,7 +38,7 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
         handleDoubleClick,
         finishEditing,
         updateContentFromDOM
-    } = useTextEditing(canvasRef, isLocked, setContent, isTextBox);
+    } = useTextEditing(canvasRef, isLocked, setContent, isTextBox, imageUrls);
 
     const {
         keepRatio,

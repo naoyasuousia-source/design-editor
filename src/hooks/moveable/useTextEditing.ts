@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import type { RefObject, MouseEvent } from 'react';
+import { restoreRelativePaths } from '@/utils/html/cleaner';
 
 const keyDownListeners = new WeakMap<HTMLElement, (e: KeyboardEvent) => void>();
 
@@ -7,7 +8,8 @@ export const useTextEditing = (
     canvasRef: RefObject<HTMLDivElement | null>,
     isLocked: boolean,
     setContent: (content: string) => void,
-    isTextBox: (el: HTMLElement) => boolean
+    isTextBox: (el: HTMLElement) => boolean,
+    imageUrls: Record<string, string>
 ) => {
     const editingElementRef = useRef<HTMLElement | null>(null);
     const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -24,9 +26,12 @@ export const useTextEditing = (
             clone.querySelectorAll('.moveable-target-active').forEach(el => {
                 el.classList.remove('moveable-target-active');
             });
-            setContent(clone.innerHTML);
+
+            // Blob URL を相対パスに戻す
+            const cleanHtml = restoreRelativePaths(clone.innerHTML, imageUrls);
+            setContent(cleanHtml);
         }
-    }, [canvasRef, setContent]);
+    }, [canvasRef, setContent, imageUrls]);
 
     const finishEditing = useCallback(() => {
         if (editingElementRef.current && isEditingRef.current) {

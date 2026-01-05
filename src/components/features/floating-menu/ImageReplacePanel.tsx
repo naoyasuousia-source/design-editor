@@ -24,10 +24,11 @@ const ImageReplacePanel: React.FC<ImageReplacePanelProps> = ({
                     className="aspect-square bg-black/20 rounded border border-white/5 hover:border-blue-500 overflow-hidden transition-all"
                     onClick={() => {
                         const path = `./images/${file}`;
+                        const displayPath = imageUrls[file] || path;
                         if (target.tagName.toLowerCase() === 'img') {
-                            (target as HTMLImageElement).src = path;
+                            (target as HTMLImageElement).src = displayPath;
                         } else {
-                            target.style.backgroundImage = `url('${path}')`;
+                            target.style.backgroundImage = `url('${displayPath}')`;
                         }
                         onClose();
                         onUpdate();

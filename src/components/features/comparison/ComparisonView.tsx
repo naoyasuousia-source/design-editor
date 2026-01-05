@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { X, ArrowLeftRight } from 'lucide-react';
+import { useAssets } from '@/hooks/useAssets';
 import { useEditorStore } from '@/store/useEditorStore';
 import { PAGE_SIZES } from '@/types/editor';
 
@@ -15,6 +16,23 @@ const ComparisonView: React.FC<ComparisonViewProps> = ({ onClose, oldImage, newH
 
     const currentWidth = customWidth || config.width;
     const currentHeight = customHeight || config.height;
+
+    const { imageUrls } = useAssets();
+
+    // 変更後HTMLのパス置換
+    const processedHtml = useMemo(() => {
+        if (!newHtml) return '';
+        let text = newHtml;
+        text = text.replace(/src=["']\.\/images\/(.+?)["']/g, (match, fileName) => {
+            const blobUrl = imageUrls[fileName];
+            return blobUrl ? `src="${blobUrl}"` : match;
+        });
+        text = text.replace(/url\(["']?\.\/images\/(.+?)["']?\)/g, (match, fileName) => {
+            const blobUrl = imageUrls[fileName];
+            return blobUrl ? `url('${blobUrl}')` : match;
+        });
+        return text;
+    }, [newHtml, imageUrls]);
 
     // 画面内に収まるようにスケーリングを計算
     const scale = useMemo(() => {
@@ -94,10 +112,10 @@ const ComparisonView: React.FC<ComparisonViewProps> = ({ onClose, oldImage, newH
                             }}
                             className="bg-white shadow-2xl shadow-black/30 relative overflow-hidden"
                         >
-                            {newHtml ? (
+                            {processedHtml ? (
                                 <div
                                     className="DesignSurface absolute inset-0 w-full h-full"
-                                    dangerouslySetInnerHTML={{ __html: newHtml }}
+                                    dangerouslySetInnerHTML={{ __html: processedHtml }}
                                 />
                             ) : (
                                 <div className="absolute inset-0 flex items-center justify-center text-gray-400 italic">
