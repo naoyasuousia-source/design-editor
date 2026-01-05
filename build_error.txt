@@ -1,4 +1,0 @@
-src/hooks/moveable/useSelection.ts(74,63): error TS2551: Property 'isDeselectTriggered' does not exist on type 'EditorStore'. Did you mean 'resetDeselectTrigger'?
-src/store/useEditorStore.ts(99,5): error TS2353: Object literal may only specify known properties, and 'isDeselectTriggered' does not exist in type 'EditorState & { lastSaveTime: number; isImageSaveMode: boolean; cropAspectRatio: number | "free" | null; showSaveToast: boolean; }'.
-src/store/useEditorStore.ts(267,34): error TS2353: Object literal may only specify known properties, and 'isDeselectTriggered' does not exist in type 'EditorStore | Partial<EditorStore> | ((state: EditorStore) => EditorStore | Partial<EditorStore>)'.
-src/store/useEditorStore.ts(268,39): error TS2353: Object literal may only specify known properties, and 'isDeselectTriggered' does not exist in type 'EditorStore | Partial<EditorStore> | ((state: EditorStore) => EditorStore | Partial<EditorStore>)'.
