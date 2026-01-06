@@ -1,20 +1,28 @@
 /**
- * 指定した要素群のバウンディングボックスを、指定したコンテナ基準で計算する（ズーム考慮）
+ * 指定した座標群のバウンディングボックスを計算する純粋関数
  */
-export const calculateGroupBounds = (elements: HTMLElement[], container: HTMLElement | null, zoom: number) => {
-    if (elements.length === 0 || !container) return null;
-    const cr = container.getBoundingClientRect();
+export interface Rect {
+    left: number;
+    top: number;
+    right: number;
+    bottom: number;
+}
+
+/**
+ * 複数の要素の Rect 群から、コンテナ基準のバウンディングボックスを算出する（ズーム考慮）
+ */
+export const calculateGroupBounds = (rects: Rect[], containerRect: Rect, zoom: number) => {
+    if (rects.length === 0) return null;
+
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
 
-    elements.forEach(el => {
-        const r = el.getBoundingClientRect();
-        minX = Math.min(minX, r.left - cr.left);
-        minY = Math.min(minY, r.top - cr.top);
-        maxX = Math.max(maxX, r.right - cr.left);
-        maxY = Math.max(maxY, r.bottom - cr.top);
+    rects.forEach(r => {
+        minX = Math.min(minX, r.left - containerRect.left);
+        minY = Math.min(minY, r.top - containerRect.top);
+        maxX = Math.max(maxX, r.right - containerRect.left);
+        maxY = Math.max(maxY, r.bottom - containerRect.top);
     });
 
-    // コンテナ自体が scale(zoom) されているので、CSS の left/top に指定する値は unscaled である必要がある
     return {
         left: minX / zoom,
         top: minY / zoom,

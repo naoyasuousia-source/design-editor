@@ -2,6 +2,8 @@ import React from 'react';
 import { cn } from '@/utils/cn';
 import { useEditorStore } from '@/store/useEditorStore';
 import { useAssets } from '@/hooks/useAssets';
+import { replaceAssetPaths } from '@/utils/assetPath';
+import { designAreaService } from '@/services/designAreaService';
 
 interface DesignAreaProps {
     content: string;
@@ -38,28 +40,7 @@ export const DesignContent = React.memo(({
 }) => {
     // パスの置換処理
     const processedContent = React.useMemo(() => {
-        let text = content;
-        // 1. src="./images/xxx" の置換
-        // より広範な表記ゆれに対応するため、正規表現を強化
-        text = text.replace(/src=["'](?:\.\/)?images\/(.+?)["']/g, (match, fileName) => {
-            const blobUrl = imageUrls[fileName];
-            return blobUrl ? `src="${blobUrl}"` : match;
-        });
-        // 2. background-image: url(...) の置換 (Reactによる再描画を確実に成功させる)
-        // 引用符の種類を揃えてマッチさせ、スペースを含むパスも確実にキャプチャする
-        text = text.replace(/url\((['"]|&quot;|&#39;)?((?:\.\/)?images\/.+?)\1?\)/gi, (match, _quote, fullPath) => {
-            try {
-                // HTMLエンティティの正規化とデコード
-                const cleanPath = fullPath.replace(/&quot;/g, '"').replace(/&#39;/g, "'");
-                const decodedPath = decodeURIComponent(cleanPath);
-                const fileName = decodedPath.replace(/^(\.\/)?images\//, '').split(/[?#]/)[0].trim();
-                const blobUrl = imageUrls[fileName];
-                return blobUrl ? `url('${blobUrl}')` : match;
-            } catch (e) {
-                return match;
-            }
-        });
-        return text;
+        return replaceAssetPaths(content, imageUrls);
     }, [content, imageUrls]);
 
     return (
@@ -141,14 +122,7 @@ const DesignArea: React.FC<DesignAreaProps> = ({
                     const target = element.closest('.DesignSurface > *, .DesignSurface *') as HTMLElement;
                     if (!target) return;
 
-                    if (target.tagName.toLowerCase() === 'img') {
-                        (target as HTMLImageElement).src = displayPath;
-                    } else {
-                        target.style.backgroundImage = `url('${displayPath}')`;
-                        target.style.backgroundSize = 'contain';
-                        target.style.backgroundRepeat = 'no-repeat';
-                        target.style.backgroundPosition = 'center';
-                    }
+                    designAreaService.applyDroppedImage(target, displayPath);
                     updateContentFromDOM();
                 }}
             />

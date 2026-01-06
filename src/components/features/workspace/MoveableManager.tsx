@@ -37,8 +37,19 @@ const MoveableManager: React.FC<MoveableManagerProps> = (props) => {
     }, []);
 
     // 境界計算をメモ化
-    const hoverBounds = useMemo(() => calculateGroupBounds(hoverTargets, canvasRef.current, zoom), [hoverTargets, canvasRef, zoom]);
-    const groupBounds = useMemo(() => calculateGroupBounds(targets, canvasRef.current, zoom), [targets, canvasRef, zoom, tick]);
+    const hoverBounds = useMemo(() => {
+        if (hoverTargets.length === 0 || !canvasRef.current) return null;
+        const rects = hoverTargets.map(el => el.getBoundingClientRect());
+        const containerRect = canvasRef.current.getBoundingClientRect();
+        return calculateGroupBounds(rects, containerRect, zoom);
+    }, [hoverTargets, canvasRef, zoom]);
+
+    const groupBounds = useMemo(() => {
+        if (targets.length === 0 || !canvasRef.current) return null;
+        const rects = targets.map(el => el.getBoundingClientRect());
+        const containerRect = canvasRef.current.getBoundingClientRect();
+        return calculateGroupBounds(rects, containerRect, zoom);
+    }, [targets, canvasRef, zoom, tick]);
 
     const hasGroupId = targets.length > 0 && targets[0]?.getAttribute('data-group-id');
     const isGroupActive = (selectionMode === 'group' || selectionMode === 'individual') && hasGroupId;
@@ -70,9 +81,13 @@ const MoveableManager: React.FC<MoveableManagerProps> = (props) => {
         // 各グループのバウンディングボックスを計算
         const result: { groupId: string; bounds: { left: number; top: number; width: number; height: number } }[] = [];
         groupMap.forEach((_elements, groupId) => {
-            // グループの全要素を取得（選択されていない要素も含むため、DOMから再取得）
-            const allGroupElements = Array.from(canvasRef.current?.querySelectorAll(`[data-group-id="${groupId}"]`) || []) as HTMLElement[];
-            const bounds = calculateGroupBounds(allGroupElements, canvasRef.current, zoom);
+            if (!canvasRef.current) return;
+            const allGroupElements = Array.from(canvasRef.current.querySelectorAll(`[data-group-id="${groupId}"]`)) as HTMLElement[];
+            if (allGroupElements.length === 0) return;
+
+            const rects = allGroupElements.map(el => el.getBoundingClientRect());
+            const containerRect = canvasRef.current.getBoundingClientRect();
+            const bounds = calculateGroupBounds(rects, containerRect, zoom);
             if (bounds) {
                 result.push({ groupId, bounds });
             }

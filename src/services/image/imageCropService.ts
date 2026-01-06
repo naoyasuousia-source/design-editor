@@ -24,7 +24,7 @@ export const imageCropService = {
      */
     applyFinalCrop(params: {
         target: HTMLElement;
-        styles: any;
+        styles: Partial<CSSStyleDeclaration>;
         transform: string;
     }): HTMLElement {
         const { target, styles, transform } = params;

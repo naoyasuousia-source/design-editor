@@ -2,7 +2,8 @@ import { create } from 'zustand';
 import type { EditorState, PageSize } from '@/types/editor';
 import { PAGE_SIZES } from '@/types/editor';
 import { DEFAULT_PAGE_SIZE } from '@/constants/editor';
-import { parseMetaMessage, extractDesignContent, constructFullHTML, extractCustomCss } from '@/utils/htmlProcessing';
+import { parseMetaMessage, constructFullHTML, extractCustomCss } from '@/utils/htmlProcessing';
+import { htmlService } from '@/services/htmlService';
 
 interface EditorStore extends EditorState {
     setPageSize: (size: PageSize) => void;
@@ -143,7 +144,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     detectExternalUpdate: (newFullContent, snapshot) => {
         const { content } = get();
         const meta = parseMetaMessage(newFullContent);
-        const designContent = extractDesignContent(newFullContent);
+        const designContent = htmlService.extractDesignContent(newFullContent);
         const newCustomCss = extractCustomCss(newFullContent);
 
         set({

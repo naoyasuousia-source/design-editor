@@ -1,7 +1,8 @@
 import { useEditorStore } from '@/store/useEditorStore';
 import { fileSystemService } from '@/services/fileSystem';
 import { useCallback } from 'react';
-import { extractDesignContent, constructFullHTML, parseMetaMessage } from '@/utils/htmlProcessing';
+import { constructFullHTML, parseMetaMessage } from '@/utils/htmlProcessing';
+import { htmlService } from '@/services/htmlService';
 import { GET_INITIAL_TEMPLATE } from '@/utils/templates';
 import type { PageSize } from '@/types/editor';
 
@@ -119,7 +120,7 @@ export const useFileSystem = () => {
             setCurrentFileHandle(fileHandle);
 
             // エディタに読み込み
-            const designContent = extractDesignContent(htmlContent);
+            const designContent = htmlService.extractDesignContent(htmlContent);
             const meta = parseMetaMessage(htmlContent);
 
             setContent(designContent, true); // 履歴に積まない
