@@ -1,5 +1,3 @@
-import { htmlService } from './htmlService';
-
 /**
  * デザイン要素の操作（追加、削除、グループ化、スタイル適用）を担当するサービス層
  */

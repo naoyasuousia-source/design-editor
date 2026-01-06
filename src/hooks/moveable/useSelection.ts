@@ -1,7 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import type { RefObject } from 'react';
 import { useEditorStore } from '@/store/useEditorStore';
-import { elementService } from '@/services/elementService';
 
 export type SelectionMode = 'none' | 'group' | 'individual';
 

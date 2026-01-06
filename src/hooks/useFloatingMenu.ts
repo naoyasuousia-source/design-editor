@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useEditorStore } from '@/store/useEditorStore';
 import type { SelectionMode } from '@/hooks/moveable/useSelection';
-import { getTargetType, applyElementStyle } from '@/utils/domUtils';
+import { getTargetType } from '@/utils/domUtils';
 import type { TargetType } from '@/utils/domUtils';
 import { elementService } from '@/services/elementService';
 

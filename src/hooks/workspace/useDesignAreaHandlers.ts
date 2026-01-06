@@ -1,5 +1,4 @@
 import { useCallback } from 'react';
-import { useEditorStore } from '@/store/useEditorStore';
 import { designAreaService } from '@/services/designAreaService';
 import { htmlService } from '@/services/htmlService';
 

@@ -1,5 +1,5 @@
-import { type MetaMessage, PAGE_SIZES } from '@/types/editor';
-import { sanitizeStyles } from './sanitizer';
+import { type MetaMessage } from '@/types/editor';
+
 
 /**
  * HTML からメタメッセージ（JSON）を抽出する
