@@ -4,7 +4,11 @@ import { Check, X, Maximize2 } from 'lucide-react';
 import { useImageCrop } from '@/hooks/useImageCrop';
 import { cn } from '@/utils/cn';
 
-const ImageCropOverlay: React.FC = () => {
+interface ImageCropOverlayProps {
+    canvasRef: React.RefObject<HTMLDivElement | null>;
+}
+
+const ImageCropOverlay: React.FC<ImageCropOverlayProps> = ({ canvasRef }) => {
     const {
         isImageCropMode,
         target,
@@ -22,7 +26,7 @@ const ImageCropOverlay: React.FC = () => {
         cropBoxRef,
         previewImgRef,
         resizeHandleRef
-    } = useImageCrop();
+    } = useImageCrop(canvasRef);
 
     if (!isImageCropMode || !target) return null;
 

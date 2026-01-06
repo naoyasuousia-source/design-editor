@@ -140,7 +140,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked, isHome }) => {
                 />
             )}
 
-            <ImageCropOverlay />
+            <ImageCropOverlay canvasRef={canvasRef} />
             <ImageSaveWizard />
         </div>
     );

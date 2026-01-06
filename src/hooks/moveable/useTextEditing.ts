@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import type { RefObject, MouseEvent } from 'react';
-import { restoreRelativePaths } from '@/utils/html/cleaner';
+import { htmlService } from '@/services/htmlService';
 
 const keyDownListeners = new WeakMap<HTMLElement, (e: KeyboardEvent) => void>();
 
@@ -16,19 +16,9 @@ export const useTextEditing = (
     const isEditingRef = useRef<boolean>(false);
 
     const updateContentFromDOM = useCallback(() => {
-        const surface = canvasRef.current?.querySelector('.DesignSurface');
+        const surface = canvasRef.current?.querySelector('.DesignSurface') as HTMLElement;
         if (surface) {
-            const clone = surface.cloneNode(true) as HTMLElement;
-            clone.querySelectorAll('[contenteditable]').forEach(el => {
-                el.removeAttribute('contenteditable');
-            });
-            // エディタ専用の選択中クラスを除去して保存する
-            clone.querySelectorAll('.moveable-target-active').forEach(el => {
-                el.classList.remove('moveable-target-active');
-            });
-
-            // Blob URL を相対パスに戻す
-            const cleanHtml = restoreRelativePaths(clone.innerHTML, imageUrls);
+            const cleanHtml = htmlService.getCleanHTML(surface, imageUrls);
             setContent(cleanHtml);
         }
     }, [canvasRef, setContent, imageUrls]);

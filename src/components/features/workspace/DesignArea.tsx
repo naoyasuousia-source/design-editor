@@ -3,7 +3,7 @@ import { cn } from '@/utils/cn';
 import { useEditorStore } from '@/store/useEditorStore';
 import { useAssets } from '@/hooks/useAssets';
 import { replaceAssetPaths } from '@/utils/assetPath';
-import { designAreaService } from '@/services/designAreaService';
+import { useDesignAreaHandlers } from '@/hooks/workspace/useDesignAreaHandlers';
 
 interface DesignAreaProps {
     content: string;
@@ -77,6 +77,12 @@ const DesignArea: React.FC<DesignAreaProps> = ({
     const customCss = useEditorStore(state => state.customCss);
     const { imageUrls } = useAssets(); // useAssetsをDesignArea側で一括して呼び出す
 
+    const { onPaste, onDragOver, onDrop } = useDesignAreaHandlers({
+        canvasRef,
+        imageUrls,
+        updateContentFromDOM
+    });
+
     return (
         <div
             ref={canvasRef}
@@ -97,34 +103,9 @@ const DesignArea: React.FC<DesignAreaProps> = ({
                 onMouseDown={handleCanvasClick}
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
-                onPaste={(e) => {
-                    const target = e.target as HTMLElement;
-                    if (target.contentEditable === 'true') {
-                        e.preventDefault();
-                        const text = e.clipboardData.getData('text/plain');
-                        document.execCommand('insertText', false, text);
-                    }
-                }}
-                onDragOver={(e) => {
-                    e.preventDefault();
-                    e.dataTransfer.dropEffect = 'copy';
-                }}
-                onDrop={(e) => {
-                    e.preventDefault();
-                    const imagePath = e.dataTransfer.getData('text/plain');
-                    if (!imagePath || !imagePath.startsWith('./images/')) return;
-
-                    const fileName = imagePath.replace('./images/', '');
-                    const displayPath = imageUrls[fileName] || imagePath;
-
-                    const element = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement;
-                    if (!element) return;
-                    const target = element.closest('.DesignSurface > *, .DesignSurface *') as HTMLElement;
-                    if (!target) return;
-
-                    designAreaService.applyDroppedImage(target, displayPath);
-                    updateContentFromDOM();
-                }}
+                onPaste={onPaste}
+                onDragOver={onDragOver}
+                onDrop={onDrop}
             />
 
             {!content && (

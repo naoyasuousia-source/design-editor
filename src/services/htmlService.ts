@@ -61,5 +61,23 @@ export const htmlService = {
         if (surfaceMatch) return surfaceMatch[1].trim();
 
         return content;
+    },
+
+    /**
+     * デザインサーフェスのクリーンな HTML を生成する
+     */
+    getCleanHTML(surface: HTMLElement, imageUrls: Record<string, string>): string {
+        const { restoreRelativePaths } = require('@/utils/html/cleaner');
+        const clone = surface.cloneNode(true) as HTMLElement;
+        clone.querySelectorAll('[contenteditable]').forEach(el => {
+            el.removeAttribute('contenteditable');
+        });
+        // エディタ専用の選択中クラスを除去して保存する
+        clone.querySelectorAll('.moveable-target-active').forEach(el => {
+            el.classList.remove('moveable-target-active');
+        });
+
+        // Blob URL を相対パスに戻す
+        return restoreRelativePaths(clone.innerHTML, imageUrls);
     }
 };

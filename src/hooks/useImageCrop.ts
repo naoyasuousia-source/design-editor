@@ -7,7 +7,7 @@ import type { CropRect } from '@/types/image';
 /**
  * Bridge (Hooks) 層: UI と Logic/Action/State を仲介し、React のライフサイクルを管理する。
  */
-export const useImageCrop = () => {
+export const useImageCrop = (canvasRef: React.RefObject<HTMLDivElement | null>) => {
     const {
         isImageCropMode,
         croppingElementId,
@@ -59,13 +59,13 @@ export const useImageCrop = () => {
 
     // 初期設定とリセット
     useEffect(() => {
-        if (!isImageCropMode || !croppingElementId) {
+        if (!isImageCropMode || !croppingElementId || !canvasRef.current) {
             setTarget(null);
             setTargetImageUrl(null);
             return;
         }
 
-        const el = document.getElementById(croppingElementId);
+        const el = canvasRef.current.querySelector(`[id="${croppingElementId}"]`) as HTMLElement;
         if (!el) return;
 
         setTarget(el);
@@ -255,10 +255,10 @@ export const useImageCrop = () => {
         // 最終的な描画は React が setContent による再レンダリングとして実行する
         requestAnimationFrame(() => {
             window.dispatchEvent(new CustomEvent('canvas-update'));
-            const finalEl = document.getElementById(target.id);
+            const finalEl = canvasRef.current?.querySelector(`[id="${target.id}"]`) as HTMLElement;
             if (finalEl) setAutoSelectId(finalEl.id);
         });
-    }, [target, naturalSize, fullSize, targetFileName, targetImageUrl, initialOffsets, setImageCropMode, setAutoSelectId]);
+    }, [target, naturalSize, fullSize, targetFileName, targetImageUrl, initialOffsets, setImageCropMode, setAutoSelectId, canvasRef]);
 
     return {
         isImageCropMode,
