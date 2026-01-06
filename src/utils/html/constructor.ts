@@ -97,6 +97,7 @@ export const constructFullHTML = (content: string, _customCss: string, meta: Met
     - **Elements**: テキストボックス、画像、図形の3種類のみ使用。
     - **IDs**: すべての要素に一意のID（id="el-..."）を付与し、独立した要素として扱うこと。
     - **[PROHIBITION] No Nesting**: **親子構造（要素の中に別の要素を入れること）は一切禁止**です。すべての要素は必ず .DesignSurface の「直下」にフラットに配置してください。
+    - **[RULE] Rotation**: **回転は transform: rotate(Ndeg) のみ使用せよ。** 歪み(skew)や他の行列変換は使用しないこと。
     - **Group IDs**: 関連する要素（例：背景、ロゴ、見出しなど）には、共通の data-group-id="group-..." を付与してください。
     - **[RULE] Group Management**: 
         - **グループ要素は必ずHTML上で「連続して（ひとかたまりで）」記述してください。** 間に別グループや単独要素を挟まないこと。

@@ -29,30 +29,16 @@
 
 <requirement>
 <content>画像メニューで、「replace image」を完全に廃止する。デッドコードは削除する。</content>
-<current-situation></current-situation>
-<remarks></remarks>
+<current-situation>FloatingMenuに「Replace Image」ボタンが存在し、ImageReplacePanelが実装されている。</current-situation>
+<remarks>不要なボタンを削除し、関連するHooksやコンポーネント、定数などをクリーンアップする。</remarks>
 <permission-to-move>NG</permission-to-move>
 </requirement>
 
 <requirement>
 <content>AIへのメッセージに、「回転はtransform: rotate(Ndeg) のみ使用せよ。」という指示を追加する。</content>
-<current-situation></current-situation>
-<remarks></remarks>
+<current-situation>現在のシステムプロンプトには具体的な回転方法の制約が明文化されていない。</current-situation>
+<remarks>AI生成時に一貫した回転方法を適用させるため、`constructor.ts` 等の指示セクションを更新する。</remarks>
 <permission-to-move>NG</permission-to-move>
-</requirement>
-
-<requirement>
-<content>回転メニューは、要素メニューに近接して表示する仕様に変更せよ。</content>
-<current-situation>現在、回転ハンドル（要素の外部）のすぐ下に表示されている。</current-situation>
-<remarks>要素メニュー（FloatingMenu）の横または直下に配置することで、操作の一貫性を高める。</remarks>
-<permission-to-move>OK</permission-to-move>
-</requirement>
-
-<requirement>
-<content>回転メニューはメニューが適用されても自動で閉じず、連続操作可能にせよ。</content>
-<current-situation>90°回転、リセットのいずれでも一回クリックするとメニューが閉じてしまい連続クリック不可。おそらく `updateContentFromDOM` による全体再レンダリングで `IndividualMoveable` 等が再マウントされ、ローカルステート（`rotationPickerPos`）が失われている。</current-situation>
-<remarks>再レンダリング後も選択状態が維持される仕組み（`autoSelectId` 等）はあるが、メニューの表示位置ステートを上位に持たせるか、再マウントを防ぐ必要がある。</remarks>
-<permission-to-move>OK</permission-to-move>
 </requirement>
 
 
@@ -71,18 +57,27 @@
     4. ビルド（`npm run build`）の正常終了を確認。
   変更日時: 2026-01-07 00:50
 
+- 目的: Replace Image機能の廃止とデッドコードクリーンアップ、およびAI指示の更新
+  変更内容:
+    1. `FloatingMenu.tsx`, `useFloatingMenu.ts` から Replace Image 関連のステート、ボタン、ロジックを削除。
+    2. `ImageReplacePanel.tsx` を物理削除。
+    3. `constructor.ts` のプロンプトに「回転は transform: rotate(Ndeg) のみ使用せよ」という制約を追加。
+    4. ビルドの正常終了を確認。
+  変更日時: 2026-01-07 01:25
+
 ## 3. 分析中に気づいた重要ポイント（試してだめだったこと、仮設、制約条件等...）
 
-- **解決済み（機能不全問題）**: 原因はマウスイベントの伝播（Bubbling）によってキャンバス側の選択解除が先に動いていたこと。`stopPropagation` で解決。
-- **解決済み（機能不全問題）**: 原因はマウスイベントの伝播（Bubbling）によってキャンバス側の選択解除が先に動いていたこと。`stopPropagation` で解決。
-- **解決済み（180°回転時の重なり）**: 要素の回転角に応じて、要素メニューの位置を上下に動的に切り替えるロジックを実装。
-- **解決済み（連続操作不可）**: `rotationPickerPos` (座標) を `isRotationPickerOpen` (フラグ) に変更し、`useSelection` にステートを引き上げた。再レンダリング後もフラグが維持されるため、メニューが閉じなくなった。
 - **解決済み（表示位置の変更）**: `RotationPicker` のレンダリングを `FloatingMenu` 内部（右横）に移動した。これにより座標計算が不要になり、常にメインメニューに近接して表示されるようになった。
+- **解決済み（Replace Image廃止）**: 要素メニューから不必要な「Replace Image」ボタンを削除。デッドコード（`ImageReplacePanel.tsx` 等）も検知し即座に削除。AIによる生成効率を上げるためのクリーンアップを完了。
+- **解決済み（AI指示更新）**: AIが `transform: matrix()` 等の複雑なCSSを出力しないよう、`rotate` のみの使用を明示的に指示し、編集しやすさを確保。
 
 ## 4. 解決済み要件とその解決方法
 
-- **要件**: 回転メニューの90°回転、リセットが全く機能しないので機能するようにする。
-- **解決方法**: `RotationPicker` に `onMouseDown` と `onMouseUp` の `e.stopPropagation()` を追加し、背後のキャンバスによる選択解除ロジックが発火するのを阻止した。
+- **要件**: 回転メニューは、要素メニューに近接して表示する仕様に変更せよ。
+- **解決方法**: `FloatingMenu.tsx` 内の `isRotationPickerOpen` フラグに応じたレンダリングを実装し、CSS（`translate-x-full`）を使用してメインメニューの右側に固定配置した。
+
+- **要件**: 回転メニューはメニューが適用されても自動で閉じず、連続操作可能にせよ。
+- **解決方法**: ローカルステートだった表示制御を `useSelection` に移動。これにより `updateContentFromDOM` による全体再描画時もステートが保持され、ボタンクリックでメニューが消えないようになった。
 
 - **要件**: 180°回転時、回転ハンドルが要素メニューに隠れないようにする。
 - **解決方法**: `FloatingMenu.tsx` に `isUpsideDown` 判定（135-225deg）を追加し、逆さまの時はメニュー位置を要素の下側（`rect.bottom`）に移動するようにした。

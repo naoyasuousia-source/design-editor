@@ -2,20 +2,17 @@ import React, { useRef } from 'react';
 import {
     Circle,
     Trash2,
-    ImagePlus,
     Square,
     Scissors,
     Copy,
     Layers,
     Eraser
 } from 'lucide-react';
-import { useAssets } from '@/hooks/useAssets';
 import { cn } from '@/utils/cn';
 import { useEditorStore } from '@/store/useEditorStore';
 import { useFloatingMenu } from '@/hooks/useFloatingMenu';
 import ColorPalette from '@/components/features/floating-menu/ColorPalette';
 import RadiusPicker from '@/components/features/floating-menu/RadiusPicker';
-import ImageReplacePanel from '@/components/features/floating-menu/ImageReplacePanel';
 import TextSettings from '@/components/features/floating-menu/TextSettings';
 import ParagraphSettings from '@/components/features/floating-menu/ParagraphSettings';
 import EffectSettings from '@/components/features/floating-menu/EffectSettings';
@@ -42,12 +39,10 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({
     targets, onUpdate, selectionMode, activeSubTarget, canvasRef, onClearSelection,
     isRotationPickerOpen, setRotationPickerOpen
 }) => {
-    const { imageFiles, imageUrls } = useAssets();
     const menuRef = useRef<HTMLDivElement>(null);
 
     const {
         rect, target, isGrouped, canGroup, groupId,
-        showImagePicker, setShowImagePicker,
         showColorPalette, setShowColorPalette,
         showBorderPalette, setShowBorderPalette,
         showBgPalette, setShowBgPalette,
@@ -65,7 +60,6 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({
     const isUpsideDown = React.useMemo(() => {
         if (!target) return false;
         const rotation = getElementRotation(target);
-        // 135度〜225度の間（逆さまに近い状態）なら下側に表示を逃がす
         const normalized = ((rotation % 360) + 360) % 360;
         return normalized > 135 && normalized < 225;
     }, [target, targets]);
@@ -120,7 +114,6 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({
                 />
             ) : (
                 <>
-                    {/* Floating Panels */}
                     {showColorPalette && <ColorPalette type="color" onPick={() => openEyeDropper('color')} onApply={(t, v) => applyStyle(t as keyof CSSStyleDeclaration, v)} />}
                     {showBgPalette && <ColorPalette type="backgroundColor" onPick={() => openEyeDropper('backgroundColor')} onApply={(t, v) => applyStyle(t as keyof CSSStyleDeclaration, v)} />}
                     {showBorderPalette && <ColorPalette type="borderColor" onPick={() => openEyeDropper('borderColor')} onApply={(t, v) => applyStyle(t as keyof CSSStyleDeclaration, v)} />}
@@ -155,9 +148,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({
                         />
                     )}
                     {showRadiusPicker && <RadiusPicker target={displayTarget} localRadius={localRadius} setLocalRadius={setLocalRadius} onApply={applyStyle} onUpdate={onUpdate} />}
-                    {showImagePicker && isImage && <ImageReplacePanel imageFiles={imageFiles} imageUrls={imageUrls} target={displayTarget} onClose={() => setShowImagePicker(false)} onUpdate={onUpdate} />}
 
-                    {/* Main Toolbar */}
                     <div className="flex items-center gap-1 p-1">
                         {isText && (
                             <TextSettings
@@ -255,13 +246,6 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({
                                     title="Remove Background"
                                 >
                                     <Eraser size={14} />
-                                </button>
-                                <button
-                                    className={cn("p-1.5 rounded transition-all", showImagePicker ? "bg-blue-500 text-white" : "text-gray-400 hover:bg-white/5 hover:text-white")}
-                                    onClick={() => { const n = !showImagePicker; closeAllPanels(); setShowImagePicker(n); }}
-                                    title="Replace Image"
-                                >
-                                    <ImagePlus size={14} />
                                 </button>
                             </div>
                         )}

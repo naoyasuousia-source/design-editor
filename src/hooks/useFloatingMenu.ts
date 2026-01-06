@@ -30,7 +30,6 @@ export const useFloatingMenu = (
     const { refreshAssets } = useAssets();
     const projectDirectoryHandle = useEditorStore(state => state.projectDirectoryHandle);
     const [rect, setRect] = useState<DOMRect | null>(null);
-    const [showImagePicker, setShowImagePicker] = useState(false);
     const [showCropPicker, setShowCropPicker] = useState(false);
     const [showColorPalette, setShowColorPalette] = useState(false);
     const [showBorderPalette, setShowBorderPalette] = useState(false);
@@ -172,7 +171,6 @@ export const useFloatingMenu = (
         setShowBgPalette(false);
         setShowRadiusPicker(false);
         setShowCropPicker(false);
-        setShowImagePicker(false);
         setShowSizeDropdown(false);
         setShowParagraphSettings(false);
         setShowEffectSettings(false);
@@ -294,7 +292,6 @@ export const useFloatingMenu = (
         isGrouped,
         canGroup,
         groupId,
-        showImagePicker, setShowImagePicker,
         showCropPicker, setShowCropPicker,
         showColorPalette, setShowColorPalette,
         showBorderPalette, setShowBorderPalette,
