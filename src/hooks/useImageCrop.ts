@@ -102,8 +102,22 @@ export const useImageCrop = () => {
             setTargetImageUrl(info.url);
 
             const { imageUrls } = useEditorStore.getState();
-            const fileName = Object.entries(imageUrls).find(([_, u]) => u === info.url)?.[0];
-            setTargetFileName(fileName || null);
+
+            // 属性値から直にファイル名を特定する試行
+            const getFileNameFromPath = (path: string) => {
+                const match = path.match(/images\/([^'()"\s?#]+)/);
+                return match ? decodeURIComponent(match[1]) : null;
+            };
+
+            const attrPath = el.getAttribute('src') || window.getComputedStyle(el).backgroundImage || '';
+            let detectedFileName = getFileNameFromPath(attrPath);
+
+            // 見つからなければ URL マッピングから探す
+            if (!detectedFileName) {
+                detectedFileName = Object.entries(imageUrls).find(([_, u]) => u === info.url)?.[0] || null;
+            }
+
+            setTargetFileName(detectedFileName);
         });
 
         setCopiedStyle({ borderRadius: style.borderRadius });
@@ -176,7 +190,13 @@ export const useImageCrop = () => {
 
         // ストア内の正規な Blob URL を特定
         const { imageUrls, setAutoSelectId } = useEditorStore.getState();
-        const fileName = targetFileName || Object.entries(imageUrls).find(([_, u]) => u === targetImageUrl)?.[0];
+
+        let fileName = targetFileName;
+        // 適用直前にも最新の imageUrls を使って再度ファイル名の特定を試みる (挿入直後のアセットに対応)
+        if (!fileName) {
+            fileName = Object.entries(imageUrls).find(([_, u]) => u === targetImageUrl)?.[0] || null;
+        }
+
         const officialBlobUrl = fileName ? imageUrls[fileName] : targetImageUrl;
         const finalRect = currentCropRect.current;
 

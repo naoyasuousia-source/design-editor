@@ -46,12 +46,13 @@ export const DesignContent = React.memo(({
             return blobUrl ? `src="${blobUrl}"` : match;
         });
         // 2. background-image: url(...) の置換 (Reactによる再描画を確実に成功させる)
-        // ブラウザによる HTML エスケープ (&quot; 等) にも対応
-        text = text.replace(/url\((?:'|"|&quot;|&#39;)?((?:\.\/)?images\/[^'"& \)]+?)(?:'|"|&quot;|&#39;)?\)/gi, (match, fullPath) => {
+        // 引用符の種類を揃えてマッチさせ、スペースを含むパスも確実にキャプチャする
+        text = text.replace(/url\((['"]|&quot;|&#39;)?((?:\.\/)?images\/.+?)\1?\)/gi, (match, quote, fullPath) => {
             try {
-                // 特殊なエンティティやエンコードをデコードしてファイル名を特定
-                const decodedPath = decodeURIComponent(fullPath.replace(/&quot;/g, '"').replace(/&#39;/g, "'"));
-                const fileName = decodedPath.replace(/^(\.\/)?images\//, '').trim();
+                // HTMLエンティティの正規化とデコード
+                const cleanPath = fullPath.replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+                const decodedPath = decodeURIComponent(cleanPath);
+                const fileName = decodedPath.replace(/^(\.\/)?images\//, '').split(/[?#]/)[0].trim();
                 const blobUrl = imageUrls[fileName];
                 return blobUrl ? `url('${blobUrl}')` : match;
             } catch (e) {
