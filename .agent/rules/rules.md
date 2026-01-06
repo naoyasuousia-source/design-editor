@@ -15,6 +15,7 @@ trigger: always_on
 
 - **Dead Code Cleanup:** 修正・リファクタリングの過程で未使用となった変数、インポート、関数、ファイルは、検知した瞬間に即座に削除せよ。
 - **Strict Logic-UI Separation:** 各レイヤー（UI, Bridge, Action, Logic, State）を厳密に分離せよ。UIでの複雑なロジック記述は厳禁。
+- **Forbidden Non-Ref DOM Manipulation:**  `ref` を介さない破壊的なDOM操作は厳禁。
 - **Styling:** 原則 **Tailwind CSS のみ**を使用せよ。インラインスタイル（`style` 属性）は動的に計算される数値を除いて禁止。
 - **300-Line Limit:** 1ファイル300行以内を厳守せよ。
 - **No Placeholders:** `// TODO` や `// 実装予定` 等を残さず、全ての関数を完全に実装せよ。
@@ -35,7 +36,7 @@ src/
 ├── constants/    # Data: 業務的な定数（固定文言、選択肢、ヘルプテキスト）の集約
 ├── hooks/        # Bridge: UI と Logic/Services を仲介し React ステートを管理する層
 ├── lib/          # Config: 外部ライブラリの初期化、インスタンス作成、固有設定
-├── services/     # Action: React に依存しない外部通信（API/SDK）および、命令的な DOM 操作（副作用）の実装
+├── services/     # Action: React に依存しない外部通信（API/SDK）および、refを介した一時的なDOM 操作の実装
 ├── store/        # State: Zustand 等を用いたアプリ全体の共有状態管理
 ├── styles/       # Style: Tailwind 設定やグローバルな CSS 定義
 ├── types/        # Schema: TypeScript 型定義および Zod によるバリデーションスキーマ
@@ -62,25 +63,33 @@ src/
 1. **UI Detection**: Component がユーザーイベント（Click, Drag, Input 等）を検知し、Bridge 層 (Hooks) の関数へ処理を委譲する。
 2. **Logic & Action (React 管理外での処理)**:
     - **Calculation (utils)**: Hooks は `utils/` を呼び出し、純粋関数によるデータ加工、数学的計算、座標変換を行う。
-    - **Side-Effects (services)**: 必要に応じて Hooks は `services/` を呼び出し、API 通信、SDK 操作、または `ref` を介した命令的な DOM 操作を実行する。
+    - **External Actions (services)**: 必要に応じて Hooks は `services/` を呼び出し、API 通信、SDK 操作、または `ref` を介したreact外での一時的な DOM 操作を実行する。
+
 3. **React Synchronization**: 
     - 処理完了後、Hooks が最終結果を受け取り、`store` (Zustand) や Local State を更新する。
     - State 更新による再レンダリングを通じて、React の宣言的 UI と実 DOM の状態を最終的に同期させる。
 
-**重要ルール**:
-- **Separation of Concerns**: DOM 操作（副作用）を伴う処理は必ず `services/` に集約し、`utils/` は常にテスト可能な純粋関数（入出力のみ）として保つこと。
-- **Hooks-Triggered Execution Only**: 外部ライブラリを含めすべての機能は、Bridge層 (Hooks) による明示的な呼び出し（イベントハンドラや useEffect 等）を経由せずに、自律的に DOM や State を操作することを厳禁とする。
-
-#### Temporary UI Elements
-- 高頻度で更新される一時的な描画（ドラッグ中のプレビュー等）は、`useRef` を介して React の外側で制御せよ。
+#### Temporary UI Elements (services)
+- 高頻度で更新される一時的な描画（ドラッグ中のプレビュー等）は、`services/`によって、必ず`useRef` を介して React の外側で制御せよ。
     - **Existing DOM Manipulation**: 既存の `ref.current`（画像等）に対し、直接 `style.transform` や `style.opacity` を書き換えて一時的な視覚効果を与える。
-    - **Dynamic Element Generation**: `document.createElement` 等で生成した DOM を `appendChild` せよ。複数要素を扱う場合は `DocumentFragment` を活用して一括反映すること。
+    - **Dynamic Element Generation**: `document.createElement` 等で生成した DOM を、**必ず Hooks 層から渡された `ref.current`（親要素のコンテナ等）内にのみ `appendChild` せよ。** `document.body` 等への直接追加は厳禁とする。複数要素を扱う場合は `DocumentFragment` を活用して一括反映すること。
     - **Final Result Sync**: 操作中は原則 React State を更新せず、**操作終了時の最終確定データのみを Hooks を通じて Store や Local State へ同期せよ。**
         - **例外**: 他コンポーネントとのリアルタイムな連動が必要な場合に限り、Bridge層で適切に throttle/debounce 処理を行った上での操作中同期を許可する。
     - **Cleanup**: 同期完了後、Temporary UI Elements は即座に `remove`（破棄）し、React の宣言的 UI と実 DOM の整合性を完全に確保せよ。
 
+**重要ルール**:
+- **DOM Access Policy**:
+    - **Forbidden Non-Ref DOM Manipulation**: 
+        - React外部での全ての DOM 操作 は、必ず hooks 層から渡された `ref.current` を対象に実行せよ。
+        -  `ref`を介した命令的なDOM操作はドラッグ中のプレビュー等の「一時的な視覚効果」に限定し、操作終了後は直ちに最終データを hooks を通じて State へ同期せよ。DOM の最終状態は、必ず React の宣言的レンダリングによって確定・収束させなければならない。
+    - **Read (Property Access)**: 
+        - `offsetWidth` や `getBoundingClientRect()` 等の読み取りも「環境依存の副作用」と定義する。
+        - これらを `utils/`（純粋関数）内で実行することを厳禁とし、必ず `hooks/` または `services/` で値を取得した上で、計算ロジックのみを `utils/` へ委譲せよ。
+- **Separation of Concerns**: 副作用を伴う処理は必ず `services/` に集約し、`utils/` は常にテスト可能な純粋関数（入出力のみ）として保つこと。
+- **Hooks-Triggered Execution Only**: 外部ライブラリを含めすべての機能は、Bridge層 (Hooks) による明示的な呼び出し（イベントハンドラや useEffect 等）を経由せずに、自律的に DOM や State を操作することを厳禁とする。
+
 #### State Management
-- **Minimal State**: 基本は Local State で完結させ、共有が必要な場合のみ `store/` (Zustand 等) へ昇格させよ。
+- **Minimal State**: 基本は Local State で完結させ、バケツリレーが3階層以上になる場合、または全く別のツリーにあるコンポーネント間で同期が必要な場合のみ`Store`（zustand等）を使用せよ。
 - **Derived Data**: `useEffect` によるステート同期を厳禁とする。 派生データはレンダリング中に計算するか、`useMemo` を使用せよ。
 - **Computational Memoization**: コストの高い加工（フィルタリング、ソート等）は必ず `useMemo` を使い、依存配列を厳密に管理せよ。
 - **useEffect の限定利用**: 外部ライブラリの同期、Socket、DOM 操作の微調整にのみ使用せよ。
@@ -102,7 +111,7 @@ src/
             3. **React 依存なし 且つ 副作用（API/SDK/生DOM操作）あり**: `services/` へ抽出し、`hooks/` を経由して利用せよ。
 
 2. **Logic (utils)**
-    - **役割**: アプリ内の純粋関数の集約。外部ライブラリ、Reactライブラリのロジック内の、React に依存しない計算・整形などの純粋関数を記述せよ。
+    - **役割**: アプリ内の純粋関数の集約。外部ライブラリ、Reactライブラリのロジック内の、ReactおよびDOMに依存しない計算・整形などの純粋関数を記述せよ。
     - **注意**: DOM操作等の副作用は絶対に行わないこと。
 
 3. **External Actions (services)**
@@ -129,7 +138,7 @@ src/
 ### Tailwind CSS
 - **Tailwind Exclusive**: 原則として Tailwind クラスのみを使用せよ。
 - **index.css rule**: 基本は `@tailwind` 3行のみ。例外として、外部ライブラリ（ProseMirror 等）の内部クラス上書きや、Tailwind で記述困難な複雑な擬似要素（`::before` 等）のみ許可する。
-- **Dynamic Styles**: `style` 属性の使用は、JS で動的に計算される数値（座標、進捗率、色変化等）に限定せよ。それ以外の静的なスタイル、またはクラスで容易に定義可能なスタイルでの使用は禁止。
+- **Dynamic Styles**: `style` 属性の使用は、JS で動的に計算される動的プロパティ（座標、進捗率、URL を含む `backgroundImage`等）に限定せよ。それ以外の静的なスタイル、またはクラスで容易に定義可能なスタイルでの使用は禁止。
 
 ### UI Components
 - **Shadcn/ui**: 第一選択の UI コンポーネント群とする。`src/components/ui/` は直接編集してプロジェクトに最適化して良い。
