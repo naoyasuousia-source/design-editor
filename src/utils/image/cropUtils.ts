@@ -167,17 +167,31 @@ export const cropUtils = {
      */
     generateBackgroundStyles(params: {
         cropRect: CropRect;
-        naturalSize: Size;
         fullSize: Size;
         url: string;
     }) {
-        const { cropRect, naturalSize, fullSize, url } = params;
-        const scale = naturalSize.width > 0 ? fullSize.width / naturalSize.width : 1;
+        const { cropRect, fullSize, url } = params;
+
+        // 1. Background Size (percentage)
+        // [Image Size] / [Element Size] * 100%
+        const bgSizeX = cropRect.width > 0 ? (fullSize.width / cropRect.width) * 100 : 100;
+        const bgSizeY = cropRect.height > 0 ? (fullSize.height / cropRect.height) * 100 : 100;
+
+        // 2. Background Position (percentage)
+        // CSS position % = (offset) / (container_size - image_size) * 100%
+        // We want image offset to be -(cropRect.x), meaning:
+        // -cropRect.x = (cropRect.width - fullSize.width) * X%
+        // X% = cropRect.x / (fullSize.width - cropRect.width)
+        const diffX = fullSize.width - cropRect.width;
+        const diffY = fullSize.height - cropRect.height;
+
+        const posX = diffX > 0 ? (cropRect.x / diffX) * 100 : 0;
+        const posY = diffY > 0 ? (cropRect.y / diffY) * 100 : 0;
 
         return {
             backgroundImage: `url('${url}')`,
-            backgroundSize: `${(naturalSize.width || 0) * scale}px ${(naturalSize.height || 0) * scale}px`,
-            backgroundPosition: `${-(cropRect.x || 0)}px ${-(cropRect.y || 0)}px`,
+            backgroundSize: `${bgSizeX}% ${bgSizeY}%`,
+            backgroundPosition: `${posX}% ${posY}%`,
             backgroundRepeat: 'no-repeat',
             width: `${cropRect.width || 0}px`,
             height: `${cropRect.height || 0}px`

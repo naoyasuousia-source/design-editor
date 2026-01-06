@@ -203,7 +203,6 @@ export const useImageCrop = (canvasRef: React.RefObject<HTMLDivElement | null>) 
         // 1. Logic層で最終スタイルと transform を計算
         const styles = cropUtils.generateBackgroundStyles({
             cropRect: finalRect,
-            naturalSize,
             fullSize,
             url: officialBlobUrl || ''
         });
