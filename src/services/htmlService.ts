@@ -4,6 +4,7 @@
 import { PAGE_SIZES } from '@/types/editor';
 import { parseMetaMessage } from '@/utils/html/parser';
 import { sanitizeStyles } from '@/utils/html/sanitizer';
+import { processGroups } from '@/utils/html/groupProcessor';
 import { restoreRelativePaths } from '@/utils/html/cleaner';
 
 export const htmlService = {
@@ -51,6 +52,9 @@ export const htmlService = {
                         element.setAttribute('style', sanitizeStyles(style, config.width, config.height));
                     }
                 });
+
+                // グループ化ロジックと z-index 清理を適用
+                processGroups(target);
 
                 if (surface) return surface.innerHTML.trim();
             }

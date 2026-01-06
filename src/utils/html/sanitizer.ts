@@ -44,5 +44,8 @@ export const sanitizeStyles = (styleStr: string, canvasWidth: number, canvasHeig
     if (width !== null) styles['width'] = `${width}px`;
     if (height !== null) styles['height'] = `${height}px`;
 
+    // z-index を削除（レイヤー順序は DOM 順序で管理するため）
+    delete styles['z-index'];
+
     return Object.entries(styles).map(([k, v]) => `${k}: ${v}`).join('; ');
 };
