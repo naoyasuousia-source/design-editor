@@ -51,8 +51,31 @@ export const elementService = {
      */
     groupElements(targets: HTMLElement[]): string | null {
         if (targets.length === 0) return null;
+        const parent = targets[0].parentElement;
+        if (!parent) return null;
+
         const id = `group-${Math.random().toString(36).substring(2, 11)}`;
-        targets.forEach(el => el.setAttribute('data-group-id', id));
+
+        // 現在の兄弟要素の並び順を取得
+        const siblings = Array.from(parent.children) as HTMLElement[];
+
+        // ターゲット要素を現在のDOM順序でソート
+        const sortedTargets = [...targets].sort((a, b) => siblings.indexOf(a) - siblings.indexOf(b));
+
+        // グループ内で最も背面（DOM上で最後）にある要素を基準にする
+        const lastTarget = sortedTargets[sortedTargets.length - 1];
+        const insertReference = lastTarget.nextSibling;
+
+        sortedTargets.forEach(el => {
+            el.setAttribute('data-group-id', id);
+            // 基準要素の直前に順番に挿入していくことで、ひとまりにしてDOMの同じ位置に集める
+            if (insertReference) {
+                parent.insertBefore(el, insertReference);
+            } else {
+                parent.appendChild(el);
+            }
+        });
+
         return id;
     },
 

@@ -83,6 +83,7 @@ export const constructFullHTML = (content: string, _customCss: string, meta: Met
     - **Boundaries**: すべての要素を必ずキャンバスサイズ（セクション0参照）内に収めること。
     - **No CSS Block**: <style> タグ内でのスタイル定義を禁止します。
     - **Inline Styles Only**: すべての装飾、レイアウト、文字装飾は要素の style 属性（インラインスタイル）で行ってください。
+    - **[CRITICAL] No z-index**: **z-index の使用は一切禁止**です。重なり順は HTML の記述順序（後ろに書いたものが手前）のみで制御してください。
     - **Static Only**: HTMLとCSSのみを使用し、静的なデザインを生成すること。JSは不要。
 
     2. ALLOWED EDIT AREAS (STRICT)
@@ -97,6 +98,9 @@ export const constructFullHTML = (content: string, _customCss: string, meta: Met
     - **IDs**: すべての要素に一意のID（id="el-..."）を付与し、独立した要素として扱うこと。
     - **[PROHIBITION] No Nesting**: **親子構造（要素の中に別の要素を入れること）は一切禁止**です。すべての要素は必ず .DesignSurface の「直下」にフラットに配置してください。
     - **Group IDs**: 関連する要素（例：背景、ロゴ、見出しなど）には、共通の data-group-id="group-..." を付与してください。
+    - **[RULE] Group Management**: 
+        - **グループ要素は必ずHTML上で「連続して（ひとかたまりで）」記述してください。** 間に別グループや単独要素を挟まないこと。
+        - **単独の要素（1つだけの要素）には絶対に data-group-id を付けないでください。** グループは必ず2つ以上の要素で構成される場合のみ使用します。
     - **Group ID Management**: 既存の要素に付与されている data-group-id は「絶対に」変更しないでください。新要素追加時は他のグループと被らない新しいIDを生成してください。
     - **No Flex/Grid**: 全要素を position: absolute で配置してください。FlexboxやGridによるレイアウトは使用せず、中央揃え等は left と width または text-align で実現してください。
     - **Appending**: 新しく要素を追加する場合は、必ず \`[DESIGN_START]\` 内の既存要素の「一番最後」に追記してください。
