@@ -257,11 +257,14 @@ const GroupMoveable: React.FC<GroupMoveableProps> = ({
                     <RotationPicker
                         targets={[groupOverlay!, ...targets]}
                         position={rotationPickerPos}
-                        onUpdate={() => {
+                        onUpdate={(newPos?: { x: number; y: number }) => {
                             updateContentFromDOM();
                             // リセット時などはオーバーレイの回転も戻す必要があるため、手動でリセット
                             if (groupOverlay) groupOverlay.style.transform = 'rotate(0deg)';
                             updateOverlayBounds();
+                            if (newPos) {
+                                setRotationPickerPos(newPos);
+                            }
                         }}
                         onClose={() => setRotationPickerPos(null)}
                     />

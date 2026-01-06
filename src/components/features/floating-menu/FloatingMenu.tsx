@@ -24,6 +24,7 @@ import GroupActions from '@/components/features/floating-menu/GroupActions';
 import type { SelectionMode } from '@/hooks/moveable/useSelection';
 import { getTargetType } from '@/utils/domUtils';
 import type { TargetType } from '@/utils/domUtils';
+import { getElementRotation } from '@/utils/rotationUtils';
 
 interface FloatingMenuProps {
     targets: HTMLElement[];
@@ -55,6 +56,14 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectio
         applyStyle, setImageCropMode, handleGroup, handleUngroup, handleDelete, handleDuplicate, handleRemoveBackground, toggleBold, openEyeDropper, closeAllPanels
     } = useFloatingMenu(targets, onUpdate, canvasRef, onClearSelection, selectionMode, activeSubTarget);
 
+    const isUpsideDown = React.useMemo(() => {
+        if (!target) return false;
+        const rotation = getElementRotation(target);
+        // 135度〜225度の間（逆さまに近い状態）なら下側に表示を逃がす
+        const normalized = ((rotation % 360) + 360) % 360;
+        return normalized > 135 && normalized < 225;
+    }, [target, targets]);
+
     if (!rect || !target) return null;
 
     const displayTarget = target;
@@ -72,7 +81,6 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectio
     const isImage = currentType === 'image';
     const isShape = currentType === 'shape';
 
-
     return (
         <div
             ref={menuRef}
@@ -81,7 +89,8 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectio
                 "animate-in fade-in zoom-in-95 duration-200 min-w-[200px] translate-x-[-50%]"
             )}
             style={{
-                bottom: `${window.innerHeight - rect.top + 8}px`,
+                top: isUpsideDown ? `${rect.bottom + 8}px` : undefined,
+                bottom: !isUpsideDown ? `${window.innerHeight - rect.top + 8}px` : undefined,
                 left: `${rect.left + rect.width / 2}px`,
             }}
         >

@@ -1,41 +1,44 @@
 import React from 'react';
 import { RotateCcw, RefreshCcw } from 'lucide-react';
-import { rotationService } from '@/services/rotationService';
+import { rotationService } from '../../../services/rotationService';
+import { rotatePoint } from '../../../utils/rotationUtils';
 
 interface RotationPickerProps {
     targets: HTMLElement[];
     position: { x: number; y: number };
-    onUpdate: () => void;
+    onUpdate: (newPos?: { x: number; y: number }) => void;
     onClose: () => void;
 }
 
-const RotationPicker: React.FC<RotationPickerProps> = ({ targets, position, onUpdate, onClose }) => {
+export default function RotationPicker({ targets, position, onUpdate }: RotationPickerProps) {
     const handleRotate90 = (e: React.MouseEvent) => {
         e.stopPropagation();
 
-        // グループかどうかの判定（targets[0]が選択用オーバーレイの場合は特殊処理）
         const firstTarget = targets[0];
+        if (!firstTarget) return;
+
         const isGroup = targets.length > 1 && firstTarget.classList.contains('group-selection-overlay');
 
         if (isGroup) {
-            const [, ...members] = targets;
-            console.log('[RotationPicker] Rotating group 90deg', members.length);
+            const members = targets.slice(1);
             rotationService.rotateGroup90Left(firstTarget, members);
         } else {
-            console.log('[RotationPicker] Rotating elements 90deg', targets.length);
             rotationService.rotate90Left(targets);
         }
-        console.log('[RotationPicker] Calling onUpdate');
-        onUpdate();
+
+        const rect = firstTarget.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+
+        const newPos = rotatePoint(position.x, position.y, centerX, centerY, -90);
+
+        onUpdate(newPos);
     };
 
     const handleReset = (e: React.MouseEvent) => {
         e.stopPropagation();
-        console.log('[RotationPicker] Resetting rotation', targets.length);
         rotationService.resetRotation(targets);
-        console.log('[RotationPicker] Calling onUpdate');
         onUpdate();
-        onClose();
     };
 
     return (
@@ -43,7 +46,7 @@ const RotationPicker: React.FC<RotationPickerProps> = ({ targets, position, onUp
             className="fixed z-[10001] bg-gray-900/95 border border-white/20 rounded-full shadow-2xl p-1 flex items-center gap-1 backdrop-blur-md animate-in zoom-in-95 duration-200"
             style={{
                 left: position.x,
-                top: position.y + 30, // ハンドルの下に表示
+                top: position.y + 30,
                 transform: 'translateX(-50%)'
             }}
             onClick={(e) => e.stopPropagation()}
@@ -73,6 +76,4 @@ const RotationPicker: React.FC<RotationPickerProps> = ({ targets, position, onUp
             </button>
         </div>
     );
-};
-
-export default RotationPicker;
+}

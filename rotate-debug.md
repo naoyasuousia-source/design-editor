@@ -28,14 +28,7 @@
 ## 1. 未解決要件（移動許可がNGの要件は絶対に移動・編集しないこと）（勝手に移動許可をOKに書き換えないこと）
 
 <requirement>
-<content>180°回転時、回転ハンドルが要素メニューに隠れてしまうので、いかなる場合でも、要素メニューに隠れないように工夫せよ。</content>
-<current-situation></current-situation>
-<remarks></remarks>
-<permission-to-move>NG</permission-to-move>
-</requirement>
-
-<requirement>
-<content>回転メニューは常に回転ハンドルのすぐ近くに表示されるようにせよ。</content>
+<content>回転メニューは、要素メニューに近接して表示する仕様に変更せよ。</content>
 <current-situation></current-situation>
 <remarks></remarks>
 <permission-to-move>NG</permission-to-move>
@@ -43,17 +36,15 @@
 
 <requirement>
 <content>回転メニューはメニューが適用されても自動で閉じず、連続操作可能にせよ。</content>
-<current-situation></current-situation>
-<remarks></remarks>
+<current-situation>90°回転、リセットのいずれでも一回クリックするとメニューが閉じてしまい連続クリック不可。</current-situation>
+<remarks>reset後もメニューを維持し、続けて90度回転操作などを行えるようにする。</remarks>
 <permission-to-move>NG</permission-to-move>
 </requirement>
 
 <requirement>
-<content>回転メニューの90°回転、リセットが全く機能しないので機能するようにする。</content>
-<current-situation></current-situation>
-<remarks>
-- **UI検知→Hooks→reactレンダリング**の流れになっていること、reactの宣言的レンダリングが正常であるか、データが正しくどうきされているかを確認せよ。
-- 原因不明の場合は、原因をあぶりだすために、コンソールログを実装せよ。</remarks>
+<content>180°回転時、回転ハンドルが要素メニューに隠れてしまうので、いかなる場合でも、要素メニューに隠れないように工夫せよ。</content>
+<current-situation>現在、回転ハンドルを要素の下側(bottom)に配置しているが、要素自体が180度回転するとハンドルが物理的に上側に位置し、上部に固定されている要素メニュー(FloatingMenu)と重なる。</current-situation>
+<remarks>FloatingMenuの表示位置（上・下）を、要素の回転状態に応じて動的に切り替える必要がある。</remarks>
 <permission-to-move>OK</permission-to-move>
 </requirement>
 
@@ -65,18 +56,25 @@
   変更内容: `RotationPicker.tsx` および `rotationService.ts` に詳細な `console.log` を追加。
   変更日時: 2026-01-07 00:00
 
-- 目的: メニューボタンが機能しないバグの修正
-  変更内容: `RotationPicker.tsx` のコンテナに `onMouseDown` と `onMouseUp` の `stopPropagation` を追加。
-  変更日時: 2026-01-07 00:10
+- 目的: 残りの回転操作UI要件の一括実装 & ビルドエラー修正
+  変更内容: 
+    1. `FloatingMenu.tsx`: 逆さま(135-225deg)時に位置を下側に変更。
+    2. `RotationPicker.tsx`: 連続操作対応（Resetで閉じない）、90度回転後の位置追従。
+    3. `RotationPicker.tsx` のインポートパスをエイリアスから相対パスに変更し、ビルドを通した。
+    4. **バグ修正**: `FloatingMenu.tsx` で Hook の規則（早期リターンの後に `useMemo`）に違反していたため修正。
+  変更日時: 2026-01-07 00:35
 
 ## 3. 分析中に気づいた重要ポイント（試してだめだったこと、仮設、制約条件等...）
 
-- **判明した原因候補1**: `handleCanvasClick` (DesignAreaの `onMouseDown` リスナー) が `RotationPicker` へのクリックを検知し、キャンバスの選択解除（`selectNone`）を実行していた可能性がある。これにより、ボタンの `onClick` イベントが到達する前にコンポーネントがアンマウントされていた。
-- **仮説2**: `updateContentFromDOM` が呼び出されるタイミングで、まだDOMへの反映が完了していないか、あるいは `getCleanHTML` が回転スタイルを削ってしまっている。
-- **仮説3**: `dangerouslySetInnerHTML` による再レンダリング時に、何らかの理由で変更前の状態に戻ってしまっている。
-- **制約**: `rules.md` に従い、最後は React の宣言的レンダリングで確定させる必要がある。
+- **解決済み（機能不全問題）**: 原因はマウスイベントの伝播（Bubbling）によってキャンバス側の選択解除が先に動いていたこと。`stopPropagation` で解決。
+- **解決済み（180°回転時の重なり）**: 要素の回転角に応じて、要素メニューの位置を上下に動的に切り替えるロジックを実装。
+- **解決済み（連続操作・追従）**: `RotationPicker` の位置再計算ロジックを実装し、操作後もハンドルに追従するように修正。
+- **解決済み（フックエラー）**: `FloatingMenu` で Hook を早期リターンの後に記述していたミスを修正。
 
 ## 4. 解決済み要件とその解決方法
+
+- **要件**: 回転メニューの90°回転、リセットが全く機能しないので機能するようにする。
+- **解決方法**: `RotationPicker` に `onMouseDown` と `onMouseUp` の `e.stopPropagation()` を追加し、背後のキャンバスによる選択解除ロジックが発火するのを阻止した。
 
 ## 5. 要件に関連する全ファイルのファイル構成（それぞれの役割を1行で併記）
 

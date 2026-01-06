@@ -147,7 +147,12 @@ const IndividualMoveable: React.FC<IndividualMoveableProps> = (props) => {
                     <RotationPicker
                         targets={[target]}
                         position={rotationPickerPos}
-                        onUpdate={updateContentFromDOM}
+                        onUpdate={(newPos?: { x: number; y: number }) => {
+                            updateContentFromDOM();
+                            if (newPos) {
+                                setRotationPickerPos(newPos);
+                            }
+                        }}
                         onClose={() => setRotationPickerPos(null)}
                     />
                 )
