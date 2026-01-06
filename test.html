@@ -1,53 +1,4 @@
-import { type MetaMessage, PAGE_SIZES } from '@/types/editor';
-import { cleanHTML } from './cleaner';
-
-export const constructFullHTML = (content: string, _customCss: string, meta: MetaMessage): string => {
-    const cleanContent = cleanHTML(content);
-
-    const hasDesignSurface = cleanContent.includes('class="DesignSurface"') ||
-        cleanContent.includes("class='DesignSurface'") ||
-        cleanContent.includes('class="absolute inset-0 w-full h-full DesignSurface"');
-
-    const wrappedContent = hasDesignSurface
-        ? cleanContent
-        : `<div class="DesignSurface" style="position: relative; overflow: hidden;">
-        ${cleanContent}
-    </div>`;
-
-    const { fixedRules: _, ...metaWithoutFixedRules } = meta;
-
-    const pageSize = meta.pageSize || 'SQUARE';
-    const config = PAGE_SIZES[pageSize];
-    let sizeInfo = '';
-    switch (pageSize) {
-        case 'A4': sizeInfo = 'A4 (794 x 1123px)'; break;
-        case '9:16': sizeInfo = 'Vertical 9:16 (630 x 1120px)'; break;
-        case 'SQUARE': default: sizeInfo = 'Square 1:1 (800 x 800px)'; break;
-    }
-
-    const sizeMessage = `
-0. CANVAS DIMENSIONS (ABSOLUTE CONSTRAINT)
-- Current Canvas Size: ${sizeInfo}
-- Width: ${config.width}px, Height: ${config.height}px
-- [CRITICAL] All elements MUST be placed WITHIN these boundaries.
-- [PROHIBITION] Never set positions or sizes exceeding these limits.
-`.trim();
-
-    const surfaceStyles = `
-        .DesignSurface { 
-            position: relative; 
-            background: white; 
-            width: ${config.width}px; 
-            height: ${config.height}px; 
-            min-width: ${config.width}px; 
-            min-height: ${config.height}px;
-            flex-shrink: 0;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            overflow: hidden;
-        }
-    `;
-
-    return `<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -60,7 +11,7 @@ export const constructFullHTML = (content: string, _customCss: string, meta: Met
     これらのルールに反する変更は「絶対的な禁止事項」です。
     -->
     <!-- FIXED_RULES_START -->
-    ${meta.fixedRules || ''}
+    
     <!-- FIXED_RULES_END -->
 
     <!-- Fonts -->
@@ -69,7 +20,11 @@ export const constructFullHTML = (content: string, _customCss: string, meta: Met
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@400;700&family=M+PLUS+1p:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Montserrat:wght@400;500;700&family=Roboto:wght@400;500;700&family=Playfair+Display:wght@400;700&family=Oswald:wght@400;500;700&family=Poppins:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" crossorigin="anonymous">
 
     <!-- 
-    ${sizeMessage}
+    0. CANVAS DIMENSIONS (ABSOLUTE CONSTRAINT)
+- Current Canvas Size: Square 1:1 (800 x 800px)
+- Width: 800px, Height: 800px
+- [CRITICAL] All elements MUST be placed WITHIN these boundaries.
+- [PROHIBITION] Never set positions or sizes exceeding these limits.
     [NOTICE] 万が一計算ミスではみ出した場合、システムにより自動的にキャンバス内に押し戻されますが、デザイナーとして最初からこの範囲内に収まるよう厳密に計算してください。
     -->
 
@@ -99,7 +54,7 @@ export const constructFullHTML = (content: string, _customCss: string, meta: Met
     - **Group IDs**: 関連する要素（例：背景、ロゴ、見出しなど）には、共通の data-group-id="group-..." を付与してください。
     - **Group ID Management**: 既存の要素に付与されている data-group-id は「絶対に」変更しないでください。新要素追加時は他のグループと被らない新しいIDを生成してください。
     - **No Flex/Grid**: 全要素を position: absolute で配置してください。FlexboxやGridによるレイアウトは使用せず、中央揃え等は left と width または text-align で実現してください。
-    - **Appending**: 新しく要素を追加する場合は、必ず \`[DESIGN_START]\` 内の既存要素の「一番最後」に追記してください。
+    - **Appending**: 新しく要素を追加する場合は、必ず `[DESIGN_START]` 内の既存要素の「一番最後」に追記してください。
     - **No Nesting in Text**: 「テキストボックス内」に子要素（span等）を配置することは厳禁。
     - **Image Insert**: 
         - 画像生成＆挿入は、「画像を生成してデザインに挿入せよ」という **明示的な指示があった場合に限り** 実行すること。
@@ -128,18 +83,42 @@ export const constructFullHTML = (content: string, _customCss: string, meta: Met
             padding: 80px 40px; 
             min-height: 100vh;
         }
-        ${surfaceStyles}
+        
+        .DesignSurface { 
+            position: relative; 
+            background: white; 
+            width: 800px; 
+            height: 800px; 
+            min-width: 800px; 
+            min-height: 800px;
+            flex-shrink: 0;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+    
     </style>
     <script id="ai-link-metadata" type="application/json">
         <!-- USER_REQUIREMENT_START -->
-        ${JSON.stringify(metaWithoutFixedRules, null, 2)}
+        {
+  "collaborativeRules": "",
+  "designConcept": "",
+  "colors": {
+    "main": "none",
+    "sub": "none",
+    "accent": "none"
+  },
+  "colorKit": "custom",
+  "pageSize": "SQUARE"
+}
         <!-- USER_REQUIREMENT_END -->
     </script>
 </head>
 <body class="bg-black">
     <!-- DESIGN_START -->
-    ${wrappedContent}
+    <div class="DesignSurface" style="position: relative; overflow: hidden;">
+        <div id="el-j63fyxz9p" data-group-id="group-oncquypqi" style="position: absolute; top: 280px; left: 160px; width: 480px; font-family: 'Playfair Display', serif; font-size: 64px; color: #1a1a1a; text-align: center; font-weight: bold;">TITLE HERE</div>
+                <div id="el-b93ftz6br" data-group-id="group-oncquypqi" style="position: absolute; top: 400px; left: 160px; width: 480px; font-family: 'Montserrat', sans-serif; font-size: 24px; color: #666; text-transform: uppercase; letter-spacing: 0.1em; text-align: center;">Description here</div>
+    </div>
     <!-- DESIGN_END -->
 </body>
-</html>`;
-};
+</html>
