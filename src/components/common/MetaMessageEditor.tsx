@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Ban, Brain } from 'lucide-react';
 import { useEditorStore } from '@/store/useEditorStore';
 import { useFileSystem } from '@/hooks/useFileSystem';
@@ -28,6 +28,11 @@ const MetaMessageEditor: React.FC<MetaMessageEditorProps> = ({ onClose }) => {
     const { metaMessage, setMetaMessage } = useEditorStore();
     const { handleOverwrite } = useFileSystem();
     const [localMeta, setLocalMeta] = useState(metaMessage);
+
+    // ファイルが変更されたらlocalMetaを更新（新規作成や別ファイルを開いた場合）
+    useEffect(() => {
+        setLocalMeta(metaMessage);
+    }, [metaMessage]);
 
     const isCustom = localMeta.colorKit === 'custom' || !localMeta.colorKit;
 
