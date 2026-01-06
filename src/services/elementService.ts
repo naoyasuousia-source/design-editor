@@ -1,3 +1,5 @@
+import { getElementRotation } from '@/utils/rotationUtils';
+
 /**
  * デザイン要素の操作（追加、削除、グループ化、スタイル適用）を担当するサービス層
  */
@@ -68,6 +70,11 @@ export const elementService = {
 
         sortedTargets.forEach(el => {
             el.setAttribute('data-group-id', id);
+
+            // グループ化時点の回転を保存（リセット時に戻すため）
+            const currentRotation = getElementRotation(el);
+            el.setAttribute('data-initial-rotate', currentRotation.toString());
+
             // 基準要素の直前に順番に挿入していくことで、ひとまりにしてDOMの同じ位置に集める
             if (insertReference) {
                 parent.insertBefore(el, insertReference);

@@ -23,7 +23,6 @@ export const useLayers = () => {
 
         if (e.shiftKey && selectedIds.length > 0) {
             // シフト選択：現在の選択範囲の端点を見つける
-            const allLayerIds = layers.flatMap(l => l.elementIds);
             const lastSelectedId = selectedIds[selectedIds.length - 1];
 
             const lastIdx = layers.findIndex(l => l.elementIds.includes(lastSelectedId));
