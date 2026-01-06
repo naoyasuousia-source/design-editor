@@ -8,4 +8,7 @@ export interface LayerData {
     elementIds: string[];
     isVisible: boolean;
     isLocked: boolean;
+    style?: string;    // インラインスタイル
+    content?: string;  // テキスト内容など
+    src?: string;      // 画像URLなど
 }

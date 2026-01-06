@@ -42,6 +42,9 @@ export const parseLayers = (html: string): LayerData[] => {
                 elementIds: [el.id],
                 isVisible: true,
                 isLocked: false,
+                style: el.getAttribute('style') || undefined,
+                content: type === 'text' ? el.innerText : undefined,
+                src: type === 'image' ? (el as HTMLImageElement).src : undefined,
             });
         }
     });
