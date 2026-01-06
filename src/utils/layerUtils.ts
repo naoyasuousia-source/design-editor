@@ -44,7 +44,7 @@ export const parseLayers = (html: string): LayerData[] => {
                 isLocked: false,
                 style: el.getAttribute('style') || undefined,
                 content: type === 'text' ? el.innerText : undefined,
-                src: type === 'image' ? (el as HTMLImageElement).src : undefined,
+                src: type === 'image' ? el.getAttribute('src') || undefined : undefined,
             });
         }
     });

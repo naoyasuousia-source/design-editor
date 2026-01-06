@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import type { LayerData } from '@/types/layer';
 import { Type, Image, Square, Layers, GripVertical } from 'lucide-react';
 import { cn } from '@/utils/cn';
+import { useAssets } from '@/hooks/useAssets';
 
 interface LayerItemProps {
     layer: LayerData;
@@ -24,7 +25,6 @@ const parseInlineStyle = (styleStr: string): React.CSSProperties => {
     });
     return styles as React.CSSProperties;
 };
-
 
 const PreviewShape = ({ style }: { style: React.CSSProperties }) => {
     const w = parseFloat(String(style.width || '100'));
@@ -73,6 +73,7 @@ export const LayerItem: React.FC<LayerItemProps> = ({
     onDrop
 }) => {
     const [dragOverPosition, setDragOverPosition] = useState<'top' | 'bottom' | null>(null);
+    const { imageUrls } = useAssets();
 
     const getIcon = () => {
         switch (layer.type) {
@@ -86,7 +87,16 @@ export const LayerItem: React.FC<LayerItemProps> = ({
 
     const elementStyle = parseInlineStyle(layer.style || '');
 
-    // プレビュー用の共通計算
+    // 画像URLの解決 (相対パス ./images/ を Blob URL に置換)
+    const resolvedSrc = useMemo(() => {
+        if (layer.type !== 'image') return '';
+
+        const rawSrc = layer.src || '';
+        // パスの正規化: ./images/path -> images/path -> path
+        const fileName = rawSrc.replace(/^\.\/images\//, '').replace(/^images\//, '');
+        return imageUrls[fileName] || rawSrc;
+    }, [layer.src, layer.type, imageUrls]);
+
     // プレビュー用の共通計算
     const renderTextPreview = () => {
         const w = parseFloat(String(elementStyle.width || '0'));
@@ -221,7 +231,7 @@ export const LayerItem: React.FC<LayerItemProps> = ({
                     <div className="flex items-center w-full justify-start">
                         <div className="w-12 h-9 rounded border border-black/10 overflow-hidden bg-white/40 shrink-0 shadow-sm">
                             <img
-                                src={layer.src}
+                                src={resolvedSrc}
                                 alt=""
                                 className="w-full h-full object-cover"
                             />
