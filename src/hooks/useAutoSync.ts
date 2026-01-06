@@ -34,11 +34,9 @@ export const useAutoSync = () => {
 
                 // 変更を検知
                 if (currentModified > lastModifiedRef.current) {
-                    console.log(`File change detected: ${currentFileHandle.name} (Modified: ${currentModified})`);
 
                     // 自己保存直後の場合は無視する（3秒以内のバッファ）
                     if (Date.now() - useEditorStore.getState().lastSaveTime < 3000) {
-                        console.log('Ignoring self-save update (within buffer)');
                         lastModifiedRef.current = currentModified;
                         return;
                     }
@@ -79,7 +77,6 @@ export const useAutoSync = () => {
             try {
                 const file = await currentFileHandle.getFile();
                 lastModifiedRef.current = file.lastModified;
-                console.log(`AutoSync initialized for ${currentFileHandle.name} (Modified: ${lastModifiedRef.current})`);
 
                 // 初期化が終わってからチェックを開始する
                 const interval = window.setInterval(checkFile, 1500);
@@ -118,10 +115,7 @@ export const useAutoSync = () => {
                 }
 
                 if (currentFileHandle && currentFileHandle.name === data.fileName) {
-                    console.log('HMR signal received. File sync will be handled by polling or immediate manual check.');
-                    // note: 現在は polling が 1.5s おきに動いているため、ここではログのみ。
-                    // 確実に即時実行したい場合は checkFile を副作用外に出して共有する必要があるが、
-                    // polling + lastSaveTime 制御で十分安定する。
+                    // note: 現在は polling が 1.5s おきに動いているため、ここでは何もしない
                 }
             });
             return unlisten;

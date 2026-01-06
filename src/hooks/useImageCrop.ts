@@ -245,20 +245,6 @@ export const useImageCrop = () => {
 
                 // ストアへの同期
                 const cleanHtml = restoreRelativePaths(cloneSurface.innerHTML, imageUrls);
-
-                // --- デバッグログ: NaN や undefined の混入を確認 ---
-                console.group('Image Crop: Final Sync Data');
-                console.log('Final HTML:', cleanHtml);
-                if (cleanHtml.includes('NaN') || cleanHtml.includes('undefined')) {
-                    console.error('DETECTED INVALID VALUES (NaN/undefined) in final cleanHtml!');
-                    const invalidMatches = cleanHtml.match(/[^a-zA-Z0-9](NaN|undefined)[^a-zA-Z0-9]/g);
-                    console.error('Invalid segments:', invalidMatches);
-                }
-                console.log('Styles applied:', styles);
-                console.log('Transform applied:', finalTransform);
-                console.groupEnd();
-                // ---------------------------------------------
-
                 useEditorStore.getState().setContent(cleanHtml, true);
             }
         }

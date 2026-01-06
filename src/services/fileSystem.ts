@@ -168,7 +168,6 @@ export const fileSystemService = {
             const writable = await fileHandle.createWritable();
             await writable.write(htmlContent);
             await writable.close();
-            console.log('ファイルを保存しました');
         } catch (err) {
             console.error('ファイルの保存に失敗:', err);
             throw err;
