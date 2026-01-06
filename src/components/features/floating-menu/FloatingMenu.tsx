@@ -29,10 +29,11 @@ interface FloatingMenuProps {
     onUpdate: () => void;
     selectionMode: SelectionMode;
     activeSubTarget: HTMLElement | null;
+    canvasRef: React.RefObject<HTMLDivElement | null>;
     onClearSelection?: () => void;
 }
 
-const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectionMode, activeSubTarget, onClearSelection }) => {
+const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectionMode, activeSubTarget, canvasRef, onClearSelection }) => {
     const { imageFiles, imageUrls } = useAssets();
     const menuRef = useRef<HTMLDivElement>(null);
 
@@ -51,7 +52,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectio
         showTextBgPalette, setShowTextBgPalette,
         showStrokePalette, setShowStrokePalette,
         applyStyle, setImageCropMode, handleGroup, handleUngroup, handleDelete, handleDuplicate, toggleBold, openEyeDropper, closeAllPanels
-    } = useFloatingMenu(targets, onUpdate, onClearSelection, selectionMode, activeSubTarget);
+    } = useFloatingMenu(targets, onUpdate, canvasRef, onClearSelection, selectionMode, activeSubTarget);
 
     if (!rect || !target) return null;
 

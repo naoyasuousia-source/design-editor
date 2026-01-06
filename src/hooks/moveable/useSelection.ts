@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import type { RefObject } from 'react';
 import { useEditorStore } from '@/store/useEditorStore';
+import { elementService } from '@/services/elementService';
 
 export type SelectionMode = 'none' | 'group' | 'individual';
 
@@ -13,8 +14,16 @@ export const useSelection = (canvasRef: RefObject<HTMLDivElement | null>, conten
     const setTargets = useCallback((newTargets: HTMLElement[] | ((prev: HTMLElement[]) => HTMLElement[])) => {
         setTargetsState(prev => {
             const next = typeof newTargets === 'function' ? newTargets(prev) : newTargets;
-            prev.forEach(el => el.classList.remove('moveable-target-active'));
-            next.forEach(el => el.classList.add('moveable-target-active'));
+
+            // 旧ターゲットからクラス除去
+            prev.filter(el => !next.includes(el)).forEach(el => {
+                el.classList.remove('moveable-target-active');
+            });
+            // 新ターゲットにクラス付与
+            next.filter(el => !prev.includes(el)).forEach(el => {
+                el.classList.add('moveable-target-active');
+            });
+
             return next;
         });
     }, []);
@@ -92,7 +101,7 @@ export const useSelection = (canvasRef: RefObject<HTMLDivElement | null>, conten
         let hasChanged = false;
 
         targets.forEach(target => {
-            if (document.body.contains(target)) {
+            if (canvasRef.current?.contains(target)) {
                 nextTargets.push(target);
             } else if (target.id) {
                 const refreshed = surface.querySelector(`[id="${target.id}"]`);
@@ -108,7 +117,7 @@ export const useSelection = (canvasRef: RefObject<HTMLDivElement | null>, conten
         }
 
         // activeSubTarget の更新
-        if (activeSubTarget && !document.body.contains(activeSubTarget) && activeSubTarget.id) {
+        if (activeSubTarget && !canvasRef.current?.contains(activeSubTarget) && activeSubTarget.id) {
             const refreshedSub = surface.querySelector(`[id="${activeSubTarget.id}"]`);
             if (refreshedSub instanceof HTMLElement) {
                 setActiveSubTarget(refreshedSub);

@@ -4,6 +4,7 @@ import { useEditorStore } from '@/store/useEditorStore';
 import { PAGE_SIZES } from '@/types/editor';
 import { useAutoSync } from '@/hooks/useAutoSync';
 import { useMoveable } from '@/hooks/useMoveable';
+import { useHotkeys } from '@/hooks/useHotkeys';
 import FloatingMenu from '@/components/features/floating-menu/FloatingMenu';
 import DesignArea from '@/components/features/workspace/DesignArea';
 import MoveableManager from '@/components/features/workspace/MoveableManager';
@@ -53,7 +54,8 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked, isHome }) => {
         hoverTargets
     } = useMoveable(canvasRef);
 
-    useAutoSync();
+    useAutoSync(canvasRef);
+    useHotkeys(canvasRef);
 
     return (
         <div
@@ -136,6 +138,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked, isHome }) => {
                     onUpdate={updateContentFromDOM}
                     selectionMode={selectionMode}
                     activeSubTarget={activeSubTarget}
+                    canvasRef={canvasRef}
                     onClearSelection={selectNone}
                 />
             )}

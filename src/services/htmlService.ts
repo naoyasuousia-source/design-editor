@@ -4,6 +4,7 @@
 import { PAGE_SIZES } from '@/types/editor';
 import { parseMetaMessage } from '@/utils/html/parser';
 import { sanitizeStyles } from '@/utils/html/sanitizer';
+import { restoreRelativePaths } from '@/utils/html/cleaner';
 
 export const htmlService = {
     /**
@@ -67,7 +68,6 @@ export const htmlService = {
      * デザインサーフェスのクリーンな HTML を生成する
      */
     getCleanHTML(surface: HTMLElement, imageUrls: Record<string, string>): string {
-        const { restoreRelativePaths } = require('@/utils/html/cleaner');
         const clone = surface.cloneNode(true) as HTMLElement;
         clone.querySelectorAll('[contenteditable]').forEach(el => {
             el.removeAttribute('contenteditable');
@@ -79,5 +79,36 @@ export const htmlService = {
 
         // Blob URL を相対パスに戻す
         return restoreRelativePaths(clone.innerHTML, imageUrls);
+    },
+
+    /**
+     * カーソル位置にテキストを挿入する（命令的 DOM 操作）
+     */
+    insertTextAtCursor(text: string): void {
+        document.execCommand('insertText', false, text);
+    },
+
+    /**
+     * 指定した要素をフォーカスする
+     */
+    focusElement(element: HTMLElement): void {
+        element.focus();
+    },
+
+    /**
+     * 改行（br）を挿入する
+     */
+    insertLineBreak(): void {
+        document.execCommand('insertLineBreak');
+    },
+
+    /**
+     * 指定した DataURL を画像としてダウンロードする
+     */
+    downloadImage(dataUrl: string, fileName: string): void {
+        const link = document.createElement('a');
+        link.download = fileName;
+        link.href = dataUrl;
+        link.click();
     }
 };

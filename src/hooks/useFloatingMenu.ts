@@ -3,6 +3,7 @@ import { useEditorStore } from '@/store/useEditorStore';
 import type { SelectionMode } from '@/hooks/moveable/useSelection';
 import { getTargetType, applyElementStyle } from '@/utils/domUtils';
 import type { TargetType } from '@/utils/domUtils';
+import { elementService } from '@/services/elementService';
 
 interface EyeDropper {
     open: () => Promise<{ sRGBHex: string }>;
@@ -15,10 +16,10 @@ declare global {
         };
     }
 }
-
 export const useFloatingMenu = (
     targets: HTMLElement[],
     onUpdate: () => void,
+    canvasRef: React.RefObject<HTMLDivElement | null>,
     onClearSelection?: () => void,
     selectionMode: SelectionMode = 'none',
     activeSubTarget: HTMLElement | null = null
@@ -92,73 +93,45 @@ export const useFloatingMenu = (
     const groupId = isGrouped ? gid : null;
 
     const applyStyle = useCallback((property: keyof CSSStyleDeclaration, value: string, shouldUpdateStore = true) => {
-        applyElementStyle(targets, property as string, value);
+        elementService.applyStyle(targets, property as string, value);
         if (shouldUpdateStore) onUpdate();
     }, [targets, onUpdate]);
 
     const handleGroup = useCallback(() => {
-        const id = `group-${Math.random().toString(36).substr(2, 9)}`;
-        targets.forEach(el => el.setAttribute('data-group-id', id));
+        const id = elementService.groupElements(targets);
         onUpdate();
         // グループ化直後に新グループを自動選択する
-        if (targets.length > 0 && targets[0].id) {
+        if (id && targets.length > 0 && targets[0].id) {
             setAutoSelectId(targets[0].id);
         }
     }, [targets, onUpdate, setAutoSelectId]);
 
     const handleUngroup = useCallback(() => {
-        targets.forEach(el => el.removeAttribute('data-group-id'));
+        elementService.ungroupElements(targets);
         if (onClearSelection) onClearSelection();
         onUpdate();
     }, [targets, onUpdate, onClearSelection]);
 
     const handleDelete = useCallback(() => {
-        targets.forEach(el => el.remove());
+        elementService.deleteElements(targets);
         if (onClearSelection) onClearSelection();
         onUpdate();
     }, [targets, onUpdate, onClearSelection]);
 
     const handleDuplicate = useCallback(() => {
-        if (targets.length === 0) return;
+        if (targets.length === 0 || !canvasRef.current) return;
 
-        const designSurface = document.querySelector('.DesignSurface');
+        const designSurface = canvasRef.current.querySelector('.DesignSurface') as HTMLElement;
         if (!designSurface) return;
 
-        // グループの場合、新しい共通のグループIDを生成
-        const isGroupDuplication = targets.length > 1 || (targets.length === 1 && targets[0].hasAttribute('data-group-id'));
-        const newGroupId = isGroupDuplication
-            ? `group-${Math.random().toString(36).substr(2, 9)}`
-            : null;
-
-        let firstCloneId: string | null = null;
-
-        targets.forEach((el, index) => {
-            const clone = el.cloneNode(true) as HTMLElement;
-            const newId = `el-${Math.random().toString(36).substr(2, 9)}`;
-            clone.id = newId;
-            if (index === 0) firstCloneId = newId;
-
-            if (newGroupId) {
-                clone.setAttribute('data-group-id', newGroupId);
-            } else {
-                clone.removeAttribute('data-group-id');
-            }
-
-            // 位置を少しずらす (20px)
-            const top = parseFloat(el.style.top || '0');
-            const left = parseFloat(el.style.left || '0');
-            clone.style.top = `${top + 20}px`;
-            clone.style.left = `${left + 20}px`;
-
-            designSurface.appendChild(clone);
-        });
+        const firstCloneId = elementService.duplicateElements(targets, designSurface);
 
         onUpdate();
 
         if (firstCloneId) {
             setAutoSelectId(firstCloneId);
         }
-    }, [targets, onUpdate, setAutoSelectId]);
+    }, [targets, onUpdate, setAutoSelectId, canvasRef]);
 
     const toggleBold = useCallback(() => {
         const t = effectiveTarget;

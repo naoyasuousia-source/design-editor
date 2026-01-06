@@ -80,7 +80,7 @@ src/
 **重要ルール**:
 - **DOM Access Policy**:
     - **Forbidden Non-Ref DOM Manipulation**: 
-        - React外部での全ての DOM 操作 は、必ず hooks 層から渡された `ref.current` を対象に実行せよ。
+        - `ref` を介さない破壊的なDOM操作は厳禁とし、React外部での全ての DOM 操作 は、必ず hooks 層から渡された `ref.current` を対象に実行せよ。
         -  `ref`を介した命令的なDOM操作はドラッグ中のプレビュー等の「一時的な視覚効果」に限定し、操作終了後は直ちに最終データを hooks を通じて State へ同期せよ。DOM の最終状態は、必ず React の宣言的レンダリングによって確定・収束させなければならない。
     - **Read (Property Access)**: 
         - `offsetWidth` や `getBoundingClientRect()` 等の読み取りも「環境依存の副作用」と定義する。

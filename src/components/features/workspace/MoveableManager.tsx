@@ -1,9 +1,10 @@
 import React, { useMemo, useState, useCallback } from 'react';
 import { cn } from '@/utils/cn';
 import type { SelectionMode } from '@/hooks/moveable/useSelection';
-import GroupMoveable from '@/components/features/workspace/GroupMoveable';
-import IndividualMoveable from '@/components/features/workspace/IndividualMoveable';
 import { calculateGroupBounds } from '@/utils/bounds';
+
+const GroupMoveable = React.lazy(() => import('@/components/features/workspace/GroupMoveable'));
+const IndividualMoveable = React.lazy(() => import('@/components/features/workspace/IndividualMoveable'));
 
 interface MoveableManagerProps {
     targets: HTMLElement[];
@@ -146,21 +147,25 @@ const MoveableManager: React.FC<MoveableManagerProps> = (props) => {
 
             {/* GroupMoveable: 文字通り「オーバーレイ」をターゲットにする */}
             {isGroupActive && overlayEl && (
-                <GroupMoveable
-                    {...props}
-                    groupOverlay={overlayEl}
-                    selectionKey={selectionKey}
-                    updateOverlayBounds={updateOverlayBounds}
-                    tick={tick}
-                />
+                <React.Suspense fallback={null}>
+                    <GroupMoveable
+                        {...props}
+                        groupOverlay={overlayEl}
+                        selectionKey={selectionKey}
+                        updateOverlayBounds={updateOverlayBounds}
+                        tick={tick}
+                    />
+                </React.Suspense>
             )}
 
             {selectionMode === 'individual' && activeSubTarget && (
-                <IndividualMoveable
-                    {...props}
-                    target={activeSubTarget}
-                    updateOverlayBounds={updateOverlayBounds}
-                />
+                <React.Suspense fallback={null}>
+                    <IndividualMoveable
+                        {...props}
+                        target={activeSubTarget}
+                        updateOverlayBounds={updateOverlayBounds}
+                    />
+                </React.Suspense>
             )}
         </>
     );

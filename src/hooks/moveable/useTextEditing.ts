@@ -66,7 +66,7 @@ export const useTextEditing = (
         const onKeyDown = (event: KeyboardEvent) => {
             if (event.key === 'Enter' && !event.shiftKey) {
                 event.preventDefault();
-                document.execCommand('insertLineBreak');
+                htmlService.insertLineBreak();
             }
         };
         target.addEventListener('keydown', onKeyDown);

@@ -5,7 +5,7 @@ import { useEditorStore } from '@/store/useEditorStore';
  * 外部（AIなど）によるファイル変更を検知し、エディタに通知するフック
  * File System Access API を使用したポーリングによる検知を優先する
  */
-export const useAutoSync = () => {
+export const useAutoSync = (canvasRef: React.RefObject<HTMLDivElement | null>) => {
     const {
         currentFileHandle,
         detectExternalUpdate,
@@ -42,7 +42,7 @@ export const useAutoSync = () => {
                     }
 
                     // 1. まず現在のキャンバスをスクショ
-                    const canvasElement = document.querySelector('.DesignSurface') as HTMLElement;
+                    const canvasElement = canvasRef.current?.querySelector('.DesignSurface') as HTMLElement;
                     let snapshot = null;
                     if (canvasElement) {
                         try {

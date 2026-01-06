@@ -1,5 +1,4 @@
 import React from 'react';
-import { createPortal } from 'react-dom';
 import { Check, X, Maximize2 } from 'lucide-react';
 import { useImageCrop } from '@/hooks/useImageCrop';
 import { cn } from '@/utils/cn';
@@ -32,7 +31,7 @@ const ImageCropOverlay: React.FC<ImageCropOverlayProps> = ({ canvasRef }) => {
 
     const { width: fullW, height: fullH } = fullSize;
 
-    return createPortal(
+    return (
         <div className="fixed inset-0 z-[200] pointer-events-none">
             <div className="absolute inset-0 bg-black/40 pointer-events-auto" onClick={() => setImageCropMode(false, null)} />
 
@@ -109,8 +108,7 @@ const ImageCropOverlay: React.FC<ImageCropOverlayProps> = ({ canvasRef }) => {
                     </button>
                 </div>
             </div>
-        </div>,
-        document.body
+        </div>
     );
 };
 

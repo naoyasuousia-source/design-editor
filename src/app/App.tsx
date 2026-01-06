@@ -6,7 +6,6 @@ import TemporaryBar from '@/components/common/TemporaryBar';
 import ImageSaveWizard from '@/components/features/image-save/ImageSaveWizard';
 import SaveToast from '@/components/common/SaveToast';
 import LayerSidebar from '@/components/features/layer/LayerSidebar';
-import { useHotkeys } from '@/hooks/useHotkeys';
 import { useBeforeUnload } from '@/hooks/useBeforeUnload';
 import { useEditorStore } from '@/store/useEditorStore';
 
@@ -26,8 +25,6 @@ const App: React.FC = () => {
 
     const [showComparison, setShowComparison] = useState(false);
 
-    // ショートカットキーの有効化
-    useHotkeys();
     // 終了警告の有効化
     useBeforeUnload();
 

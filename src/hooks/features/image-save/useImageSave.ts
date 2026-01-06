@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { toPng } from 'html-to-image';
 import { useEditorStore } from '@/store/useEditorStore';
+import { htmlService } from '@/services/htmlService';
 
 export const useImageSave = () => {
     const {
@@ -109,10 +110,7 @@ export const useImageSave = () => {
                 });
             }
 
-            const link = document.createElement('a');
-            link.download = `design-${Date.now()}.png`;
-            link.href = dataUrl;
-            link.click();
+            htmlService.downloadImage(dataUrl, `design-${Date.now()}.png`);
 
             handleCancel();
         } catch (err) {

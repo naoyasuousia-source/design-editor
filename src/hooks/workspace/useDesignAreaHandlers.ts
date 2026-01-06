@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { useEditorStore } from '@/store/useEditorStore';
 import { designAreaService } from '@/services/designAreaService';
+import { htmlService } from '@/services/htmlService';
 
 interface UseDesignAreaHandlersProps {
     canvasRef: React.RefObject<HTMLDivElement | null>;
@@ -18,7 +19,7 @@ export const useDesignAreaHandlers = ({
         if (target.contentEditable === 'true') {
             e.preventDefault();
             const text = e.clipboardData.getData('text/plain');
-            document.execCommand('insertText', false, text);
+            htmlService.insertTextAtCursor(text);
         }
     }, []);
 
