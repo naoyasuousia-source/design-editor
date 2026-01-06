@@ -22,6 +22,8 @@ interface MoveableManagerProps {
     hoverTargets: HTMLElement[];
     handleResizeStart: (e: { target: HTMLElement | SVGElement; direction: number[] }) => void;
     updateContentFromDOM: () => void;
+    isRotationPickerOpen: boolean;
+    setRotationPickerOpen: (open: boolean) => void;
 }
 
 const MoveableManager: React.FC<MoveableManagerProps> = (props) => {
@@ -37,7 +39,6 @@ const MoveableManager: React.FC<MoveableManagerProps> = (props) => {
         setTick(t => t + 1);
     }, []);
 
-    // 境界計算をメモ化
     const hoverBounds = useMemo(() => {
         if (hoverTargets.length === 0 || !canvasRef.current) return null;
         const rects = hoverTargets.map(el => el.getBoundingClientRect());
@@ -59,7 +60,6 @@ const MoveableManager: React.FC<MoveableManagerProps> = (props) => {
         return `${selectionMode}-${targets.map(t => (t.id || 'no-id')).join('-')}`;
     }, [selectionMode, targets]);
 
-    // 複数選択時（canGroup状態）に、選択された要素内の既存グループを抽出
     const existingGroupBoundsMap = useMemo(() => {
         const gid = targets[0]?.getAttribute('data-group-id');
         const isAllSameGroup = targets.length > 1 && gid !== null && targets.every(el => el.getAttribute('data-group-id') === gid);
@@ -67,7 +67,6 @@ const MoveableManager: React.FC<MoveableManagerProps> = (props) => {
 
         if (!canGroup) return [];
 
-        // 選択要素を持つグループIDごとにグループ化
         const groupMap = new Map<string, HTMLElement[]>();
         targets.forEach(el => {
             const groupId = el.getAttribute('data-group-id');
@@ -79,7 +78,6 @@ const MoveableManager: React.FC<MoveableManagerProps> = (props) => {
             }
         });
 
-        // 各グループのバウンディングボックスを計算
         const result: { groupId: string; bounds: { left: number; top: number; width: number; height: number } }[] = [];
         groupMap.forEach((_elements, groupId) => {
             if (!canvasRef.current) return;
@@ -131,8 +129,6 @@ const MoveableManager: React.FC<MoveableManagerProps> = (props) => {
                     ref={onOverlayRef}
                     className={cn(
                         "absolute z-[9999] group-selection-overlay",
-                        // グループ選択モードの時は Moveable が線を引くので border-0、
-                        // 個別選択モードの時は Moveable が引かないので border-2 を出す
                         selectionMode === 'individual' ? "border-2 border-orange-500" : "border-0",
                         selectionMode !== 'group' && "pointer-events-none"
                     )}
@@ -145,7 +141,6 @@ const MoveableManager: React.FC<MoveableManagerProps> = (props) => {
                 />
             )}
 
-            {/* GroupMoveable: 文字通り「オーバーレイ」をターゲットにする */}
             {isGroupActive && overlayEl && (
                 <React.Suspense fallback={null}>
                     <GroupMoveable

@@ -9,6 +9,7 @@ export const useSelection = (canvasRef: RefObject<HTMLDivElement | null>, conten
     const [selectionMode, setSelectionMode] = useState<SelectionMode>('none');
     const [activeSubTarget, setActiveSubTarget] = useState<HTMLElement | null>(null);
     const [hoverTargets, setHoverTargets] = useState<HTMLElement[]>([]);
+    const [isRotationPickerOpen, setRotationPickerOpen] = useState(false);
 
     const setTargets = useCallback((newTargets: HTMLElement[] | ((prev: HTMLElement[]) => HTMLElement[])) => {
         setTargetsState(prev => {
@@ -32,6 +33,7 @@ export const useSelection = (canvasRef: RefObject<HTMLDivElement | null>, conten
         setTargets([]);
         setSelectionMode('none');
         setActiveSubTarget(null);
+        setRotationPickerOpen(false);
     }, [setTargets]);
 
     const isTextBox = useCallback((el: HTMLElement) => {
@@ -137,6 +139,8 @@ export const useSelection = (canvasRef: RefObject<HTMLDivElement | null>, conten
         hoverTargets,
         setHoverTargets,
         isTextBox,
-        getRenderDirections
+        getRenderDirections,
+        isRotationPickerOpen,
+        setRotationPickerOpen
     };
 };

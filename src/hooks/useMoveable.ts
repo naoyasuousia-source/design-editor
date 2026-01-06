@@ -25,7 +25,9 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
         hoverTargets,
         setHoverTargets,
         isTextBox,
-        getRenderDirections
+        getRenderDirections,
+        isRotationPickerOpen,
+        setRotationPickerOpen
     } = useSelection(canvasRef, content);
 
     // URL置換は getCleanHTML 内部で最新のストアを参照するためここでは不要
@@ -133,6 +135,8 @@ export const useMoveable = (canvasRef: RefObject<HTMLDivElement | null>) => {
         isTextBox,
         getRenderDirections,
         isEditing,
-        hoverTargets
+        hoverTargets,
+        isRotationPickerOpen,
+        setRotationPickerOpen
     };
 };

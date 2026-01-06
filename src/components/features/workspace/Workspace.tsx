@@ -51,7 +51,9 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked, isHome }) => {
         selectionMode,
         activeSubTarget,
         selectNone,
-        hoverTargets
+        hoverTargets,
+        isRotationPickerOpen,
+        setRotationPickerOpen
     } = useMoveable(canvasRef);
 
     useAutoSync(canvasRef);
@@ -126,6 +128,8 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked, isHome }) => {
                                 hoverTargets={hoverTargets}
                                 handleResizeStart={handleResizeStart}
                                 updateContentFromDOM={updateContentFromDOM}
+                                isRotationPickerOpen={isRotationPickerOpen}
+                                setRotationPickerOpen={setRotationPickerOpen}
                             />
                         )}
                     </DesignArea>
@@ -140,6 +144,8 @@ const Workspace: React.FC<WorkspaceProps> = ({ isLocked, isHome }) => {
                     activeSubTarget={activeSubTarget}
                     canvasRef={canvasRef}
                     onClearSelection={selectNone}
+                    isRotationPickerOpen={isRotationPickerOpen}
+                    setRotationPickerOpen={setRotationPickerOpen}
                 />
             )}
 

@@ -25,6 +25,7 @@ import type { SelectionMode } from '@/hooks/moveable/useSelection';
 import { getTargetType } from '@/utils/domUtils';
 import type { TargetType } from '@/utils/domUtils';
 import { getElementRotation } from '@/utils/rotationUtils';
+import RotationPicker from '@/components/features/workspace/RotationPicker';
 
 interface FloatingMenuProps {
     targets: HTMLElement[];
@@ -33,9 +34,14 @@ interface FloatingMenuProps {
     activeSubTarget: HTMLElement | null;
     canvasRef: React.RefObject<HTMLDivElement | null>;
     onClearSelection?: () => void;
+    isRotationPickerOpen: boolean;
+    setRotationPickerOpen: (open: boolean) => void;
 }
 
-const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectionMode, activeSubTarget, canvasRef, onClearSelection }) => {
+const FloatingMenu: React.FC<FloatingMenuProps> = ({
+    targets, onUpdate, selectionMode, activeSubTarget, canvasRef, onClearSelection,
+    isRotationPickerOpen, setRotationPickerOpen
+}) => {
     const { imageFiles, imageUrls } = useAssets();
     const menuRef = useRef<HTMLDivElement>(null);
 
@@ -267,6 +273,19 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectio
                         </div>
                     </div>
                 </>
+            )}
+
+            {isRotationPickerOpen && (
+                <div
+                    className="absolute top-0 -right-2 translate-x-full"
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <RotationPicker
+                        targets={targets}
+                        onUpdate={onUpdate}
+                        onClose={() => setRotationPickerOpen(false)}
+                    />
+                </div>
             )}
         </div>
     );
