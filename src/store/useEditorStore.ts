@@ -142,11 +142,12 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     setLocked: (isLocked) => set({ isLocked }),
 
     detectExternalUpdate: (newFullContent, snapshot) => {
-        const { content } = get();
+        const { content, projectDirectoryHandle, imageUrls } = get();
         const meta = parseMetaMessage(newFullContent);
         const designContent = htmlService.extractDesignContent(newFullContent);
         const newCustomCss = extractCustomCss(newFullContent);
 
+        // まずは通常の状態更新を行う（プレビュー表示のため）
         set({
             hasPendingChanges: true,
             isLocked: true,
@@ -159,6 +160,59 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
             metaMessage: meta || get().metaMessage,
             pageSize: (meta && meta.pageSize) ? meta.pageSize : get().pageSize,
         });
+
+        // 非同期で transparent- プレフィックス画像を処理
+        // プレビュー時点で透過済み画像を表示するため、ここで処理を開始
+        if (projectDirectoryHandle) {
+            (async () => {
+                try {
+                    const { processTransparentImages } = await import('@/services/image/transparentImageProcessor');
+                    const { fileSystemService } = await import('@/services/fileSystem');
+
+                    // アセット更新用のコールバック（ストアを直接更新）
+                    const refreshAssetsCallback = async () => {
+                        const imagesHandle = await fileSystemService.ensureImagesDirectory(projectDirectoryHandle);
+                        const nextImageFiles = (await fileSystemService.listFiles(imagesHandle))
+                            .filter((f: string) => /\.(png|jpe?g|gif|svg|webp)$/i.test(f))
+                            .sort();
+
+                        const urls: Record<string, string> = {};
+                        const currentImageUrls = get().imageUrls;
+                        for (const img of nextImageFiles) {
+                            try {
+                                if (currentImageUrls[img]) {
+                                    urls[img] = currentImageUrls[img];
+                                } else {
+                                    urls[img] = await fileSystemService.getFileUrl(imagesHandle, img);
+                                }
+                            } catch (e) {
+                                console.warn(`Failed to get URL for ${img}`, e);
+                            }
+                        }
+                        set({ imageUrls: urls, imageFiles: nextImageFiles });
+                    };
+
+                    const result = await processTransparentImages(
+                        designContent,
+                        projectDirectoryHandle,
+                        imageUrls,
+                        refreshAssetsCallback
+                    );
+
+                    result.logs.forEach(log => console.log(log));
+
+                    if (result.processedCount > 0) {
+                        // 処理が完了したらコンテンツを更新（プレビューに反映）
+                        set({
+                            content: result.updatedContent,
+                            pendingContent: result.updatedContent,
+                        });
+                    }
+                } catch (err) {
+                    console.error('[detectExternalUpdate] Failed to process transparent images:', err);
+                }
+            })();
+        }
     },
 
     setApplyingUpdate: (isApplyingUpdate) => set({ isApplyingUpdate }),
@@ -166,7 +220,8 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     approveUpdate: async () => {
         const { content, currentFileHandle, metaMessage } = get();
 
-        // 承認した場合は、すでに反映されている content をファイルに保存する
+        // 承認した場合は、処理済み content をファイルに保存する
+        // (transparent- 処理は detectExternalUpdate で既に完了している)
         if (currentFileHandle) {
             const { fileSystemService } = await import('@/services/fileSystem');
             const fullHtml = constructFullHTML(content, '', metaMessage);
