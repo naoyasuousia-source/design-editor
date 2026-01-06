@@ -47,7 +47,7 @@ export const DesignContent = React.memo(({
         });
         // 2. background-image: url(...) の置換 (Reactによる再描画を確実に成功させる)
         // 引用符の種類を揃えてマッチさせ、スペースを含むパスも確実にキャプチャする
-        text = text.replace(/url\((['"]|&quot;|&#39;)?((?:\.\/)?images\/.+?)\1?\)/gi, (match, quote, fullPath) => {
+        text = text.replace(/url\((['"]|&quot;|&#39;)?((?:\.\/)?images\/.+?)\1?\)/gi, (match, _quote, fullPath) => {
             try {
                 // HTMLエンティティの正規化とデコード
                 const cleanPath = fullPath.replace(/&quot;/g, '"').replace(/&#39;/g, "'");

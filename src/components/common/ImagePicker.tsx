@@ -50,7 +50,7 @@ const ImagePicker: React.FC<ImagePickerProps> = ({ onSelect, onClose }) => {
                         />
                     </div>
                     <button
-                        onClick={refreshAssets}
+                        onClick={() => refreshAssets()}
                         className="p-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-gray-400 hover:text-white transition-all flex items-center gap-2"
                         title="再読み込み"
                     >
