@@ -8,7 +8,7 @@ interface LayerItemProps {
     layer: LayerData;
     isActive: boolean;
     isFirst: boolean;
-    onSelect: () => void;
+    onSelect: (e: React.MouseEvent) => void;
     onDragStart: (e: React.DragEvent) => void;
     onDragOver: (e: React.DragEvent) => void;
     onDrop: (position: 'top' | 'bottom') => void;
