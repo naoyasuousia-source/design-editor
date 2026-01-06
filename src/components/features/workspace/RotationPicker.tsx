@@ -19,16 +19,21 @@ const RotationPicker: React.FC<RotationPickerProps> = ({ targets, position, onUp
 
         if (isGroup) {
             const [, ...members] = targets;
+            console.log('[RotationPicker] Rotating group 90deg', members.length);
             rotationService.rotateGroup90Left(firstTarget, members);
         } else {
+            console.log('[RotationPicker] Rotating elements 90deg', targets.length);
             rotationService.rotate90Left(targets);
         }
+        console.log('[RotationPicker] Calling onUpdate');
         onUpdate();
     };
 
     const handleReset = (e: React.MouseEvent) => {
         e.stopPropagation();
+        console.log('[RotationPicker] Resetting rotation', targets.length);
         rotationService.resetRotation(targets);
+        console.log('[RotationPicker] Calling onUpdate');
         onUpdate();
         onClose();
     };
@@ -42,6 +47,8 @@ const RotationPicker: React.FC<RotationPickerProps> = ({ targets, position, onUp
                 transform: 'translateX(-50%)'
             }}
             onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            onMouseUp={(e) => e.stopPropagation()}
         >
             <button
                 onClick={handleRotate90}

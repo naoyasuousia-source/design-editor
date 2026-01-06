@@ -12,6 +12,7 @@ export const rotationService = {
         targets.forEach(el => {
             const currentRotation = getElementRotation(el);
             const newRotation = currentRotation - 90;
+            console.log(`[rotationService] rotate90Left id=${el.id}, current=${currentRotation}, new=${newRotation}`);
             this.setRotation(el, newRotation);
         });
     },
@@ -49,6 +50,7 @@ export const rotationService = {
         targets.forEach(el => {
             const initialRotate = el.getAttribute('data-initial-rotate');
             const targetRotate = initialRotate ? parseFloat(initialRotate) : 0;
+            console.log(`[rotationService] resetRotation id=${el.id}, initial=${initialRotate}, target=${targetRotate}`);
             this.setRotation(el, targetRotate);
         });
     },
@@ -58,10 +60,17 @@ export const rotationService = {
      */
     setRotation(el: HTMLElement, degree: number): void {
         const transform = el.style.transform || '';
+        let newTransform = '';
         if (transform.includes('rotate(')) {
-            el.style.transform = transform.replace(/rotate\(([-\d.]+)deg\)/, `rotate(${degree}deg)`);
+            newTransform = transform.replace(/rotate\(([-\d.]+)deg\)/, `rotate(${degree}deg)`);
         } else {
-            el.style.transform = `${transform} rotate(${degree}deg)`.trim();
+            newTransform = `${transform} rotate(${degree}deg)`.trim();
         }
+
+        const isInDOM = document.body.contains(el);
+        const isSelected = el.classList.contains('moveable-target-active') || el.classList.contains('group-selection-overlay');
+        console.log(`[rotationService] setRotation id=${el.id}, inDOM=${isInDOM}, isSelected=${isSelected}, old=${transform}, next=${newTransform}`);
+
+        el.style.transform = newTransform;
     }
 };
