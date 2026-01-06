@@ -142,6 +142,27 @@ export const cropUtils = {
     },
 
     /**
+     * トリミング後の最終的な transform 文字列を計算する
+     */
+    calculateFinalTransform(params: {
+        currentTransform: string;
+        cropRect: CropRect;
+        initialOffsets: { offX: number; offY: number };
+    }): string {
+        const { currentTransform, cropRect, initialOffsets } = params;
+        const moveX = cropRect.x + initialOffsets.offX;
+        const moveY = cropRect.y + initialOffsets.offY;
+
+        const tMatch = currentTransform.match(/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/);
+        if (tMatch) {
+            const bx = parseFloat(tMatch[1]);
+            const by = parseFloat(tMatch[2]);
+            return currentTransform.replace(/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/, `translate(${bx + moveX}px, ${by + moveY}px)`);
+        }
+        return `${currentTransform} translate(${moveX}px, ${moveY}px)`.trim();
+    },
+
+    /**
      * 背景画像用のスタイルオブジェクトを生成
      */
     generateBackgroundStyles(params: {
@@ -151,15 +172,15 @@ export const cropUtils = {
         url: string;
     }) {
         const { cropRect, naturalSize, fullSize, url } = params;
-        const scale = fullSize.width / naturalSize.width;
+        const scale = naturalSize.width > 0 ? fullSize.width / naturalSize.width : 1;
 
         return {
             backgroundImage: `url('${url}')`,
-            backgroundSize: `${naturalSize.width * scale}px ${naturalSize.height * scale}px`,
-            backgroundPosition: `${-cropRect.x}px ${-cropRect.y}px`,
+            backgroundSize: `${(naturalSize.width || 0) * scale}px ${(naturalSize.height || 0) * scale}px`,
+            backgroundPosition: `${-(cropRect.x || 0)}px ${-(cropRect.y || 0)}px`,
             backgroundRepeat: 'no-repeat',
-            width: `${cropRect.width}px`,
-            height: `${cropRect.height}px`
+            width: `${cropRect.width || 0}px`,
+            height: `${cropRect.height || 0}px`
         };
     }
 };

@@ -25,10 +25,9 @@ export const imageCropService = {
     applyFinalCrop(params: {
         target: HTMLElement;
         styles: any;
-        initialOffsets: { offX: number; offY: number };
-        cropRect: CropRect;
+        transform: string;
     }): HTMLElement {
-        const { target, styles, initialOffsets, cropRect } = params;
+        const { target, styles, transform } = params;
         let finalTarget = target;
 
         // img を div に変換 (背景画像を持てるようにするため)
@@ -36,25 +35,9 @@ export const imageCropService = {
             finalTarget = this.convertImgToDiv(target);
         }
 
-        // transform (位置) の適用。既存の transform を維持しつつ移動分を加算。
-        const moveX = cropRect.x + initialOffsets.offX;
-        const moveY = cropRect.y + initialOffsets.offY;
-
-        const currentStyle = finalTarget.getAttribute('style') || '';
-        let transStr = currentStyle.match(/transform:\s*([^;]+)/)?.[1] || finalTarget.style.transform || '';
-        const tMatch = transStr.match(/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/);
-
-        if (tMatch) {
-            const bx = parseFloat(tMatch[1]);
-            const by = parseFloat(tMatch[2]);
-            transStr = transStr.replace(/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/, `translate(${bx + moveX}px, ${by + moveY}px)`);
-        } else {
-            transStr = `${transStr} translate(${moveX}px, ${moveY}px)`.trim();
-        }
-
-        // 物理的なスタイルの適用
+        // スタイルと transform の適用
         Object.assign(finalTarget.style, styles);
-        finalTarget.style.transform = transStr;
+        finalTarget.style.transform = transform;
         finalTarget.style.objectFit = '';
         finalTarget.style.objectPosition = '';
 

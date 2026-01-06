@@ -30,11 +30,20 @@ export const restoreRelativePaths = (html: string, imageUrls: Record<string, str
 
     for (const [fileName, blobUrl] of sortedEntries) {
         if (!blobUrl) continue;
-        // 特殊文字をエスケープ
+
+        // 1. 素の Blob URL を置換
         const escapedBlob = blobUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        // url('blob:...') の形式や src="blob:..." の形式に対応
-        const regex = new RegExp(escapedBlob, 'g');
-        restored = restored.replace(regex, `./images/${fileName}`);
+        restored = restored.replace(new RegExp(escapedBlob, 'g'), `./images/${fileName}`);
+
+        // 2. ブラウザによってエンコードされた Blob URL も置換対象にする (スペースが %20 になっている等)
+        try {
+            const encodedBlob = encodeURI(blobUrl).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            if (encodedBlob !== escapedBlob) {
+                restored = restored.replace(new RegExp(encodedBlob, 'g'), `./images/${fileName}`);
+            }
+        } catch (e) {
+            // ignore
+        }
     }
     return restored;
 };

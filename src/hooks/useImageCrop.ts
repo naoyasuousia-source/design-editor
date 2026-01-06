@@ -180,8 +180,7 @@ export const useImageCrop = () => {
         const officialBlobUrl = fileName ? imageUrls[fileName] : targetImageUrl;
         const finalRect = currentCropRect.current;
 
-        // 1. Logic層で最終スタイルを計算
-        // DOM には常に現在の表示パス (Blob URL) を適用し、保存時のクリーンアップ層で相対パスに戻す
+        // 1. Logic層で最終スタイルと transform を計算
         const styles = cropUtils.generateBackgroundStyles({
             cropRect: finalRect,
             naturalSize,
@@ -189,30 +188,69 @@ export const useImageCrop = () => {
             url: officialBlobUrl || ''
         });
 
-        // 2. Action層で物理的な DOM 変換を実行
-        const finalElement = imageCropService.applyFinalCrop({
-            target,
-            styles,
-            initialOffsets,
-            cropRect: finalRect
+        const currentTransform = target.style.transform || window.getComputedStyle(target).transform || '';
+        const finalTransform = cropUtils.calculateFinalTransform({
+            currentTransform,
+            cropRect: finalRect,
+            initialOffsets
         });
 
-        // 3. 即座に最新の DOM 状態をストアに同期する (React の再レンダリング待ちによる先祖返りを防ぐ)
+        // 2. クローン DOM を使用して、仮想的に変換を適用し HTML を抽出する
+        // 実 DOM (デザイン領域内) は一切書き換えず、React の再レンダリングのみに委ねる
         const surface = target.closest('.DesignSurface');
         if (surface) {
+            // 一時的な属性を付与して、クローン内から確実に特定できるようにする
+            target.setAttribute('data-cropping-target', 'true');
+
             const { restoreRelativePaths } = await import('@/utils/html/cleaner');
-            const clone = surface.cloneNode(true) as HTMLElement;
-            // エディタ専用属性の除去などは cleaner の責務だが、ここでは最小限の同期を行う
-            const cleanHtml = restoreRelativePaths(clone.innerHTML, imageUrls);
-            useEditorStore.getState().setContent(cleanHtml, true); // 歴史には追加せず上書き
+            const cloneSurface = surface.cloneNode(true) as HTMLElement;
+            const clonedTarget = cloneSurface.querySelector('[data-cropping-target="true"]') as HTMLElement;
+
+            // 実 DOM から属性を削除
+            target.removeAttribute('data-cropping-target');
+
+            if (clonedTarget) {
+                // Action層をクローンに対して実行。戻り値として置換後の最新要素を取得。
+                const processedElement = imageCropService.applyFinalCrop({
+                    target: clonedTarget,
+                    styles,
+                    transform: finalTransform
+                });
+
+                // マーカー属性をクリーンアップ（置換後の要素からも確実に削除）
+                processedElement.removeAttribute('data-cropping-target');
+
+                // 重要: styles を適用しただけでは innerHTML に反映されない場合があるため、明示的に style 属性を更新
+                processedElement.setAttribute('style', processedElement.style.cssText);
+
+                // ストアへの同期
+                const cleanHtml = restoreRelativePaths(cloneSurface.innerHTML, imageUrls);
+
+                // --- デバッグログ: NaN や undefined の混入を確認 ---
+                console.group('Image Crop: Final Sync Data');
+                console.log('Final HTML:', cleanHtml);
+                if (cleanHtml.includes('NaN') || cleanHtml.includes('undefined')) {
+                    console.error('DETECTED INVALID VALUES (NaN/undefined) in final cleanHtml!');
+                    const invalidMatches = cleanHtml.match(/[^a-zA-Z0-9](NaN|undefined)[^a-zA-Z0-9]/g);
+                    console.error('Invalid segments:', invalidMatches);
+                }
+                console.log('Styles applied:', styles);
+                console.log('Transform applied:', finalTransform);
+                console.groupEnd();
+                // ---------------------------------------------
+
+                useEditorStore.getState().setContent(cleanHtml, true);
+            }
         }
 
-        // 4. モード終了
+        // 3. モード終了
         setImageCropMode(false, null);
 
+        // 最終的な描画は React が setContent による再レンダリングとして実行する
         requestAnimationFrame(() => {
             window.dispatchEvent(new CustomEvent('canvas-update'));
-            if (finalElement.id) setAutoSelectId(finalElement.id);
+            const finalEl = document.getElementById(target.id);
+            if (finalEl) setAutoSelectId(finalEl.id);
         });
     }, [target, naturalSize, fullSize, targetFileName, targetImageUrl, initialOffsets, setImageCropMode, setAutoSelectId]);
 
