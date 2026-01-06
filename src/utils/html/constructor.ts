@@ -108,6 +108,10 @@ export const constructFullHTML = (content: string, _customCss: string, meta: Met
     - **No Nesting in Text**: 「テキストボックス内」に子要素（span等）を配置することは厳禁。
     - **Image Insert**: 
         - 画像生成＆挿入は、「画像を生成してデザインに挿入せよ」という **明示的な指示があった場合に限り** 実行すること。
+        - **[CRITICAL] 画像タグの絶対ルール**:
+            - **画像は「必ず」「例外なく」「絶対に」 \`<img>\` タグで挿入すること。**
+            - **\`<div style="background-image: url(...)">\` 形式での挿入は一切禁止。**
+            - **\`<img>\` タグには必ず \`src\` 属性、\`style\` 属性（position, width, height 等）、\`alt\` 属性を含めること。**
         - **[CRITICAL] 画像保存先の絶対ルール**: 
             - **生成した画像は「必ず」「例外なく」「絶対に」 ./images/ フォルダに保存すること。**
             - **他のフォルダ（public/, assets/, src/ 等）への保存は一切禁止。**
