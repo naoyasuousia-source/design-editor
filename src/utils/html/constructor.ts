@@ -107,7 +107,10 @@ export const constructFullHTML = (content: string, _customCss: string, meta: Met
     - **No Nesting in Text**: 「テキストボックス内」に子要素（span等）を配置することは厳禁。
     - **Image Insert**: 
         - 画像生成＆挿入は、「画像を生成してデザインに挿入せよ」という **明示的な指示があった場合に限り** 実行すること。
-        - 画像を生成した場合は、必ず ./images/ フォルダに保存し、相対パス（例: ./images/filename.png）でHTMLに挿入すること。
+        - **[CRITICAL] 画像保存先の絶対ルール**: 
+            - **生成した画像は「必ず」「例外なく」「絶対に」 ./images/ フォルダに保存すること。**
+            - **他のフォルダ（public/, assets/, src/ 等）への保存は一切禁止。**
+            - **HTMLへの挿入時は必ず相対パス（例: ./images/filename.png）を使用すること。**
         - **背景透過が必要と判断した場合**: ファイル名を **transparent-〇〇.png** 形式で保存すること（例: transparent-apple.png）。エディタが自動的に背景透過処理を実行し、processed-〇〇.png として保存・置換します。
 
     4. DESIGN & STYLING
