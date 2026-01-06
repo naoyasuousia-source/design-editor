@@ -7,6 +7,7 @@ import {
     Scissors,
     Copy,
     Layers,
+    Eraser
 } from 'lucide-react';
 import { useAssets } from '@/hooks/useAssets';
 import { cn } from '@/utils/cn';
@@ -51,7 +52,7 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectio
         showShadowPalette, setShowShadowPalette,
         showTextBgPalette, setShowTextBgPalette,
         showStrokePalette, setShowStrokePalette,
-        applyStyle, setImageCropMode, handleGroup, handleUngroup, handleDelete, handleDuplicate, toggleBold, openEyeDropper, closeAllPanels
+        applyStyle, setImageCropMode, handleGroup, handleUngroup, handleDelete, handleDuplicate, handleRemoveBackground, toggleBold, openEyeDropper, closeAllPanels
     } = useFloatingMenu(targets, onUpdate, canvasRef, onClearSelection, selectionMode, activeSubTarget);
 
     if (!rect || !target) return null;
@@ -232,6 +233,13 @@ const FloatingMenu: React.FC<FloatingMenuProps> = ({ targets, onUpdate, selectio
                                     title="Crop"
                                 >
                                     <Scissors size={14} />
+                                </button>
+                                <button
+                                    className="p-1.5 hover:bg-white/5 rounded text-gray-400 hover:text-white transition-all"
+                                    onClick={handleRemoveBackground}
+                                    title="Remove Background"
+                                >
+                                    <Eraser size={14} />
                                 </button>
                                 <button
                                     className={cn("p-1.5 rounded transition-all", showImagePicker ? "bg-blue-500 text-white" : "text-gray-400 hover:bg-white/5 hover:text-white")}

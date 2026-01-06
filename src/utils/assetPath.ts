@@ -8,10 +8,13 @@ export const replaceAssetPaths = (
     let result = html;
 
     // 1. src="./images/xxx" の置換
+    let replaceCount = 0;
     result = result.replace(/src=["'](?:\.\/)?images\/(.+?)["']/g, (match, fileName) => {
         const blobUrl = imageUrls[fileName];
+        if (blobUrl) replaceCount++;
         return blobUrl ? `src="${blobUrl}"` : match;
     });
+    if (replaceCount > 0) console.log(`[replaceAssetPaths] Replaced ${replaceCount} src paths.`);
 
     // 2. background-image: url(...) の置換
     result = result.replace(/url\((['"]|&quot;|&#39;)?((?:\.\/)?images\/.+?)\1?\)/gi, (match, _quote, fullPath) => {

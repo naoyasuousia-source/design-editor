@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef } from 'react';
 import type { RefObject, MouseEvent } from 'react';
 import { htmlService } from '@/services/htmlService';
+import { useEditorStore } from '@/store/useEditorStore';
 
 const keyDownListeners = new WeakMap<HTMLElement, (e: KeyboardEvent) => void>();
 
@@ -8,8 +9,7 @@ export const useTextEditing = (
     canvasRef: RefObject<HTMLDivElement | null>,
     isLocked: boolean,
     setContent: (content: string) => void,
-    isTextBox: (el: HTMLElement) => boolean,
-    imageUrls: Record<string, string>
+    isTextBox: (el: HTMLElement) => boolean
 ) => {
     const editingElementRef = useRef<HTMLElement | null>(null);
     const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -18,10 +18,18 @@ export const useTextEditing = (
     const updateContentFromDOM = useCallback(() => {
         const surface = canvasRef.current?.querySelector('.DesignSurface') as HTMLElement;
         if (surface) {
+            const { imageUrls } = useEditorStore.getState();
             const cleanHtml = htmlService.getCleanHTML(surface, imageUrls);
+            console.log('[updateContentFromDOM] Saving HTML length:', cleanHtml.length);
+            // 特定の要素のパスをチェック（デバッグ用：最初のimgタグをサンプルに）
+            const firstImg = cleanHtml.match(/<img[^>]+src="([^"]+)"/);
+            if (firstImg) console.log('[updateContentFromDOM] First img src in saved HTML:', firstImg[1]);
+
             setContent(cleanHtml);
+        } else {
+            console.warn('[updateContentFromDOM] DesignSurface not found!');
         }
-    }, [canvasRef, setContent, imageUrls]);
+    }, [canvasRef, setContent]);
 
     const finishEditing = useCallback(() => {
         if (editingElementRef.current && isEditingRef.current) {

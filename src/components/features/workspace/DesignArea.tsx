@@ -131,6 +131,7 @@ const DesignArea: React.FC<DesignAreaProps> = ({
                     </div>
                 </div>
             )}
+
             {children}
         </div>
     );
